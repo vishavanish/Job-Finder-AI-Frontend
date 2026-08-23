@@ -1,0 +1,44 @@
+# ---- dependencies ----
+node_modules/
+.pnp
+.pnp.js
+
+# ---- build output ----
+build/
+dist/
+.next/
+out/
+
+# ---- environment variables ----
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ---- logs ----
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---- editor / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# ---- testing ----
+coverage/
+
+# ---- misc ----
+*.local
+.cache/
+.parcel-cache/
+
+# ---- package manager locks (optional — many teams DO commit these; remove this line if you want yours tracked) ----
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
