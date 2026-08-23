@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { listApplications, getGmailStatus, updateApplicationStatus } from "../api/client.js";
+import { listApplications, updateApplicationStatus } from "../api/client.js";
+// import { getGmailStatus } from "../api/client.js"; // TODO: re-enable once GET /gmail/status is added on the backend
 
 export default function ApplicationsPage() {
-  const [gmailConnected, setGmailConnected] = useState(null); // null = checking
+  // const [gmailConnected, setGmailConnected] = useState(null); // null = checking
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -11,16 +12,16 @@ export default function ApplicationsPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const limit = 20;
 
-  const checkGmail = async () => {
-    try {
-      const { data } = await getGmailStatus();
-      setGmailConnected(data.all_connected);
-      return data.all_connected;
-    } catch {
-      setGmailConnected(false);
-      return false;
-    }
-  };
+  // const checkGmail = async () => {
+  //   try {
+  //     const { data } = await getGmailStatus();
+  //     setGmailConnected(data.all_connected);
+  //     return data.all_connected;
+  //   } catch {
+  //     setGmailConnected(false);
+  //     return false;
+  //   }
+  // };
 
   const load = async (newOffset = offset) => {
     setLoading(true);
@@ -38,35 +39,32 @@ export default function ApplicationsPage() {
   };
 
   useEffect(() => {
-    checkGmail().then((connected) => {
-      // Load applications regardless of Gmail status — Gmail only affects
-      // auto status-updates, not whether the applications list itself works.
-      load(0);
-    });
+    // checkGmail().then(() => load(0));
+    load(0);
   }, []);
 
   const statusTone = (status) => {
     if (!status) return "job-score mid";
     if (status.startsWith("open_failed")) return "job-score low";
     if (status === "rejected") return "job-score low";
-    if (status === "interview_invite" || status === "assessment_invite") return "job-score";
+    if (status === "interview" || status === "offer") return "job-score";
     if (status.includes("easy_apply_form_filled") || status === "submitted") return "job-score";
     return "job-score mid";
   };
 
   const handleMarkApplied = async (row) => {
-  setUpdatingId(row.id);
-  try {
-    await updateApplicationStatus(row.id, "submitted");
-    setRows((prev) =>
-      prev.map((r) => (r.id === row.id ? { ...r, status: "submitted", status_source: "manual" } : r))
-    );
-  } catch (err) {
-    setError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
-  } finally {
-    setUpdatingId(null);
-  }
-};
+    setUpdatingId(row.id);
+    try {
+      await updateApplicationStatus(row.id, "submitted");
+      setRows((prev) =>
+        prev.map((r) => (r.id === row.id ? { ...r, status: "submitted", status_source: "manual" } : r))
+      );
+    } catch (err) {
+      setError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
     <div>
@@ -77,7 +75,7 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
-      {gmailConnected === false && (
+      {/* {gmailConnected === false && (
         <div className="card">
           <h3>Gmail not connected</h3>
           <p className="field-hint">
@@ -86,7 +84,7 @@ export default function ApplicationsPage() {
             You can still track applications manually below in the meantime.
           </p>
         </div>
-      )}
+      )} */}
 
       {error && <div className="login-error">{error}</div>}
 
