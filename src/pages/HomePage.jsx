@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useRun } from "../context/RunContext.jsx";
-import { startApply, pollTask, listApplications, updateApplicationStatus } from "../api/client.js";
+import { startApply, pollTask, listApplications, updateApplicationStatus, cancelTask } from "../api/client.js";
 
 function buildPipelinePayload(settings) {
   const sources = Object.entries(settings.providers)
@@ -33,9 +33,6 @@ function scoreClass(score) {
   return "job-score low";
 }
 
-// After an apply task completes, the created Application row isn't
-// returned directly by /apply — look it up by matching job_url against
-// the user's most recent applications.
 async function findApplicationIdByUrl(jobUrl) {
   try {
     const { data } = await listApplications({ limit: 20, offset: 0 });
@@ -48,12 +45,15 @@ async function findApplicationIdByUrl(jobUrl) {
 
 export default function HomePage() {
   const { settings } = useSettings();
-  const { status, progressLog, jobs, error, run } = useRun();
+  const { status, progressLog, jobs, error, run, taskId } = useRun();
   const [applyingUrl, setApplyingUrl] = useState(null);
-  const [applicationIds, setApplicationIds] = useState({}); // job.url -> application id
+  const [applicationIds, setApplicationIds] = useState({});
   const [appliedUrls, setAppliedUrls] = useState(new Set());
   const [markedUrls, setMarkedUrls] = useState(new Set());
   const [applyErrors, setApplyErrors] = useState({});
+  const [applyTaskIds, setApplyTaskIds] = useState({}); // job.url -> apply task_id
+  const [cancellingRun, setCancellingRun] = useState(false);
+  const [cancellingUrl, setCancellingUrl] = useState(null);
 
   const handleRun = () => {
     setAppliedUrls(new Set());
@@ -61,6 +61,18 @@ export default function HomePage() {
     setApplicationIds({});
     setApplyErrors({});
     run(buildPipelinePayload(settings));
+  };
+
+  const handleCancelRun = async () => {
+    if (!taskId) return;
+    setCancellingRun(true);
+    try {
+      await cancelTask(taskId);
+    } catch (err) {
+      console.error("Failed to cancel run:", err);
+    } finally {
+      setCancellingRun(false);
+    }
   };
 
   const handleApply = async (job) => {
@@ -79,8 +91,7 @@ export default function HomePage() {
         auto_fill_easy_apply: true,
       });
 
-      // Backend logs "opened" as soon as the task starts running — we
-      // don't need to wait for it to finish before reflecting that here.
+      setApplyTaskIds((prev) => ({ ...prev, [job.url]: data.task_id }));
       setAppliedUrls((prev) => new Set(prev).add(job.url));
 
       pollTask(data.task_id, { intervalMs: 2000, maxAttempts: 120 })
@@ -110,6 +121,23 @@ export default function HomePage() {
       }));
     } finally {
       setApplyingUrl(null);
+    }
+  };
+
+  const handleCancelApply = async (job) => {
+    const applyTaskId = applyTaskIds[job.url];
+    if (!applyTaskId) return;
+    setCancellingUrl(job.url);
+    try {
+      await cancelTask(applyTaskId);
+      setApplyErrors((prev) => ({ ...prev, [job.url]: "Apply cancelled." }));
+    } catch (err) {
+      setApplyErrors((prev) => ({
+        ...prev,
+        [job.url]: err.message || "Failed to cancel apply.",
+      }));
+    } finally {
+      setCancellingUrl(null);
     }
   };
 
@@ -144,6 +172,12 @@ export default function HomePage() {
             {isRunning && <span className="spinner" />}
             {isRunning ? "Running..." : "▶ Run Job Search"}
           </button>
+
+          {isRunning && taskId && (
+            <button className="btn-small" onClick={handleCancelRun} disabled={cancellingRun}>
+              {cancellingRun ? "Cancelling..." : "Cancel"}
+            </button>
+          )}
 
           {status !== "idle" && (
             <span className={`status-pill ${status}`}>
@@ -200,6 +234,7 @@ export default function HomePage() {
                 const isMarked = markedUrls.has(job.url);
                 const hasAppId = !!applicationIds[job.url];
                 const rowError = applyErrors[job.url];
+                const isAwaitingCompletion = isOpened && !isMarked && !hasAppId && !rowError;
 
                 return (
                   <tr key={job.url}>
@@ -227,12 +262,22 @@ export default function HomePage() {
                             : "Apply"}
                         </button>
 
+                        {isAwaitingCompletion && (
+                          <button
+                            className="btn-small"
+                            onClick={() => handleCancelApply(job)}
+                            disabled={cancellingUrl === job.url}
+                          >
+                            {cancellingUrl === job.url ? "Cancelling..." : "Cancel apply"}
+                          </button>
+                        )}
+
                         {isOpened && !isMarked && hasAppId && (
                           <button className="btn-small" onClick={() => handleMarkApplied(job)}>
                             Mark as Applied
                           </button>
                         )}
-                        {isOpened && !isMarked && !hasAppId && (
+                        {isOpened && !isMarked && !hasAppId && !rowError && (
                           <span className="field-hint">Finding record...</span>
                         )}
                         {isMarked && <span className="field-hint">✓ Marked applied</span>}

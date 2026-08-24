@@ -1,16 +1,17 @@
 // src/context/RunContext.jsx
 import { createContext, useContext, useRef, useState, useCallback } from "react";
-import { runPipeline, pollTask, closeApplyBrowser } from "../api/client.js";
+import { runPipeline, pollTask, closeApplyBrowser, cancelTask } from "../api/client.js";
 
 const RunContext = createContext(null);
 
 export function RunProvider({ children }) {
-  const [status, setStatus] = useState("idle"); // idle | running | completed | failed
+  const [status, setStatus] = useState("idle"); // idle | running | completed | failed | cancelled
   const [progressLog, setProgressLog] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState("");
+  const [taskId, setTaskId] = useState(null);
   const [applyTaskId, setApplyTaskId] = useState(null);
-  const [applyStatus, setApplyStatus] = useState("idle"); // idle | running | completed | failed
+  const [applyStatus, setApplyStatus] = useState("idle"); // idle | running | completed | failed | cancelled
   const [applyError, setApplyError] = useState("");
 
   const lastProgress = useRef("");
@@ -29,6 +30,7 @@ export function RunProvider({ children }) {
       setError("");
       setJobs([]);
       setProgressLog([]);
+      setTaskId(null);
       setApplyTaskId(null);
       setApplyStatus("idle");
       setApplyError("");
@@ -39,10 +41,11 @@ export function RunProvider({ children }) {
 
       try {
         const { data } = await runPipeline(payload);
-        const taskId = data.task_id;
+        const pipelineTaskId = data.task_id;
+        setTaskId(pipelineTaskId);
         logProgress("Pipeline started — searching, then scoring...");
 
-        const finalTask = await pollTask(taskId, {
+        const finalTask = await pollTask(pipelineTaskId, {
           intervalMs: 2500,
           maxAttempts: 600,
           onUpdate: (t) => {
@@ -52,6 +55,12 @@ export function RunProvider({ children }) {
 
         // a newer run() call superseded this one while we were polling
         if (activeTaskId.current !== localTaskId) return;
+
+        if (finalTask.status === "revoked" || finalTask.status === "cancelled") {
+          setStatus("cancelled");
+          logProgress("Pipeline cancelled.");
+          return;
+        }
 
         if (finalTask.status === "failed") {
           setStatus("failed");
@@ -76,7 +85,10 @@ export function RunProvider({ children }) {
           pollTask(applyId, { intervalMs: 2000 })
             .then((finalApply) => {
               if (activeApplyTaskId.current !== applyId) return;
-              if (finalApply.status === "failed") {
+              if (finalApply.status === "revoked" || finalApply.status === "cancelled") {
+                setApplyStatus("cancelled");
+                logProgress("Apply task cancelled.");
+              } else if (finalApply.status === "failed") {
                 setApplyStatus("failed");
                 setApplyError(finalApply.error || "Apply task failed.");
               } else {
@@ -104,6 +116,36 @@ export function RunProvider({ children }) {
     [logProgress]
   );
 
+  // Cancels the running pipeline/search task (safe — no browser involved
+  // unless the pipeline's apply step has already started as its own task).
+  const cancelRun = useCallback(async () => {
+    if (!taskId) return;
+    try {
+      await cancelTask(taskId);
+      logProgress("Cancel requested for pipeline task.");
+      return true;
+    } catch (err) {
+      setError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
+      return false;
+    }
+  }, [taskId, logProgress]);
+
+  // Cancels the apply task specifically. NOTE: this can terminate
+  // Playwright mid-flight and leave a browser context open without
+  // running close_browser() — prefer closeBrowser() when the apply task
+  // has already completed and you just want to close review tabs.
+  const cancelApply = useCallback(async () => {
+    if (!applyTaskId) return;
+    try {
+      await cancelTask(applyTaskId);
+      logProgress("Cancel requested for apply task.");
+      return true;
+    } catch (err) {
+      setApplyError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
+      return false;
+    }
+  }, [applyTaskId, logProgress]);
+
   const closeBrowser = useCallback(async () => {
     if (!applyTaskId) return;
     try {
@@ -128,6 +170,7 @@ export function RunProvider({ children }) {
     setProgressLog([]);
     setJobs([]);
     setError("");
+    setTaskId(null);
     setApplyTaskId(null);
     setApplyStatus("idle");
     setApplyError("");
@@ -142,10 +185,13 @@ export function RunProvider({ children }) {
         error,
         run,
         reset,
+        taskId,
+        cancelRun,
         applyTaskId,
         applyStatus,
         applyError,
         closeBrowser,
+        cancelApply,
       }}
     >
       {children}

@@ -1,7 +1,10 @@
 import axios from "axios";
 
-// Vite dev server proxies /api -> http://localhost:8000 (see vite.config.js)
-const client = axios.create({ baseURL: "/api/v1" });
+const API_URL = import.meta.env.VITE_API_URL;
+
+const client = axios.create({
+  baseURL: `${API_URL}/api/v1`,
+});
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem("job_finder_access_token") || "";
@@ -45,11 +48,11 @@ export const runPipeline = (payload) => client.post("/pipeline/run", payload);
 // task_id is now an opaque Celery id (string) — never assume UUID shape
 export const getTask = (taskId) => client.get(`/tasks/${taskId}`);
 
-// NOTE: GET /tasks (list-all) no longer exists on the backend — Celery's
-// result backend has no "list every task" index. Don't call this from the
-// UI; if you need a history view, use GET /applications instead for
-// anything already logged, or ask the backend for the side-table index
-// mentioned in tasks.py's docstring.
+// Revokes a running/queued Celery task. NOTE: for /apply tasks this can
+// terminate Playwright mid-flight and leave a browser context open
+// without running close_browser() — prefer closeApplyBrowser() once an
+// apply task has already completed and you just want to close review tabs.
+export const cancelTask = (taskId) => client.post(`/tasks/${taskId}/cancel`);
 
 // ---- company ATS (requires login — see auth.py's require_api_key/get_current_user) ----
 export const fetchCompanyAts = (payload) => client.post("/company-ats/fetch", payload);
@@ -58,6 +61,7 @@ export const fetchCompanyAts = (payload) => client.post("/company-ats/fetch", pa
 export const listApplications = (params) => client.get("/applications", { params });
 export const getApplication = (index) => client.get(`/applications/${index}`);
 export const updateApplicationStatus = (id, status) => client.patch(`/applications/${id}`, { status });
+
 // ---- polling helper ----
 // IMPORTANT: GET /tasks/{id} never 404s — an unknown/garbage id reports
 // status "pending" forever (Celery can't distinguish "never existed" from
@@ -68,7 +72,9 @@ export async function pollTask(taskId, { intervalMs = 2500, maxAttempts = 300, o
   while (attempts < maxAttempts) {
     const { data } = await getTask(taskId);
     onUpdate?.(data);
-    if (data.status === "completed" || data.status === "failed") return data;
+    if (data.status === "completed" || data.status === "failed" || data.status === "cancelled") {
+      return data;
+    }
     attempts += 1;
     await new Promise((r) => setTimeout(r, intervalMs));
   }
