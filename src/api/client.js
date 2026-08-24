@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "https://job-finder-ai-backend-11.onrender.com";
 
 const client = axios.create({
   baseURL: `${API_URL}/api/v1`,
