@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://job-finder-ai-backend-11.onrender.com";
+const API_URL = "https://jobfinderai.duckdns.org";
 
 const client = axios.create({
   baseURL: `${API_URL}/api/v1`,
