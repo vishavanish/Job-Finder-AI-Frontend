@@ -51,7 +51,7 @@ export default function HomePage() {
   const [appliedUrls, setAppliedUrls] = useState(new Set());
   const [markedUrls, setMarkedUrls] = useState(new Set());
   const [applyErrors, setApplyErrors] = useState({});
-  const [applyTaskIds, setApplyTaskIds] = useState({}); // job.url -> apply task_id
+  const [applyTaskIds, setApplyTaskIds] = useState({});
   const [cancellingRun, setCancellingRun] = useState(false);
   const [cancellingUrl, setCancellingUrl] = useState(null);
 
@@ -250,17 +250,29 @@ export default function HomePage() {
                     <td style={{ maxWidth: 280 }}>{job.llm_reason}</td>
                     <td>
                       <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
-                        <button
-                          className={`btn-apply ${isOpened ? "applied" : ""}`}
-                          disabled={applyingUrl === job.url}
-                          onClick={() => handleApply(job)}
-                        >
-                          {applyingUrl === job.url
-                            ? "Opening..."
-                            : isOpened
-                            ? "✓ Opened"
-                            : "Apply"}
-                        </button>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <a
+                            href={job.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-small"
+                          >
+                            Apply
+                          </a>
+                          {job.auto_apply_capable && (
+                            <button
+                              className={`btn-apply ${isOpened ? "applied" : ""}`}
+                              disabled={applyingUrl === job.url}
+                              onClick={() => handleApply(job)}
+                            >
+                              {applyingUrl === job.url
+                                ? "Opening..."
+                                : isOpened
+                                ? "✓ Auto-Applied"
+                                : "Auto-Apply"}
+                            </button>
+                          )}
+                        </div>
 
                         {isAwaitingCompletion && (
                           <button
