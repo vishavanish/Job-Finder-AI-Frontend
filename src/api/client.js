@@ -55,6 +55,15 @@ export const closeApplyBrowser = (taskId) =>
 export const runPipeline = (payload) =>
   client.post("/pipeline/run", payload);
 
+export const startPipelineStream = (payload) =>
+  client.post("/pipeline/run/stream", payload);
+
+export const getPipelineRun = (runId) =>
+  client.get(`/pipeline/${runId}`);
+
+export const getPipelineRunJobs = (runId, offset = 0) =>
+  client.get(`/pipeline/${runId}/jobs`, { params: { offset } });
+
 export const getTask = (taskId) =>
   client.get(`/tasks/${taskId}`);
 

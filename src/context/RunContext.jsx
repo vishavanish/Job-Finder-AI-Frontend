@@ -1,6 +1,6 @@
 // src/context/RunContext.jsx
 import { createContext, useContext, useRef, useState, useCallback } from "react";
-import { runPipeline, pollTask, closeApplyBrowser, cancelTask } from "../api/client.js";
+import { runPipeline, pollTask, closeApplyBrowser, cancelTask, startPipelineStream, getPipelineRunJobs, } from "../api/client.js";
 
 const RunContext = createContext(null);
 
@@ -116,6 +116,83 @@ export function RunProvider({ children }) {
     [logProgress]
   );
 
+  // Streaming variant: dispatches a Celery group (one task per keyword,
+  // run in parallel), then polls a Redis-backed endpoint that returns
+  // whatever jobs have been scored SO FAR. Jobs appear in the `jobs`
+  // array incrementally, while other keywords are still running —
+  // unlike run() above, which only ever sets `jobs` once, at the very
+  // end, from one big blocking task result.
+  //
+  // NOTE: taskId here is a Redis-keyed run_id, NOT a Celery task_id.
+  // cancelRun() below calls cancelTask(taskId), which only understands
+  // real Celery task ids — under streaming mode that call will silently
+  // no-op against a run_id Celery doesn't recognize. A proper fix needs
+  // a backend endpoint that revokes every task_id in the group by
+  // run_id; until that exists, treat Cancel as non-functional while a
+  // streaming run is in progress.
+  const runStream = useCallback(
+    async (payload) => {
+      setStatus("running");
+      setError("");
+      setJobs([]);
+      setProgressLog([]);
+      setTaskId(null);
+      setApplyTaskId(null);
+      setApplyStatus("idle");
+      setApplyError("");
+      lastProgress.current = "";
+
+      const localTaskId = Symbol("run-stream");
+      activeTaskId.current = localTaskId;
+
+      try {
+        const { data } = await startPipelineStream(payload);
+        const runId = data.run_id;
+        setTaskId(runId); // reused as the "current run" id for UI purposes
+        logProgress("Pipeline dispatched — jobs will appear as they're found and scored.");
+
+        let offset = 0;
+        let done = false;
+
+        while (!done) {
+          if (activeTaskId.current !== localTaskId) return; // superseded by a newer run
+
+          await new Promise((r) => setTimeout(r, 2000));
+          if (activeTaskId.current !== localTaskId) return; // check again after the wait
+
+          const { data: page } = await getPipelineRunJobs(runId, offset);
+
+          if (page.jobs.length > 0) {
+            setJobs((prev) => [...prev, ...page.jobs]);
+            offset += page.jobs.length;
+            logProgress(`+${page.jobs.length} job(s) found — ${offset} total so far`);
+          }
+
+          if (page.run_status === "completed" || page.run_status === "failed") {
+            done = true;
+            if (page.run_status === "failed") {
+              setStatus("failed");
+              setError("One or more keyword searches failed — check server logs for details.");
+            } else {
+              setStatus("completed");
+              logProgress(`Done — ${offset} matching job(s) found.`);
+            }
+          }
+        }
+      } catch (err) {
+        if (activeTaskId.current !== localTaskId) return;
+        setStatus("failed");
+        setError(
+          err.authError ||
+            err.rateLimitError ||
+            err?.response?.data?.detail ||
+            err.message
+        );
+      }
+    },
+    [logProgress]
+  );
+
   // Cancels the running pipeline/search task (safe — no browser involved
   // unless the pipeline's apply step has already started as its own task).
   const cancelRun = useCallback(async () => {
@@ -184,6 +261,7 @@ export function RunProvider({ children }) {
         jobs,
         error,
         run,
+        runStream,
         reset,
         taskId,
         cancelRun,

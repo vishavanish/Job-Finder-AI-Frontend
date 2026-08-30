@@ -45,7 +45,7 @@ async function findApplicationIdByUrl(jobUrl) {
 
 export default function HomePage() {
   const { settings } = useSettings();
-  const { status, progressLog, jobs, error, run, taskId } = useRun();
+  const { status, progressLog, jobs, error, runStream, taskId } = useRun();
   const [applyingUrl, setApplyingUrl] = useState(null);
   const [applicationIds, setApplicationIds] = useState({});
   const [appliedUrls, setAppliedUrls] = useState(new Set());
@@ -56,12 +56,12 @@ export default function HomePage() {
   const [cancellingUrl, setCancellingUrl] = useState(null);
 
   const handleRun = () => {
-    setAppliedUrls(new Set());
-    setMarkedUrls(new Set());
-    setApplicationIds({});
-    setApplyErrors({});
-    run(buildPipelinePayload(settings));
-  };
+      setAppliedUrls(new Set());
+      setMarkedUrls(new Set());
+      setApplicationIds({});
+      setApplyErrors({});
+      runStream(buildPipelinePayload(settings));
+    };
 
   const handleCancelRun = async () => {
     if (!taskId) return;
