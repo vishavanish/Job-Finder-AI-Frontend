@@ -1,19 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-
-function extractErrorMessage(err, fallback) {
-  return (
-    err.authError ||
-    err.rateLimitError ||
-    err?.response?.data?.detail ||
-    err.message ||
-    fallback
-  );
-}
+import { useAuth } from "../context/AuthContext";
+import { errorMessage } from "../lib/api/errors";
+import { safeRedirectPath } from "../lib/safeRedirect";
 
 export default function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, notice, clearNotice } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,16 +32,17 @@ export default function LoginPage() {
     }
 
     setLoading(true);
+    clearNotice();
     try {
       if (isRegister) {
         await register(email, password, name || undefined);
       } else {
         await login(email, password);
       }
-      navigate(location.state?.from ?? "/", { replace: true });
+      navigate(safeRedirectPath(location.state?.from), { replace: true });
     } catch (err) {
       setError(
-        extractErrorMessage(
+        errorMessage(
           err,
           isRegister ? "Could not create account." : "Incorrect email or password."
         )
@@ -76,7 +69,16 @@ export default function LoginPage() {
           {isRegister ? "Create an account to get started" : "Sign in to run and manage your job search"}
         </p>
 
-        {error && <div className="login-error">{error}</div>}
+        {notice && !error && (
+          <div className="login-notice" role="status">
+            {notice}
+          </div>
+        )}
+        {error && (
+          <div className="login-error" role="alert">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {isRegister && (
@@ -129,7 +131,7 @@ export default function LoginPage() {
             style={{
               background: "none",
               border: "none",
-              color: "var(--red)",
+              color: "var(--accent-text)",
               fontWeight: 600,
               cursor: "pointer",
               padding: 0,

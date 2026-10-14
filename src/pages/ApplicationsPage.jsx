@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { listApplications, updateApplicationStatus } from "../api/client.js";
-// import { getGmailStatus } from "../api/client.js"; // TODO: re-enable once GET /gmail/status is added on the backend
+import { listApplications, updateApplicationStatus } from "../api/client";
+import { errorMessage } from "../lib/api/errors";
+import { StatusBadge } from "../components/StatusBadge";
+// import { getGmailStatus } from "../api/client"; // TODO: re-enable once GET /gmail/status is added on the backend
 
 export default function ApplicationsPage() {
   // const [gmailConnected, setGmailConnected] = useState(null); // null = checking
@@ -32,7 +34,7 @@ export default function ApplicationsPage() {
       setTotal(data.total);
       setOffset(newOffset);
     } catch (err) {
-      setError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
+      setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -43,15 +45,6 @@ export default function ApplicationsPage() {
     load(0);
   }, []);
 
-  const statusTone = (status) => {
-    if (!status) return "job-score mid";
-    if (status.startsWith("open_failed")) return "job-score low";
-    if (status === "rejected") return "job-score low";
-    if (status === "interview" || status === "offer") return "job-score";
-    if (status.includes("easy_apply_form_filled") || status === "submitted") return "job-score";
-    return "job-score mid";
-  };
-
   const handleMarkApplied = async (row) => {
     setUpdatingId(row.id);
     try {
@@ -60,7 +53,7 @@ export default function ApplicationsPage() {
         prev.map((r) => (r.id === row.id ? { ...r, status: "submitted", status_source: "manual" } : r))
       );
     } catch (err) {
-      setError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
+      setError(errorMessage(err));
     } finally {
       setUpdatingId(null);
     }
@@ -116,7 +109,7 @@ export default function ApplicationsPage() {
                     </td>
                     <td><span className="source-badge">{r.source}</span></td>
                     <td>
-                      <span className={statusTone(r.status)}>{r.status}</span>
+                      <StatusBadge status={r.status} />
                       {r.status_source && (
                         <span className="field-hint" style={{ marginLeft: 6 }}>
                           ({r.status_source})

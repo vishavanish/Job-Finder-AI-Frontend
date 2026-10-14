@@ -1,53 +1,58 @@
-# Job Finder — Frontend (React + Vite)
+# Job Finder — Frontend
 
-Red-and-white themed frontend for the Job Finder FastAPI backend.
+React 18 + Vite + React Router. TypeScript is being adopted file by file (new code is
+`.ts`/`.tsx`, older screens are still `.jsx`). Backend: the FastAPI app in
+[Job-Finder-AI-Backend](https://github.com/vishavanish/Job-Finder-AI-Backend).
+
+- Spec: [docs/frontend-prompt.md](docs/frontend-prompt.md)
+- Current state, known problems, mocked endpoints and migration plan:
+  [docs/frontend-audit.md](docs/frontend-audit.md)
 
 ## Run it
 
 ```bash
 npm install
-npm run dev
+npm run dev          # http://localhost:5173, /api proxied to http://127.0.0.1:8000
+npm run dev:mocks    # no backend needed: every API call is answered by MSW
 ```
 
-Opens on **http://localhost:5173**. The dev server proxies `/api/*` to
-`http://localhost:8000` (see `vite.config.js`) — start the FastAPI backend
-first (`uvicorn app.main:app --reload --port 8000`).
+Mock sign-in: `demo@jobfinder.test` or `admin@jobfinder.test`, password `password123`
+(or OTP code `123456`). `disabled@jobfinder.test` signs in and is then locked out, to
+show the disabled-account flow.
 
-## Pages
+## Configuration
 
-- **Login** (`/login`) — red/white themed sign-in. No backend auth endpoint
-  exists yet, so this creates a local session only; wire `LoginPage.jsx`'s
-  `handleSubmit` to a real `POST /auth/login` when one exists.
-- **Dashboard shell** — vertical left nav:
-  - **Run & Results** (home `/`) — runs `POST /api/v1/pipeline/run`
-    (search + score together), polls the task, and lists ranked jobs live
-    with an **Apply** button per row (opens the job URL and triggers
-    `POST /api/v1/apply` to pre-fill LinkedIn Easy Apply where possible).
-  - **Keywords** (`/keywords`) — edit search keywords, locations, results
-    limit, max posting age.
-  - **Skills & Resume** (`/skills`) — skills, career targets, resume
-    summary, scoring thresholds — feeds `POST /api/v1/score`.
-  - **ATS Targets** (`/ats-targets`) — add/remove Greenhouse / Lever /
-    SmartRecruiters / custom company targets — feeds
-    `POST /api/v1/company-ats/fetch`.
-  - **Providers** (`/providers`) — toggle LinkedIn / Indeed / Naukri on/off
-    for the search's `sources` field.
-  - Bottom of nav: **profile** (links to `/profile` — applicant info used
-    for Easy Apply pre-fill) and **Logout**.
+| Variable               | Where                                 | Meaning                                                                                                           |
+| ---------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`    | `.env.development`, `.env.production` | Backend origin without `/api/v1`. Empty = same origin (dev proxy). Production: `https://jobfinderai.duckdns.org`. |
+| `VITE_USE_MOCKS`       | `.env.mocks`                          | `true` serves the API from `src/mocks`.                                                                           |
+| `DEV_API_PROXY_TARGET` | `.env.development`                    | Where the dev proxy sends `/api`. Not exposed to the browser.                                                     |
 
-## State
+Override per machine in `.env.local` (git-ignored). Never put secrets in `VITE_*`
+variables: they end up in the public bundle.
 
-All dynamic pipeline settings (keywords, skills, ATS targets, providers,
-resume, thresholds, applicant info) live in `SettingsContext` and persist to
-`localStorage`, so they survive refreshes and are assembled into the right
-request shape in `HomePage.jsx`'s `buildPipelinePayload()` before calling
-the API. No settings are hardcoded — every field maps 1:1 to a request
-field on the backend.
+## Checks (same as CI)
 
-## Notes
+```bash
+npm run check        # lint, format check, type-check, tests, build
+```
 
-- Update `vite.config.js`'s proxy target if your backend runs somewhere
-  other than `localhost:8000`.
-- Auth is a local-only stub — add real auth before deploying publicly.
-- `npm run build` produces a static `dist/` you can serve behind any
-  static host (Nginx, Vercel, S3+CloudFront, etc).
+Individually: `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm test`,
+`npm run build`.
+
+## API types
+
+Types are generated from the backend's OpenAPI schema, committed as a snapshot in
+`openapi/backend-openapi.json`:
+
+```bash
+npm run api:snapshot   # fetch from a running backend (OPENAPI_URL to override)
+npm run gen:api        # regenerate src/lib/api/schema.d.ts
+```
+
+## Auth
+
+The access token is kept in memory only. On a page reload the app calls
+`POST /api/v1/auth/refresh`, which uses the backend's httpOnly `jf_refresh` cookie.
+On a 401 the client refreshes once and retries; on `403 account_disabled` it signs
+the user out with a message. See `src/lib/api/client.ts`.

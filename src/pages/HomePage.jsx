@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useRun } from "../context/RunContext.jsx";
-import { startApply, pollTask, listApplications, updateApplicationStatus, cancelTask } from "../api/client.js";
+import { startApply, pollTask, listApplications, updateApplicationStatus, cancelTask } from "../api/client";
+import { errorMessage } from "../lib/api/errors";
+import { useActivity } from "../app/activity";
 
 function buildPipelinePayload(settings) {
   const sources = Object.entries(settings.providers)
@@ -46,6 +48,7 @@ async function findApplicationIdByUrl(jobUrl) {
 export default function HomePage() {
   const { settings } = useSettings();
   const { status, progressLog, jobs, error, runStream, taskId } = useRun();
+  const { track } = useActivity();
   const [applyingUrl, setApplyingUrl] = useState(null);
   const [applicationIds, setApplicationIds] = useState({});
   const [appliedUrls, setAppliedUrls] = useState(new Set());
@@ -92,16 +95,26 @@ export default function HomePage() {
       });
 
       setApplyTaskIds((prev) => ({ ...prev, [job.url]: data.task_id }));
+      track({
+        id: data.task_id,
+        kind: "apply",
+        label: `Auto apply: ${job.title}`,
+        status: "running",
+        detail: `${job.company} — opening and prefilling the form`,
+        href: "/",
+      });
       setAppliedUrls((prev) => new Set(prev).add(job.url));
 
       pollTask(data.task_id, { intervalMs: 2000, maxAttempts: 120 })
         .then(async (finalTask) => {
           if (finalTask.status === "completed") {
+            track({ id: data.task_id, status: "completed", detail: `${job.company} — prefilled, not submitted. Review it in the browser.` });
             const appId = await findApplicationIdByUrl(job.url);
             if (appId) {
               setApplicationIds((prev) => ({ ...prev, [job.url]: appId }));
             }
           } else if (finalTask.status === "failed") {
+            track({ id: data.task_id, status: "failed", detail: finalTask.error || "Apply task failed." });
             setApplyErrors((prev) => ({
               ...prev,
               [job.url]: finalTask.error || "Apply task failed.",
@@ -109,6 +122,7 @@ export default function HomePage() {
           }
         })
         .catch((err) => {
+          track({ id: data.task_id, status: "failed", detail: errorMessage(err) });
           setApplyErrors((prev) => ({
             ...prev,
             [job.url]: err.message || "Lost track of the apply task.",
@@ -117,7 +131,7 @@ export default function HomePage() {
     } catch (err) {
       setApplyErrors((prev) => ({
         ...prev,
-        [job.url]: err.authError || err.rateLimitError || err?.response?.data?.detail || err.message,
+        [job.url]: errorMessage(err),
       }));
     } finally {
       setApplyingUrl(null);
@@ -130,6 +144,7 @@ export default function HomePage() {
     setCancellingUrl(job.url);
     try {
       await cancelTask(applyTaskId);
+      track({ id: applyTaskId, status: "cancelled", detail: job.company });
       setApplyErrors((prev) => ({ ...prev, [job.url]: "Apply cancelled." }));
     } catch (err) {
       setApplyErrors((prev) => ({
@@ -150,7 +165,7 @@ export default function HomePage() {
     } catch (err) {
       setApplyErrors((prev) => ({
         ...prev,
-        [job.url]: err.authError || err.rateLimitError || err?.response?.data?.detail || err.message,
+        [job.url]: errorMessage(err),
       }));
     }
   };
@@ -295,7 +310,7 @@ export default function HomePage() {
                         {isMarked && <span className="field-hint">✓ Marked applied</span>}
 
                         {rowError && (
-                          <span className="field-hint" style={{ color: "var(--red)" }}>{rowError}</span>
+                          <span className="field-hint" style={{ color: "var(--status-negative-fg)" }}>{rowError}</span>
                         )}
                       </div>
                     </td>

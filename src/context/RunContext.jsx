@@ -1,10 +1,13 @@
 // src/context/RunContext.jsx
 import { createContext, useContext, useRef, useState, useCallback } from "react";
-import { runPipeline, pollTask, closeApplyBrowser, cancelTask, startPipelineStream, getPipelineRunJobs, } from "../api/client.js";
+import { runPipeline, pollTask, closeApplyBrowser, cancelTask, startPipelineStream, getPipelineRunJobs, } from "../api/client";
+import { errorMessage } from "../lib/api/errors";
+import { useActivity } from "../app/activity";
 
 const RunContext = createContext(null);
 
 export function RunProvider({ children }) {
+  const { track } = useActivity();
   const [status, setStatus] = useState("idle"); // idle | running | completed | failed | cancelled
   const [progressLog, setProgressLog] = useState([]);
   const [jobs, setJobs] = useState([]);
@@ -99,17 +102,14 @@ export function RunProvider({ children }) {
             .catch((err) => {
               if (activeApplyTaskId.current !== applyId) return;
               setApplyStatus("failed");
-              setApplyError(err.authError || err.rateLimitError || err.message);
+              setApplyError(errorMessage(err));
             });
         }
       } catch (err) {
         if (activeTaskId.current !== localTaskId) return;
         setStatus("failed");
         setError(
-          err.authError ||
-            err.rateLimitError ||
-            err?.response?.data?.detail ||
-            err.message
+          errorMessage(err)
         );
       }
     },
@@ -143,6 +143,7 @@ export function RunProvider({ children }) {
       lastProgress.current = "";
 
       const localTaskId = Symbol("run-stream");
+      let trackedRunId = null;
       activeTaskId.current = localTaskId;
 
       try {
@@ -150,6 +151,8 @@ export function RunProvider({ children }) {
         const runId = data.run_id;
         setTaskId(runId); // reused as the "current run" id for UI purposes
         logProgress("Pipeline dispatched — jobs will appear as they're found and scored.");
+        trackedRunId = runId;
+        track({ id: runId, kind: "search", label: "Job search", status: "running", detail: "Searching and scoring…", href: "/" });
 
         let offset = 0;
         let done = false;
@@ -166,14 +169,21 @@ export function RunProvider({ children }) {
             setJobs((prev) => [...prev, ...page.jobs]);
             offset += page.jobs.length;
             logProgress(`+${page.jobs.length} job(s) found — ${offset} total so far`);
+            track({ id: runId, detail: `${offset} matching job(s) so far` });
           }
 
-          if (page.run_status === "completed" || page.run_status === "failed") {
+          if (page.run_status === "completed" || page.run_status === "failed" || page.run_status === "cancelled") {
             done = true;
             if (page.run_status === "failed") {
               setStatus("failed");
               setError("One or more keyword searches failed — check server logs for details.");
+              track({ id: runId, status: "failed", detail: `${offset} job(s) found before a keyword search failed` });
+            } else if (page.run_status === "cancelled") {
+              setStatus("cancelled");
+              logProgress("Search cancelled.");
+              track({ id: runId, status: "cancelled", detail: `${offset} job(s) found before it stopped` });
             } else {
+              track({ id: runId, status: "completed", detail: `${offset} matching job(s)` });
               setStatus("completed");
               logProgress(`Done — ${offset} matching job(s) found.`);
             }
@@ -181,16 +191,14 @@ export function RunProvider({ children }) {
         }
       } catch (err) {
         if (activeTaskId.current !== localTaskId) return;
+        if (trackedRunId) track({ id: trackedRunId, status: "failed", detail: errorMessage(err) });
         setStatus("failed");
         setError(
-          err.authError ||
-            err.rateLimitError ||
-            err?.response?.data?.detail ||
-            err.message
+          errorMessage(err)
         );
       }
     },
-    [logProgress]
+    [logProgress, track]
   );
 
   // Cancels the running pipeline/search task (safe — no browser involved
@@ -202,7 +210,7 @@ export function RunProvider({ children }) {
       logProgress("Cancel requested for pipeline task.");
       return true;
     } catch (err) {
-      setError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
+      setError(errorMessage(err));
       return false;
     }
   }, [taskId, logProgress]);
@@ -218,7 +226,7 @@ export function RunProvider({ children }) {
       logProgress("Cancel requested for apply task.");
       return true;
     } catch (err) {
-      setApplyError(err.authError || err.rateLimitError || err?.response?.data?.detail || err.message);
+      setApplyError(errorMessage(err));
       return false;
     }
   }, [applyTaskId, logProgress]);
@@ -235,7 +243,7 @@ export function RunProvider({ children }) {
       return data;
     } catch (err) {
       setApplyError(
-        err.authError || err.rateLimitError || err?.response?.data?.detail || err.message
+        errorMessage(err)
       );
     }
   }, [applyTaskId, logProgress]);

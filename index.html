@@ -3,11 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>Job Finder</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="data:," />
+    <script>
+      // Apply the saved theme before first paint so dark mode never flashes light.
+      // Mirrors resolveTheme() in src/app/theme.tsx.
+      (function () {
+        var pref = "system";
+        try {
+          pref = localStorage.getItem("jf_theme") || "system";
+        } catch (e) {}
+        var dark =
+          pref === "dark" ||
+          (pref !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

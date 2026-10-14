@@ -1,0 +1,219 @@
+/*
+ * Design tokens — the only place raw colors, sizes and timings are defined.
+ * Components use the semantic tokens (--bg, --text, --status-*), never the base palette.
+ *
+ * Direction (spec §3): a calm, dense working tool. Warm "paper and graphite"
+ * neutrals, one plum accent for actions and focus (plum is not a status hue, so it
+ * never competes with the status palette), and status colors that always carry meaning.
+ * Light theme on :root, dark theme on [data-theme="dark"] (set before first paint
+ * by the script in index.html, then by src/app/theme.tsx).
+ */
+
+:root {
+  /* ---- Base palette: 5 named colors + neutral scale ---- */
+  --graphite-0: #ffffff;
+  --graphite-50: #f7f6f3;
+  --graphite-100: #efeee9;
+  --graphite-150: #e7e5df;
+  --graphite-200: #dedbd3;
+  --graphite-300: #c9c5bb;
+  --graphite-400: #a29d92;
+  --graphite-500: #79746a;
+  --graphite-600: #5d5951;
+  --graphite-700: #45423c;
+  --graphite-800: #2f2d29;
+  --graphite-850: #24221f;
+  --graphite-900: #1b1a18;
+  --graphite-950: #121110;
+
+  --plum-50: #f5f0fa;
+  --plum-100: #ebe1f5;
+  --plum-300: #c3a6e0;
+  --plum-400: #b294d6;
+  --plum-600: #6a3d98;
+  --plum-700: #57307e;
+  --plum-900: #2c2238;
+
+  --signal-blue: #1d4ed8; /* active work */
+  --signal-amber: #92400e; /* needs you */
+  --signal-teal: #0f6b63; /* progress */
+  --signal-green: #166534; /* positive outcome */
+  --signal-red: #b42318; /* negative outcome */
+
+  /* ---- Semantic surface + text (light) ---- */
+  color-scheme: light;
+  --bg: var(--graphite-50);
+  --surface: var(--graphite-0);
+  --surface-sunken: var(--graphite-100);
+  --surface-raised: var(--graphite-0);
+  --surface-hover: var(--graphite-100);
+  --border: var(--graphite-150);
+  --border-strong: var(--graphite-300);
+  --text: var(--graphite-900);
+  --text-muted: var(--graphite-600);
+  --text-subtle: var(--graphite-500);
+  --text-on-accent: #ffffff;
+
+  --accent: var(--plum-600);
+  --accent-hover: var(--plum-700);
+  --accent-soft: var(--plum-50);
+  --accent-soft-border: var(--plum-100);
+  --accent-text: var(--plum-700);
+  --focus-ring: var(--plum-600);
+
+  --overlay: rgb(18 17 16 / 0.42);
+  --log-bg: var(--graphite-900);
+  --log-text: #e7e5df;
+
+  /* ---- Status palette (spec §3). Always paired with an icon or label. ---- */
+  --status-neutral-fg: var(--graphite-700);
+  --status-neutral-bg: var(--graphite-100);
+  --status-neutral-border: var(--graphite-200);
+
+  --status-active-fg: var(--signal-blue);
+  --status-active-bg: #e9effd;
+  --status-active-border: #bfd0f6;
+
+  --status-attention-fg: var(--signal-amber);
+  --status-attention-bg: #fdf3e1;
+  --status-attention-border: #f0d39e;
+
+  --status-progress-fg: var(--signal-teal);
+  --status-progress-bg: #e3f4f1;
+  --status-progress-border: #a9dbd3;
+
+  --status-positive-fg: var(--signal-green);
+  --status-positive-bg: #e6f5eb;
+  --status-positive-border: #acdcbb;
+
+  --status-negative-fg: var(--signal-red);
+  --status-negative-bg: #fdeceb;
+  --status-negative-border: #f3b8b1;
+
+  --status-muted-fg: #69655d;
+  --status-muted-bg: #f4f3f0;
+  --status-muted-border: var(--graphite-150);
+
+  /* ---- Spacing (4px base) ---- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ---- Radius: small for controls, larger only for containers that float ---- */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* ---- Elevation: flat by default; shadows only for things that float ---- */
+  --elev-0: none;
+  --elev-1: 0 1px 0 rgb(18 17 16 / 0.04);
+  --elev-2: 0 1px 2px rgb(18 17 16 / 0.06), 0 6px 16px -4px rgb(18 17 16 / 0.12);
+  --elev-3: 0 2px 4px rgb(18 17 16 / 0.08), 0 18px 40px -8px rgb(18 17 16 / 0.28);
+
+  /* ---- Type ---- */
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --measure: 72ch;
+
+  /* ---- Layout ---- */
+  --sidebar-width: 248px;
+  --topbar-height: 56px;
+  --content-max: 1280px;
+
+  /* ---- Motion (only in answer to a user action) ---- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* ---- Layers ---- */
+  --z-sticky: 10;
+  --z-drawer: 40;
+  --z-popover: 50;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--graphite-950);
+  --surface: var(--graphite-900);
+  --surface-sunken: #0d0c0b;
+  --surface-raised: var(--graphite-850);
+  --surface-hover: var(--graphite-850);
+  --border: var(--graphite-800);
+  --border-strong: var(--graphite-700);
+  --text: #ecebe7;
+  --text-muted: #aaa69c;
+  --text-subtle: #8f8b82;
+  --text-on-accent: #1c1326;
+
+  --accent: var(--plum-400);
+  --accent-hover: var(--plum-300);
+  --accent-soft: var(--plum-900);
+  --accent-soft-border: #43345a;
+  --accent-text: #d4c0ea;
+  --focus-ring: var(--plum-300);
+
+  --overlay: rgb(0 0 0 / 0.6);
+  --log-bg: #0d0c0b;
+  --log-text: #dedbd3;
+
+  --status-neutral-fg: #cfccc4;
+  --status-neutral-bg: #2a2825;
+  --status-neutral-border: #3d3a35;
+
+  --status-active-fg: #9db9f5;
+  --status-active-bg: #16233f;
+  --status-active-border: #2b4170;
+
+  --status-attention-fg: #f2c46d;
+  --status-attention-bg: #33260f;
+  --status-attention-border: #5e4516;
+
+  --status-progress-fg: #74d4c6;
+  --status-progress-bg: #0f2b28;
+  --status-progress-border: #1e504a;
+
+  --status-positive-fg: #86d6a0;
+  --status-positive-bg: #122819;
+  --status-positive-border: #234a30;
+
+  --status-negative-fg: #f6a197;
+  --status-negative-bg: #391714;
+  --status-negative-border: #6c2b25;
+
+  --status-muted-fg: #938f86;
+  --status-muted-bg: #1f1e1b;
+  --status-muted-border: var(--graphite-800);
+
+  --elev-1: 0 1px 0 rgb(0 0 0 / 0.3);
+  --elev-2: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -4px rgb(0 0 0 / 0.5);
+  --elev-3: 0 2px 4px rgb(0 0 0 / 0.5), 0 20px 44px -8px rgb(0 0 0 / 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}
