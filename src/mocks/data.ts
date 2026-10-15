@@ -22,7 +22,7 @@ export const FEATURES = [
   "premium_models",
 ] as const;
 
-function defaultEntitlements(): Record<string, EntitlementSummary> {
+export function defaultEntitlements(): Record<string, EntitlementSummary> {
   const ent: Record<string, EntitlementSummary> = {};
   for (const f of FEATURES) {
     ent[f] = { enabled: true, max_level: null, quota_per_day: null, quota_remaining: null };
@@ -174,10 +174,19 @@ function makeUsers(): User[] {
     },
     {
       ...base,
+      id: "u_manager",
+      email: "manager@jobfinder.test",
+      name: "Mira Manager",
+      role: "manager",
+      auth_provider: "google",
+    },
+    {
+      ...base,
       id: "u_demo",
       email: "demo@jobfinder.test",
       name: "Dev Demo",
       role: "user",
+      manager_id: "u_manager",
       auth_provider: "password",
     },
     {
@@ -194,6 +203,8 @@ function makeUsers(): User[] {
 export const mockDb = {
   users: makeUsers(),
   entitlements: {} as Record<string, Record<string, EntitlementSummary>>,
+  /** user id -> features with a custom (admin-set) value */
+  overrides: {} as Record<string, Set<string>>,
   /** access token -> user id */
   tokens: new Map<string, string>(),
   otpCooldownUntil: new Map<string, number>(),
@@ -212,6 +223,7 @@ export function entitlementsFor(userId: string): Record<string, EntitlementSumma
 export function resetMockDb(): void {
   mockDb.users = makeUsers();
   mockDb.entitlements = {};
+  mockDb.overrides = {};
   mockDb.tokens.clear();
   mockDb.otpCooldownUntil.clear();
   mockDb.otpAttempts.clear();

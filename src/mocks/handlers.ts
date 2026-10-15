@@ -3,14 +3,17 @@
  * in docs/frontend-audit.md, "Mocked endpoints". Paths match any origin, so they
  * work with or without VITE_API_BASE_URL.
  *
- * Sign in with any seeded email (admin@jobfinder.test, demo@jobfinder.test) using
- * OTP code 123456 or password "password123". disabled@jobfinder.test signs in and
- * is then locked out with 403 account_disabled on the next request.
+ * Sign in with any seeded email (admin@, manager@, demo@jobfinder.test) using
+ * OTP code 123456 (or password "password123" on the legacy route).
+ * disabled@jobfinder.test signs in and is then locked out with 403
+ * account_disabled on the next request. "Continue with Google (mock)" signs in
+ * as demo@jobfinder.test.
  */
 import { delay, http, HttpResponse, type DefaultBodyType, type StrictRequest } from "msw";
 import {
   DISABLED_EMAIL,
   FEATURES,
+  defaultEntitlements,
   MOCK_OTP_CODE,
   MOCK_PASSWORD,
   entitlementsFor,
@@ -21,6 +24,7 @@ import {
 import type { User } from "../lib/api/types";
 
 const API = "*/api/v1";
+const OTP_MAX_ATTEMPTS = 5;
 const OTP_SENT = "If this address can sign in, a code has been sent. It expires in 10 minutes.";
 const ACCOUNT_DISABLED = {
   detail: {
@@ -139,7 +143,13 @@ export const authHandlers = [
     if (until > now) {
       const retryAfter = Math.ceil((until - now) / 1000);
       return HttpResponse.json(
-        { detail: "Please wait before requesting another code." },
+        {
+          detail: {
+            code: "otp_cooldown",
+            retry_after: retryAfter,
+            message: "Please wait before requesting another code.",
+          },
+        },
         { status: 429, headers: { "Retry-After": String(retryAfter) } },
       );
     }
@@ -151,13 +161,49 @@ export const authHandlers = [
   http.post(`${API}/auth/otp/verify`, async ({ request }) => {
     const { email = "", code = "" } = await readJson<{ email: string; code: string }>(request);
     const key = email.trim().toLowerCase();
+    // Same codes as the backend (otp.check_code): a code exists only after a request.
+    if (!mockDb.otpAttempts.has(key)) {
+      return HttpResponse.json(
+        {
+          detail: {
+            code: "otp_expired",
+            message: "This code has expired or was already used. Request a new code.",
+          },
+        },
+        { status: 400 },
+      );
+    }
     const attempts = (mockDb.otpAttempts.get(key) ?? 0) + 1;
     mockDb.otpAttempts.set(key, attempts);
     const user = findUserByEmail(key);
-    if (!user || code !== MOCK_OTP_CODE || attempts > 5) {
-      return HttpResponse.json({ detail: "Invalid or expired code." }, { status: 400 });
+    if (code === MOCK_OTP_CODE && user && attempts <= OTP_MAX_ATTEMPTS) {
+      mockDb.otpAttempts.delete(key);
+      return HttpResponse.json(issueSession(user));
     }
-    return HttpResponse.json(issueSession(user));
+    const left = OTP_MAX_ATTEMPTS - attempts;
+    if (left <= 0) {
+      mockDb.otpAttempts.delete(key);
+      return HttpResponse.json(
+        {
+          detail: {
+            code: "otp_locked",
+            attempts_left: 0,
+            message: "Too many wrong attempts. Request a new code.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+    return HttpResponse.json(
+      {
+        detail: {
+          code: "otp_invalid",
+          attempts_left: left,
+          message: `That code isn't right. ${left} attempt${left === 1 ? "" : "s"} left.`,
+        },
+      },
+      { status: 400 },
+    );
   }),
 
   http.post(`${API}/auth/google`, async ({ request }) => {
@@ -378,4 +424,195 @@ export const workHandlers = [
   }),
 ];
 
-export const handlers = [...authHandlers, ...workHandlers];
+// ---- Admin console (backend routes/admin.py) ----
+
+const FORBIDDEN = { detail: "You don't have permission to do this." };
+const NO_USER = { detail: "no user found with this id" };
+
+function requireRole(request: StrictRequest<DefaultBodyType>, roles: string[]): AuthResult {
+  const auth = authenticate(request);
+  if ("response" in auth) return auth;
+  if (!roles.includes(auth.user.role)) {
+    return { response: HttpResponse.json(FORBIDDEN, { status: 403 }) };
+  }
+  return auth;
+}
+
+/** Admins manage everyone; managers only their team (manager_id = their id). */
+function manageable(actor: User, id: string): User | undefined {
+  const target = mockDb.users.find((u) => u.id === id);
+  if (!target) return undefined;
+  if (actor.role === "admin" || target.manager_id === actor.id) return target;
+  return undefined;
+}
+
+function entitlementOut(userId: string, feature: string) {
+  const e = entitlementsFor(userId)[feature]!;
+  return {
+    feature,
+    enabled: e.enabled,
+    quota_per_day: e.quota_per_day ?? null,
+    max_level: e.max_level ?? null,
+    expires_at: null,
+    source: mockDb.overrides[userId]?.has(feature) ? "override" : "default",
+    used_today:
+      e.quota_per_day != null && e.quota_remaining != null
+        ? e.quota_per_day - e.quota_remaining
+        : 0,
+  };
+}
+
+export const adminHandlers = [
+  http.get(`${API}/admin/users`, ({ request }) => {
+    const auth = requireRole(request, ["admin", "manager"]);
+    if ("response" in auth) return auth.response;
+    const url = new URL(request.url);
+    const q = (url.searchParams.get("q") ?? "").toLowerCase();
+    const role = url.searchParams.get("role");
+    const active = url.searchParams.get("active");
+    const limit = Number(url.searchParams.get("limit") ?? 50);
+    const offset = Number(url.searchParams.get("offset") ?? 0);
+    const rows = mockDb.users.filter(
+      (u) =>
+        (auth.user.role === "admin" || u.manager_id === auth.user.id) &&
+        (!q || u.email.includes(q) || (u.name ?? "").toLowerCase().includes(q)) &&
+        (!role || u.role === role) &&
+        (active === null || String(u.is_active) === active),
+    );
+    return HttpResponse.json({
+      users: rows.slice(offset, offset + limit),
+      total: rows.length,
+      limit,
+      offset,
+    });
+  }),
+
+  http.post(`${API}/admin/users`, async ({ request }) => {
+    const auth = requireRole(request, ["admin"]);
+    if ("response" in auth) return auth.response;
+    const body = await readJson<{ email: string; name: string | null; role: string }>(request);
+    const email = (body.email ?? "").trim().toLowerCase();
+    if (findUserByEmail(email)) {
+      return HttpResponse.json(
+        { detail: "An account with this email already exists." },
+        { status: 409 },
+      );
+    }
+    const user: User = {
+      id: newId("u"),
+      email,
+      name: body.name ?? null,
+      role: body.role ?? "user",
+      is_active: true,
+      manager_id: null,
+      auth_provider: null,
+      email_verified_at: null,
+      last_login_at: null,
+    };
+    mockDb.users.push(user);
+    return HttpResponse.json(user, { status: 201 });
+  }),
+
+  http.get(`${API}/admin/users/:id`, ({ request, params }) => {
+    const auth = requireRole(request, ["admin", "manager"]);
+    if ("response" in auth) return auth.response;
+    const target = manageable(auth.user, String(params.id));
+    return target ? HttpResponse.json(target) : HttpResponse.json(NO_USER, { status: 404 });
+  }),
+
+  http.patch(`${API}/admin/users/:id`, async ({ request, params }) => {
+    const auth = requireRole(request, ["admin"]);
+    if ("response" in auth) return auth.response;
+    const target = manageable(auth.user, String(params.id));
+    if (!target) return HttpResponse.json(NO_USER, { status: 404 });
+    const body = await readJson<{ role: string; name: string | null }>(request);
+    if (body.role && target.id === auth.user.id) {
+      return HttpResponse.json({ detail: "You can't change your own role." }, { status: 400 });
+    }
+    if (body.role) target.role = body.role;
+    if (body.name !== undefined) target.name = body.name;
+    return HttpResponse.json(target);
+  }),
+
+  http.post(`${API}/admin/users/:id/:action`, ({ request, params }) => {
+    const auth = requireRole(request, ["admin", "manager"]);
+    if ("response" in auth) return auth.response;
+    const target = manageable(auth.user, String(params.id));
+    if (!target) return HttpResponse.json(NO_USER, { status: 404 });
+    const action = String(params.action);
+    if (action === "revoke-sessions") {
+      for (const [token, uid] of mockDb.tokens) if (uid === target.id) mockDb.tokens.delete(token);
+      return new HttpResponse(null, { status: 204 });
+    }
+    if (action !== "enable" && action !== "disable") {
+      return HttpResponse.json({ detail: "Not Found" }, { status: 404 });
+    }
+    if (action === "disable" && target.id === auth.user.id) {
+      return HttpResponse.json({ detail: "You can't disable your own account." }, { status: 400 });
+    }
+    target.is_active = action === "enable";
+    return HttpResponse.json(target);
+  }),
+
+  http.get(`${API}/admin/features`, ({ request }) => {
+    const auth = requireRole(request, ["admin", "manager"]);
+    if ("response" in auth) return auth.response;
+    const defaults = defaultEntitlements();
+    return HttpResponse.json(
+      FEATURES.map((feature) => ({
+        feature,
+        enabled: defaults[feature]!.enabled,
+        quota_per_day: defaults[feature]!.quota_per_day ?? null,
+        max_level: defaults[feature]!.max_level ?? null,
+        expires_at: null,
+        source: "default",
+        used_today: null,
+      })),
+    );
+  }),
+
+  http.get(`${API}/admin/users/:id/entitlements`, ({ request, params }) => {
+    const auth = requireRole(request, ["admin", "manager"]);
+    if ("response" in auth) return auth.response;
+    const target = manageable(auth.user, String(params.id));
+    if (!target) return HttpResponse.json(NO_USER, { status: 404 });
+    return HttpResponse.json(FEATURES.map((f) => entitlementOut(target.id, f)));
+  }),
+
+  http.put(`${API}/admin/users/:id/entitlements/:feature`, async ({ request, params }) => {
+    const auth = requireRole(request, ["admin", "manager"]);
+    if ("response" in auth) return auth.response;
+    const target = manageable(auth.user, String(params.id));
+    if (!target) return HttpResponse.json(NO_USER, { status: 404 });
+    const feature = String(params.feature);
+    const body = await readJson<{
+      enabled: boolean;
+      quota_per_day: number | null;
+      max_level: number | null;
+    }>(request);
+    const ent = entitlementsFor(target.id);
+    const used = entitlementOut(target.id, feature).used_today ?? 0;
+    const quota = body.quota_per_day ?? null;
+    ent[feature] = {
+      enabled: Boolean(body.enabled),
+      quota_per_day: quota,
+      max_level: body.max_level ?? null,
+      quota_remaining: quota == null ? null : Math.max(0, quota - used),
+    };
+    (mockDb.overrides[target.id] ??= new Set()).add(feature);
+    return HttpResponse.json(entitlementOut(target.id, feature));
+  }),
+
+  http.delete(`${API}/admin/users/:id/entitlements/:feature`, ({ request, params }) => {
+    const auth = requireRole(request, ["admin", "manager"]);
+    if ("response" in auth) return auth.response;
+    const target = manageable(auth.user, String(params.id));
+    if (!target) return HttpResponse.json(NO_USER, { status: 404 });
+    const feature = String(params.feature);
+    entitlementsFor(target.id)[feature] = defaultEntitlements()[feature]!;
+    mockDb.overrides[target.id]?.delete(feature);
+    return HttpResponse.json(entitlementOut(target.id, feature));
+  }),
+];
+
+export const handlers = [...authHandlers, ...adminHandlers, ...workHandlers];

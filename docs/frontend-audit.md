@@ -216,8 +216,8 @@ Handlers: `src/mocks/handlers.ts`; data: `src/mocks/data.ts`.
 
 | Endpoint                                                                     | Why mocked                               | Mock behavior                                                                                 |
 | ---------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `POST /auth/otp/request`                                                     | P1 only                                  | 202 + neutral message; 429 + `Retry-After` within 60 s                                        |
-| `POST /auth/otp/verify`                                                      | P1 only                                  | code `123456`; otherwise 400 "Invalid or expired code."; > 5 tries fails                      |
+| `POST /auth/otp/request`                                                     | P1 only                                  | 202 + neutral message; 429 `otp_cooldown` + `Retry-After` within 60 s                         |
+| `POST /auth/otp/verify`                                                      | P1 only                                  | code `123456`; else 400 `otp_invalid` (+`attempts_left`), `otp_locked` after 5, `otp_expired` |
 | `POST /auth/google`                                                          | P1 only                                  | any non-empty `id_token` signs in the demo user                                               |
 | `POST /auth/refresh`                                                         | P1 only                                  | succeeds while a mock session exists (user id kept in `sessionStorage`, mock only — no token) |
 | `POST /auth/logout`                                                          | P1 only                                  | 204, ends mock session                                                                        |
@@ -229,7 +229,13 @@ Handlers: `src/mocks/handlers.ts`; data: `src/mocks/data.ts`.
 | `GET /applications`, `GET/PATCH /applications/{id}`                          | on main                                  | 6 seeded rows covering every status group                                                     |
 
 Any authenticated mock request returns 401 without a valid mock token and 403
-`account_disabled` for `disabled@jobfinder.test`. Admin endpoints (P1) are mocked in F1.
+`account_disabled` for `disabled@jobfinder.test`.
+
+F1 added the admin endpoints (backend `routes/admin.py`), same shapes and rules: `GET/POST
+/admin/users`, `GET/PATCH /admin/users/{id}`, `POST /admin/users/{id}/enable|disable|revoke-sessions`,
+`GET /admin/features`, `GET /admin/users/{id}/entitlements`, `PUT/DELETE
+/admin/users/{id}/entitlements/{feature}`. Admins see everyone; `manager@jobfinder.test` sees only
+`demo@jobfinder.test` (their team), can't add people or change roles.
 
 ## 8. Contract gaps (proposed for PROJECT.md)
 
@@ -246,9 +252,8 @@ Not edited in the backend repo; listed here for the backend owner.
    button that cannot work today.
 5. **Apply → application id.** `POST /apply` (or the task result) should return the
    `application_id` so the UI does not search by URL.
-6. **OTP errors.** Spec §6.1 needs "expired", "too many attempts" and attempts-left; the backend
-   returns one 400 "Invalid or expired code." Proposal: `code` = `otp_invalid` (with
-   `details.attempts_left`), `otp_expired`, `otp_locked`.
+6. ~~**OTP errors.**~~ Done in F1 (backend `dev`): `otp_invalid` (with `attempts_left`),
+   `otp_expired`, `otp_locked`, `otp_cooldown` (with `retry_after`), `otp_too_many_requests`.
 7. **Refresh reuse grace.** Accept the previous refresh token for a few seconds after rotation,
    so a lost response or a slow second tab does not revoke every session (the client already
    serializes refreshes across tabs).

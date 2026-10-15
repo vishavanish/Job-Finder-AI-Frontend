@@ -151,6 +151,7 @@
   --z-sticky: 10;
   --z-drawer: 40;
   --z-popover: 50;
+  --z-dialog: 60;
 }
 
 :root[data-theme="dark"] {

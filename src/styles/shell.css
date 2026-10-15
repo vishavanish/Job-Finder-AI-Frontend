@@ -114,6 +114,44 @@
   color: var(--accent);
 }
 
+/* Feature the account can't use: still reachable (the page explains why). */
+.nav-item.is-locked {
+  color: var(--text-subtle);
+}
+
+.nav-item-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+}
+
+/* Shown instead of a page the user can't use (guards.tsx). */
+.access-denied {
+  max-width: var(--measure);
+  padding: var(--space-6);
+  border: 1px solid var(--status-attention-border);
+  border-radius: var(--radius-md);
+  background: var(--status-attention-bg);
+  color: var(--text);
+}
+
+.access-denied h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-md);
+}
+
+.access-denied p {
+  margin: 0 0 var(--space-4);
+  color: var(--text-muted);
+}
+
+.access-denied p:last-child {
+  margin-bottom: 0;
+}
+
 .sidebar-footer {
   border-top: 1px solid var(--border);
   padding: var(--space-3);
@@ -518,4 +556,64 @@
   .topbar-location-sep {
     display: none;
   }
+}
+
+/* ---------- Confirm dialog (shared) ---------- */
+.dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+}
+
+.dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+}
+
+.dialog {
+  position: relative;
+  width: min(440px, 100%);
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--elev-3);
+}
+
+.dialog h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-md);
+}
+
+.dialog-body {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.dialog-body p {
+  margin: 0 0 var(--space-3);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.btn-danger {
+  padding: 8px var(--space-4);
+  border: 1px solid var(--signal-red);
+  border-radius: var(--radius-sm);
+  background: var(--signal-red);
+  color: #ffffff;
+  font-weight: var(--weight-medium);
+}
+
+.btn-danger:disabled {
+  opacity: 0.55;
 }

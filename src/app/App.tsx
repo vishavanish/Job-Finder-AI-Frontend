@@ -6,8 +6,12 @@ import { RunProvider } from "../context/RunContext.jsx";
 import { ActivityProvider } from "./activity";
 import { ThemeProvider } from "./theme";
 import AppShell from "./AppShell";
+import { RequireFeature, RequireRole } from "./guards";
 
-import LoginPage from "../pages/LoginPage.jsx";
+import SignInPage from "../features/auth/SignInPage";
+import UsersPage from "../features/admin/UsersPage";
+import UserDetailPage from "../features/admin/UserDetailPage";
+import FeatureDefaultsPage from "../features/admin/FeatureDefaultsPage";
 import HomePage from "../pages/HomePage.jsx";
 import KeywordsPage from "../pages/KeywordsPage.jsx";
 import SkillsPage from "../pages/SkillsPage.jsx";
@@ -15,6 +19,8 @@ import AtsTargetsPage from "../pages/AtsTargetsPage.jsx";
 import ProvidersPage from "../pages/ProvidersPage.jsx";
 import ProfilePage from "../pages/ProfilePage.jsx";
 import ApplicationsPage from "../pages/ApplicationsPage.jsx";
+
+const ADMIN_ROLES = ["admin", "manager"] as const;
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
@@ -36,7 +42,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<SignInPage />} />
       <Route
         path="/"
         element={
@@ -45,13 +51,51 @@ export function AppRoutes() {
           </RequireAuth>
         }
       >
-        <Route index element={<HomePage />} />
+        <Route
+          index
+          element={
+            <RequireFeature feature="job_search">
+              <HomePage />
+            </RequireFeature>
+          }
+        />
         <Route path="keywords" element={<KeywordsPage />} />
         <Route path="skills" element={<SkillsPage />} />
-        <Route path="ats-targets" element={<AtsTargetsPage />} />
+        <Route
+          path="ats-targets"
+          element={
+            <RequireFeature feature="ats_discovery">
+              <AtsTargetsPage />
+            </RequireFeature>
+          }
+        />
         <Route path="providers" element={<ProvidersPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route
+          path="admin/users"
+          element={
+            <RequireRole roles={ADMIN_ROLES}>
+              <UsersPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/users/:userId"
+          element={
+            <RequireRole roles={ADMIN_ROLES}>
+              <UserDetailPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/features"
+          element={
+            <RequireRole roles={ADMIN_ROLES}>
+              <FeatureDefaultsPage />
+            </RequireRole>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

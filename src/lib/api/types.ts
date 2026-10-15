@@ -18,6 +18,11 @@ export type OtpRequest = Schemas["OtpRequest"];
 export type OtpVerify = Schemas["OtpVerify"];
 export type GoogleSignIn = Schemas["GoogleSignIn"];
 
+export type AdminUserList = Schemas["AdminUserList"];
+export type AdminUserCreate = Schemas["AdminUserCreate"];
+export type AdminUserUpdate = Schemas["AdminUserUpdate"];
+export type EntitlementUpdate = Schemas["EntitlementUpdate"];
+
 export type TaskResponse = Schemas["TaskResponse"];
 export type TaskStatus = Schemas["TaskStatus"];
 export type ApplyRequest = Schemas["ApplyRequest"];

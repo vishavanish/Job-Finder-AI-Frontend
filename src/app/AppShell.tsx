@@ -3,7 +3,8 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Icon, type IconName } from "../components/Icon";
 import { useAuth } from "../context/AuthContext";
 import { ActivityTray } from "./ActivityTray";
-import { NAV_GROUPS, currentNavItem } from "./nav";
+import { hasRole, useEntitlement } from "../lib/auth/access";
+import { NAV_GROUPS, currentNavItem, type NavItem } from "./nav";
 import { useTheme, type ThemePref } from "./theme";
 import { useFocusTrap } from "./useFocusTrap";
 
@@ -17,6 +18,32 @@ function initials(name?: string | null, email?: string | null): string {
   const first = parts[0] ?? "?";
   const second = parts[1];
   return (second ? first.charAt(0) + second.charAt(0) : source.slice(0, 2)).toUpperCase();
+}
+
+function NavEntry({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+  // Always called; a nav item without a feature is never locked.
+  const { allowed, reason } = useEntitlement(item.feature ?? "");
+  const locked = Boolean(item.feature) && !allowed;
+  return (
+    <NavLink
+      to={item.to}
+      end={item.end}
+      className={({ isActive }) =>
+        "nav-item" + (isActive ? " is-active" : "") + (locked ? " is-locked" : "")
+      }
+      title={locked ? reason : undefined}
+      onClick={onNavigate}
+    >
+      <Icon name={item.icon} />
+      {item.label}
+      {locked && (
+        <span className="nav-item-note">
+          <Icon name="lock" size={14} />
+          Off<span className="sr-only">: {reason}</span>
+        </span>
+      )}
+    </NavLink>
+  );
 }
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -38,7 +65,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <nav className="sidebar-nav" aria-label="Main">
-        {NAV_GROUPS.map((group) => (
+        {NAV_GROUPS.filter((g) => !g.roles || hasRole(user?.role, g.roles)).map((group) => (
           <div className="nav-group" key={group.label}>
             <p className="nav-group-label" id={`nav-${group.label}`}>
               {group.label}
@@ -46,15 +73,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <ul aria-labelledby={`nav-${group.label}`}>
               {group.items.map((item) => (
                 <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) => "nav-item" + (isActive ? " is-active" : "")}
-                    onClick={onNavigate}
-                  >
-                    <Icon name={item.icon} />
-                    {item.label}
-                  </NavLink>
+                  <NavEntry item={item} onNavigate={onNavigate} />
                 </li>
               ))}
             </ul>

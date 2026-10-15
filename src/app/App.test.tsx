@@ -1,34 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { AppProviders, AppRoutes } from "./App";
 import { server } from "../mocks/server";
-import { DISABLED_EMAIL, MOCK_PASSWORD, mockDb } from "../mocks/data";
-
-function renderApp(path = "/") {
-  return render(
-    <AppProviders>
-      <MemoryRouter initialEntries={[path]}>
-        <AppRoutes />
-      </MemoryRouter>
-    </AppProviders>,
-  );
-}
-
-async function signIn(email = "demo@jobfinder.test") {
-  const user = userEvent.setup();
-  await user.type(await screen.findByPlaceholderText("you@example.com"), email);
-  await user.type(screen.getByPlaceholderText("••••••••"), MOCK_PASSWORD);
-  await user.click(screen.getByRole("button", { name: "Sign In" }));
-  return user;
-}
+import { DISABLED_EMAIL, mockDb } from "../mocks/data";
+import { renderApp, signIn } from "../test/renderApp";
 
 describe("app shell", () => {
   it("sends a signed-out visitor to sign in", async () => {
     renderApp("/applications");
-    expect(await screen.findByRole("button", { name: "Sign In" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Email me a code" })).toBeInTheDocument();
   });
 
   it("restores the session from the refresh cookie without storing a token", async () => {
@@ -94,12 +74,12 @@ describe("app shell", () => {
 
   it("signs a disabled user out with a clear message", async () => {
     renderApp("/");
-    const user = await signIn(DISABLED_EMAIL);
-    await user.click(await screen.findByRole("link", { name: "Applications" }));
+    // The first request after sign-in (GET /auth/me) answers 403 account_disabled.
+    await signIn(DISABLED_EMAIL);
     expect(await screen.findByRole("status")).toHaveTextContent(
       "This account has been disabled. Contact your admin.",
     );
-    expect(screen.getByRole("button", { name: "Sign In" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Email me a code" })).toBeInTheDocument();
   });
 
   it("streams a search into the results table and the activity tray", async () => {

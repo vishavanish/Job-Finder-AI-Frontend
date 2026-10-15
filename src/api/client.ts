@@ -12,28 +12,18 @@ import type {
   ApplicationLogResult,
   ApplyRequest,
   CompanyAtsRequest,
-  LoginRequest,
   PipelineRequest,
   PipelineRunJobsPage,
   PipelineRunMeta,
   PipelineRunStarted,
-  RegisterRequest,
   ScoreRequest,
   SearchRequest,
   TaskResponse,
-  TokenResponse,
 } from "../lib/api/types";
 
 async function withData<T>(promise: Promise<T>): Promise<{ data: T }> {
   return { data: await promise };
 }
-
-// ---- auth ----
-export const registerUser = (payload: RegisterRequest) =>
-  withData(api.post<TokenResponse>("/auth/register", payload));
-
-export const loginUser = (payload: LoginRequest) =>
-  withData(api.post<TokenResponse>("/auth/login", payload));
 
 // ---- search / score / apply / pipeline ----
 export const startSearch = (payload: SearchRequest) =>
