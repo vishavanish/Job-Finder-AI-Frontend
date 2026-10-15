@@ -657,6 +657,329 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Models */
+        get: operations["list_models_api_v1_admin_models_get"];
+        put?: never;
+        /**
+         * Add Model
+         * @description Adds a model from any supported provider. Once enabled, every user
+         *     sees it in GET /models (free ones are usable by everyone at once).
+         */
+        post: operations["add_model_api_v1_admin_models_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/models/defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Defaults */
+        get: operations["get_defaults_api_v1_admin_models_defaults_get"];
+        /** Put Defaults */
+        put: operations["put_defaults_api_v1_admin_models_defaults_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/models/{model_ref}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Model
+         * @description Removes the model. Users who had picked it go back to the default.
+         *     To hide it temporarily, PATCH enabled_global=false instead.
+         */
+        delete: operations["delete_model_api_v1_admin_models__model_ref__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Model */
+        patch: operations["edit_model_api_v1_admin_models__model_ref__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/models/{model_ref}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Model
+         * @description Sends one tiny prompt with the platform (or .env) key. Recorded in the
+         *     usage ledger like any call; a success also clears a tripped breaker.
+         */
+        post: operations["test_model_api_v1_admin_models__model_ref__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Platform Keys */
+        get: operations["list_platform_keys_api_v1_admin_keys_get"];
+        put?: never;
+        /**
+         * Set Platform Key
+         * @description Stores (or replaces) the platform key for a scope. It takes priority
+         *     over the .env key. The value is never shown again.
+         */
+        post: operations["set_platform_key_api_v1_admin_keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Platform Key */
+        delete: operations["delete_platform_key_api_v1_admin_keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sources */
+        get: operations["list_sources_api_v1_admin_providers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/providers/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit Source
+         * @description Turn a source on/off for everyone, or change its tier / ToS risk label.
+         *     New sources need code (a search adapter), so there is no create.
+         */
+        patch: operations["edit_source_api_v1_admin_providers__key__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All Usage */
+        get: operations["all_usage_api_v1_admin_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** User Usage */
+        get: operations["user_usage_api_v1_admin_users__user_id__usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Models
+         * @description Every model an admin has enabled. `available` / `reason` say whether
+         *     this user can use it right now (paid models need the premium AI models
+         *     feature or the user's own key; Free tools only hides paid ones).
+         */
+        get: operations["list_models_api_v1_models_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/models/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Preferences */
+        put: operations["set_preferences_api_v1_models_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Keys */
+        get: operations["list_my_keys_api_v1_keys_get"];
+        put?: never;
+        /**
+         * Add My Key
+         * @description Adds (or replaces) your key for one scope. Models and job sources
+         *     with that scope use it for your requests; it is never shown again.
+         */
+        post: operations["add_my_key_api_v1_keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete My Key */
+        delete: operations["delete_my_key_api_v1_keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Usage */
+        get: operations["my_usage_api_v1_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Providers */
+        get: operations["get_providers_api_v1_providers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/providers/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Settings */
+        put: operations["update_settings_api_v1_providers_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -678,6 +1001,183 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminModelCreate */
+        AdminModelCreate: {
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "gemini" | "groq" | "huggingface" | "anthropic" | "openai_compatible";
+            /** Model Id */
+            model_id: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Tier
+             * @default free
+             * @enum {string}
+             */
+            tier: "free" | "paid";
+            /**
+             * Tasks
+             * @description Empty = every text task
+             */
+            tasks?: string[];
+            /**
+             * Base Url
+             * @description Required for openai_compatible
+             */
+            base_url?: string | null;
+            /**
+             * Key Scope
+             * @description Which stored key it uses; defaults to the provider (or the base_url host for openai_compatible)
+             */
+            key_scope?: string | null;
+            /**
+             * Cost Per 1K In
+             * @default 0
+             */
+            cost_per_1k_in: number;
+            /**
+             * Cost Per 1K Out
+             * @default 0
+             */
+            cost_per_1k_out: number;
+            /** Context Window */
+            context_window?: number | null;
+            /** Max Output Tokens */
+            max_output_tokens?: number | null;
+            /**
+             * Enabled Global
+             * @default true
+             */
+            enabled_global: boolean;
+            /**
+             * Priority
+             * @default 100
+             */
+            priority: number;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** AdminModelOut */
+        AdminModelOut: {
+            /** Id */
+            id: string;
+            /** Provider */
+            provider: string;
+            /** Model Id */
+            model_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Tier */
+            tier: string;
+            /** Tasks */
+            tasks: string[];
+            /** Base Url */
+            base_url?: string | null;
+            /** Key Scope */
+            key_scope: string;
+            /**
+             * Key Configured
+             * @description A platform or .env key exists for key_scope
+             */
+            key_configured: boolean;
+            /** Cost Per 1K In */
+            cost_per_1k_in: number;
+            /** Cost Per 1K Out */
+            cost_per_1k_out: number;
+            /** Context Window */
+            context_window?: number | null;
+            /** Max Output Tokens */
+            max_output_tokens?: number | null;
+            /** Enabled Global */
+            enabled_global: boolean;
+            /** Priority */
+            priority: number;
+            /** Notes */
+            notes?: string | null;
+            health: components["schemas"]["ModelHealth"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * AdminModelUpdate
+         * @description Only the fields you send are changed.
+         */
+        AdminModelUpdate: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Tier */
+            tier?: ("free" | "paid") | null;
+            /** Tasks */
+            tasks?: string[] | null;
+            /** Base Url */
+            base_url?: string | null;
+            /** Key Scope */
+            key_scope?: string | null;
+            /** Cost Per 1K In */
+            cost_per_1k_in?: number | null;
+            /** Cost Per 1K Out */
+            cost_per_1k_out?: number | null;
+            /** Context Window */
+            context_window?: number | null;
+            /** Max Output Tokens */
+            max_output_tokens?: number | null;
+            /** Enabled Global */
+            enabled_global?: boolean | null;
+            /** Priority */
+            priority?: number | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** AdminSourceOut */
+        AdminSourceOut: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Tier */
+            tier: string;
+            /** Tos Risk */
+            tos_risk: string;
+            /** Requires Key */
+            requires_key: boolean;
+            /** Key Scope */
+            key_scope?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Rate Limit */
+            rate_limit?: string | null;
+            /** Enabled Global */
+            enabled_global: boolean;
+            /** Key Configured */
+            key_configured?: boolean | null;
+            health: components["schemas"]["SourceHealth"];
+        };
+        /** AdminSourceUpdate */
+        AdminSourceUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Tier */
+            tier?: ("free" | "free_key" | "paid" | "byok") | null;
+            /** Tos Risk */
+            tos_risk?: ("none" | "low" | "high") | null;
+            /** Rate Limit */
+            rate_limit?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Enabled Global */
+            enabled_global?: boolean | null;
+        };
         /** AdminUserCreate */
         AdminUserCreate: {
             /**
@@ -1020,6 +1520,53 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** KeyCreate */
+        KeyCreate: {
+            /**
+             * Scope
+             * @description e.g. gemini, anthropic, openrouter, apify
+             */
+            scope: string;
+            /**
+             * Key
+             * Format: password
+             */
+            key: string;
+            /** Label */
+            label?: string | null;
+        };
+        /** KeyList */
+        KeyList: {
+            /** Keys */
+            keys: components["schemas"]["KeyOut"][];
+            /**
+             * Scopes
+             * @description Key scopes used by enabled models and job sources
+             */
+            scopes: string[];
+        };
+        /** KeyOut */
+        KeyOut: {
+            /** Id */
+            id: string;
+            /** Scope */
+            scope: string;
+            /** Owner Type */
+            owner_type: string;
+            /** Label */
+            label?: string | null;
+            /** Last4 */
+            last4: string;
+            /** Masked */
+            masked: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Used At */
+            last_used_at?: string | null;
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Email */
@@ -1067,6 +1614,84 @@ export interface components {
             /** Detail */
             detail: string;
         };
+        /** ModelCatalogOut */
+        ModelCatalogOut: {
+            /** Tasks */
+            tasks: string[];
+            /** Models */
+            models: components["schemas"]["UserModelOut"][];
+            /** Preferences */
+            preferences: {
+                [key: string]: string;
+            };
+            /** Defaults */
+            defaults: {
+                [key: string]: string;
+            };
+            /** Free Only */
+            free_only: boolean;
+            /**
+             * Premium Models
+             * @description Has the premium AI models feature (paid models on platform keys)
+             */
+            premium_models: boolean;
+        };
+        /** ModelHealth */
+        ModelHealth: {
+            /**
+             * Consecutive Failures
+             * @default 0
+             */
+            consecutive_failures: number;
+            /** Last Success At */
+            last_success_at?: string | null;
+            /** Last Error At */
+            last_error_at?: string | null;
+            /** Last Error */
+            last_error?: string | null;
+            /**
+             * Paused
+             * @description Circuit breaker open: skipped until the cooldown ends
+             * @default false
+             */
+            paused: boolean;
+        };
+        /** ModelPreferencesIn */
+        ModelPreferencesIn: {
+            /**
+             * Preferences
+             * @description task -> model id (null = use the default)
+             */
+            preferences: {
+                [key: string]: string | null;
+            };
+        };
+        /** ModelTestResult */
+        ModelTestResult: {
+            /** Ok */
+            ok: boolean;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Key Source */
+            key_source?: string | null;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Reply
+             * @description First 200 characters of the model's reply
+             */
+            reply?: string | null;
+            /** Error */
+            error?: string | null;
+        };
         /** OtpRequest */
         OtpRequest: {
             /**
@@ -1090,6 +1715,43 @@ export interface components {
             search: components["schemas"]["SearchRequest"];
             score: components["schemas"]["ScoreRequestPartial"];
             apply?: components["schemas"]["ApplyRequest"] | null;
+        };
+        /** PlatformKeyList */
+        PlatformKeyList: {
+            /** Keys */
+            keys: components["schemas"]["KeyOut"][];
+            /** Scopes */
+            scopes: components["schemas"]["PlatformKeyScope"][];
+        };
+        /** PlatformKeyScope */
+        PlatformKeyScope: {
+            /** Scope */
+            scope: string;
+            stored?: components["schemas"]["KeyOut"] | null;
+            /**
+             * Env Fallback
+             * @description A key for this scope is set in the server's .env
+             */
+            env_fallback: boolean;
+        };
+        /** ProviderSettingsIn */
+        ProviderSettingsIn: {
+            /** Free Only */
+            free_only?: boolean | null;
+            /**
+             * Enabled
+             * @description source key -> on/off
+             */
+            enabled?: {
+                [key: string]: boolean;
+            };
+        };
+        /** ProviderSettingsOut */
+        ProviderSettingsOut: {
+            /** Free Only */
+            free_only: boolean;
+            /** Sources */
+            sources: components["schemas"]["UserSourceOut"][];
         };
         /** RegisterRequest */
         RegisterRequest: {
@@ -1127,32 +1789,35 @@ export interface components {
             llm_min_score_to_keep: number;
             /**
              * Gemini Model
+             * @deprecated
              * @default gemini-2.5-flash
              */
             gemini_model: string;
             /**
              * Groq Model
+             * @deprecated
              * @default openai/gpt-oss-120b
              */
             groq_model: string;
             /**
              * Hf Model
+             * @deprecated
              * @default Qwen/Qwen3-8B
              */
             hf_model: string;
             /**
              * Gemini Api Key
-             * @description Overrides server GEMINI_API_KEY for this call only.
+             * @description One-run key for Gemini models. Prefer POST /keys.
              */
             gemini_api_key?: string | null;
             /**
              * Groq Api Key
-             * @description Overrides server GROQ_API_KEY for this call only.
+             * @description One-run key for Groq models. Prefer POST /keys.
              */
             groq_api_key?: string | null;
             /**
              * Hf Api Key
-             * @description Overrides server HF_API_KEY for this call only.
+             * @description One-run key for Hugging Face models. Prefer POST /keys.
              */
             hf_api_key?: string | null;
         };
@@ -1185,16 +1850,19 @@ export interface components {
             llm_min_score_to_keep: number;
             /**
              * Gemini Model
+             * @deprecated
              * @default gemini-2.5-flash
              */
             gemini_model: string;
             /**
              * Groq Model
+             * @deprecated
              * @default openai/gpt-oss-120b
              */
             groq_model: string;
             /**
              * Hf Model
+             * @deprecated
              * @default Qwen/Qwen3-8B
              */
             hf_model: string;
@@ -1279,6 +1947,30 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** SourceHealth */
+        SourceHealth: {
+            /**
+             * Consecutive Failures
+             * @default 0
+             */
+            consecutive_failures: number;
+            /** Last Success At */
+            last_success_at?: string | null;
+            /** Last Error At */
+            last_error_at?: string | null;
+            /** Last Error */
+            last_error?: string | null;
+        };
+        /** TaskDefaults */
+        TaskDefaults: {
+            /**
+             * Defaults
+             * @description task -> model id (null clears it)
+             */
+            defaults: {
+                [key: string]: string | null;
+            };
+        };
         /** TaskResponse */
         TaskResponse: {
             /**
@@ -1320,6 +2012,113 @@ export interface components {
             token_type: string;
             user: components["schemas"]["UserOut"];
         };
+        /** UsageByDay */
+        UsageByDay: {
+            /** Calls */
+            calls: number;
+            /** Failed Calls */
+            failed_calls: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Cost Usd */
+            cost_usd: number;
+            /** Day */
+            day: string;
+        };
+        /** UsageByModel */
+        UsageByModel: {
+            /** Calls */
+            calls: number;
+            /** Failed Calls */
+            failed_calls: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Cost Usd */
+            cost_usd: number;
+            /** Model Ref */
+            model_ref?: string | null;
+            /** Provider */
+            provider: string;
+            /** Model Id */
+            model_id: string;
+        };
+        /** UsageByUser */
+        UsageByUser: {
+            /** Calls */
+            calls: number;
+            /** Failed Calls */
+            failed_calls: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Cost Usd */
+            cost_usd: number;
+            /** User Id */
+            user_id?: string | null;
+            /** Email */
+            email?: string | null;
+        };
+        /** UsageSummary */
+        UsageSummary: {
+            /**
+             * Since
+             * Format: date-time
+             */
+            since: string;
+            totals: components["schemas"]["UsageTotals"];
+            /** By Model */
+            by_model: components["schemas"]["UsageByModel"][];
+            /** By Day */
+            by_day: components["schemas"]["UsageByDay"][];
+            /** By User */
+            by_user?: components["schemas"]["UsageByUser"][] | null;
+        };
+        /** UsageTotals */
+        UsageTotals: {
+            /** Calls */
+            calls: number;
+            /** Failed Calls */
+            failed_calls: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Cost Usd */
+            cost_usd: number;
+        };
+        /** UserModelOut */
+        UserModelOut: {
+            /** Id */
+            id: string;
+            /** Display Name */
+            display_name: string;
+            /** Provider */
+            provider: string;
+            /** Model Id */
+            model_id: string;
+            /** Tier */
+            tier: string;
+            /** Tasks */
+            tasks: string[];
+            /** Key Scope */
+            key_scope: string;
+            /** Available */
+            available: boolean;
+            /**
+             * Reason
+             * @description Why the model can't be used now
+             */
+            reason?: string | null;
+            /** Uses Own Key */
+            uses_own_key: boolean;
+            /** Paused */
+            paused: boolean;
+        };
         /** UserOut */
         UserOut: {
             /** Id */
@@ -1346,6 +2145,38 @@ export interface components {
             email_verified_at?: string | null;
             /** Last Login At */
             last_login_at?: string | null;
+        };
+        /** UserSourceOut */
+        UserSourceOut: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Tier */
+            tier: string;
+            /** Tos Risk */
+            tos_risk: string;
+            /** Requires Key */
+            requires_key: boolean;
+            /** Key Scope */
+            key_scope?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Rate Limit */
+            rate_limit?: string | null;
+            /**
+             * Enabled
+             * @description The user's own switch
+             */
+            enabled: boolean;
+            /**
+             * Available
+             * @description Will run in the user's next search
+             */
+            available: boolean;
+            /** Reason */
+            reason?: string | null;
+            health: components["schemas"]["SourceHealth"];
         };
         /** ValidationError */
         ValidationError: {
@@ -2597,6 +3428,734 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_models_api_v1_admin_models_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModelOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_model_api_v1_admin_models_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminModelCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_defaults_api_v1_admin_models_defaults_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDefaults"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_defaults_api_v1_admin_models_defaults_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskDefaults"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDefaults"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_model_api_v1_admin_models__model_ref__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                model_ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_model_api_v1_admin_models__model_ref__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                model_ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminModelUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminModelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_model_api_v1_admin_models__model_ref__test_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                model_ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelTestResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_platform_keys_api_v1_admin_keys_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformKeyList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_platform_key_api_v1_admin_keys_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_platform_key_api_v1_admin_keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sources_api_v1_admin_providers_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSourceOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_source_api_v1_admin_providers__key__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSourceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    all_usage_api_v1_admin_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_usage_api_v1_admin_users__user_id__usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_models_api_v1_models_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelCatalogOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_preferences_api_v1_models_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelPreferencesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelCatalogOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_keys_api_v1_keys_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_my_key_api_v1_keys_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_key_api_v1_keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_usage_api_v1_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_providers_api_v1_providers_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_settings_api_v1_providers_settings_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderSettingsOut"];
                 };
             };
             /** @description Validation Error */
