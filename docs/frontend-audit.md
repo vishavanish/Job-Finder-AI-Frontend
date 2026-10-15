@@ -237,6 +237,14 @@ F1 added the admin endpoints (backend `routes/admin.py`), same shapes and rules:
 /admin/users/{id}/entitlements/{feature}`. Admins see everyone; `manager@jobfinder.test` sees only
 `demo@jobfinder.test` (their team), can't add people or change roles.
 
+F2 added the P2 endpoints (backend `routes/models.py`, `providers.py`, `admin_ai.py`) in
+`src/mocks/ai.ts` (state and access rules in `src/mocks/aiState.ts`): `GET /models`,
+`PUT /models/preferences`, `GET/POST/DELETE /keys`, `GET /usage`, `GET /providers`,
+`PUT /providers/settings`, `/admin/models` (+ `/test`, `/defaults`), `/admin/keys`,
+`/admin/providers`, `/admin/usage`, `/admin/users/{id}/usage`. `POST /pipeline/run/stream` applies
+the source rules and returns `skipped_sources`. Seed: Gemini, Groq, Hugging Face (paused) free;
+Claude Opus 5.5 paid; platform keys for gemini/groq/anthropic.
+
 ## 8. Contract gaps (proposed for PROJECT.md)
 
 Not edited in the backend repo; listed here for the backend owner.

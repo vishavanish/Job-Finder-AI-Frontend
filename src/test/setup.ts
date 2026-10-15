@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "../mocks/server";
 import { resetMockDb } from "../mocks/data";
 import { resetMockSession } from "../mocks/handlers";
+import { resetAiMock } from "../mocks/aiState";
 import { setAccessToken } from "../lib/auth/session";
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
@@ -13,6 +14,7 @@ afterEach(() => {
   server.resetHandlers();
   resetMockDb();
   resetMockSession();
+  resetAiMock();
   setAccessToken(null);
   window.localStorage.clear();
   window.sessionStorage.clear();

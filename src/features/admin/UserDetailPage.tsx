@@ -22,6 +22,9 @@ import {
   updateUser,
 } from "./adminApi";
 import { ROLE_LABELS, displayName, formatDateTime, providerLabel } from "./format";
+import { getUserUsage } from "./aiAdminApi";
+import { UsageCard } from "../models/UsageCard";
+import type { UsageSummary } from "../../lib/api/types";
 import "./admin.css";
 
 type Role = "user" | "manager" | "admin";
@@ -431,6 +434,20 @@ function EntitlementsCard({ target }: { target: User }) {
   );
 }
 
+function UserUsage({ userId }: { userId: string }) {
+  const [usage, setUsage] = useState<UsageSummary | null>(null);
+  useEffect(() => {
+    let active = true;
+    getUserUsage(userId)
+      .then((u) => active && setUsage(u))
+      .catch(() => active && setUsage(null));
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+  return usage ? <UsageCard usage={usage} /> : null;
+}
+
 export default function UserDetailPage() {
   const { userId = "" } = useParams();
   const { user: me } = useAuth();
@@ -485,6 +502,7 @@ export default function UserDetailPage() {
             onChanged={setTarget}
           />
           <EntitlementsCard target={target} />
+          <UserUsage userId={target.id} />
         </>
       )}
     </div>

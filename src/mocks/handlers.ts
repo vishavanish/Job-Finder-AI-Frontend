@@ -21,9 +21,10 @@ import {
   type MockRun,
   type MockTask,
 } from "./data";
+import { planSources } from "./aiState";
 import type { User } from "../lib/api/types";
 
-const API = "*/api/v1";
+export const API = "*/api/v1";
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_SENT = "If this address can sign in, a code has been sent. It expires in 10 minutes.";
 const ACCOUNT_DISABLED = {
@@ -65,7 +66,7 @@ export function resetMockSession(): void {
 }
 
 let counter = 0;
-function newId(prefix: string): string {
+export function newId(prefix: string): string {
   counter += 1;
   return `${prefix}_${Date.now().toString(36)}${counter}`;
 }
@@ -82,10 +83,10 @@ function findUserByEmail(email: string): User | undefined {
   return mockDb.users.find((u) => u.email === email.trim().toLowerCase());
 }
 
-type AuthResult = { user: User } | { response: Response };
+export type AuthResult = { user: User } | { response: Response };
 
 /** Mirrors get_current_user: 401 without a valid token, 403 for disabled accounts. */
-function authenticate(request: StrictRequest<DefaultBodyType>): AuthResult {
+export function authenticate(request: StrictRequest<DefaultBodyType>): AuthResult {
   const header = request.headers.get("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
   const userId = token ? mockDb.tokens.get(token) : undefined;
@@ -101,7 +102,7 @@ function authenticate(request: StrictRequest<DefaultBodyType>): AuthResult {
   return { user };
 }
 
-async function readJson<T>(request: Request): Promise<Partial<T>> {
+export async function readJson<T>(request: Request): Promise<Partial<T>> {
   try {
     return (await request.json()) as Partial<T>;
   } catch {
@@ -304,6 +305,26 @@ export const workHandlers = [
   http.post(`${API}/pipeline/run/stream`, async ({ request }) => {
     const auth = authenticate(request);
     if ("response" in auth) return auth.response;
+    const body = await readJson<{ search: { sources?: string[]; enable_naukri_apify?: boolean } }>(
+      request,
+    );
+    const plan = planSources(
+      auth.user,
+      body.search?.sources ?? ["linkedin", "indeed"],
+      Boolean(body.search?.enable_naukri_apify),
+    );
+    if (!plan.sources.length && !plan.apify) {
+      return HttpResponse.json(
+        {
+          detail: {
+            code: "no_sources_available",
+            message: "None of the selected job sources can run: " + plan.skipped.join("; "),
+            skipped: plan.skipped,
+          },
+        },
+        { status: 422 },
+      );
+    }
     const run: MockRun = {
       id: crypto.randomUUID(),
       createdAt: Date.now(),
@@ -316,7 +337,7 @@ export const workHandlers = [
       status: "running",
     };
     mockDb.runs.set(run.id, run);
-    return HttpResponse.json({ run_id: run.id }, { status: 202 });
+    return HttpResponse.json({ run_id: run.id, skipped_sources: plan.skipped }, { status: 202 });
   }),
 
   http.get(`${API}/pipeline/:runId`, ({ request, params }) => {
@@ -429,7 +450,7 @@ export const workHandlers = [
 const FORBIDDEN = { detail: "You don't have permission to do this." };
 const NO_USER = { detail: "no user found with this id" };
 
-function requireRole(request: StrictRequest<DefaultBodyType>, roles: string[]): AuthResult {
+export function requireRole(request: StrictRequest<DefaultBodyType>, roles: string[]): AuthResult {
   const auth = authenticate(request);
   if ("response" in auth) return auth;
   if (!roles.includes(auth.user.role)) {

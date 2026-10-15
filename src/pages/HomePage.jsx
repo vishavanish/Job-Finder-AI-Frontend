@@ -4,17 +4,15 @@ import { useRun } from "../context/RunContext.jsx";
 import { startApply, pollTask, listApplications, updateApplicationStatus, cancelTask } from "../api/client";
 import { errorMessage } from "../lib/api/errors";
 import { useActivity } from "../app/activity";
+import { searchSourceFields, useSources } from "../features/providers/useSources";
 
-function buildPipelinePayload(settings) {
-  const sources = Object.entries(settings.providers)
-    .filter(([, enabled]) => enabled)
-    .map(([key]) => key);
-
+// Sources come from the server-side Providers settings (F2), not the browser.
+function buildPipelinePayload(settings, sourceSettings) {
   return {
     search: {
       keywords: settings.keywords,
       locations: settings.locations,
-      sources: sources.length ? sources : ["linkedin", "indeed"],
+      ...searchSourceFields(sourceSettings),
       results_per_keyword: settings.thresholds.resultsPerKeyword,
       max_age_hours: settings.thresholds.maxAgeHours,
     },
@@ -47,6 +45,8 @@ async function findApplicationIdByUrl(jobUrl) {
 
 export default function HomePage() {
   const { settings } = useSettings();
+  const sourceSettings = useSources();
+  const runningSources = sourceSettings ? sourceSettings.sources.filter((s) => s.available).length : null;
   const { status, progressLog, jobs, error, runStream, taskId } = useRun();
   const { track } = useActivity();
   const [applyingUrl, setApplyingUrl] = useState(null);
@@ -63,7 +63,7 @@ export default function HomePage() {
       setMarkedUrls(new Set());
       setApplicationIds({});
       setApplyErrors({});
-      runStream(buildPipelinePayload(settings));
+      runStream(buildPipelinePayload(settings, sourceSettings));
     };
 
   const handleCancelRun = async () => {
@@ -202,8 +202,8 @@ export default function HomePage() {
           )}
 
           <span className="field-hint" style={{ marginLeft: "auto" }}>
-            {settings.keywords.length} keyword(s) · {settings.locations.length} location(s) ·{" "}
-            {Object.values(settings.providers).filter(Boolean).length} provider(s)
+            {settings.keywords.length} keyword(s) · {settings.locations.length} location(s)
+            {runningSources !== null && ` · ${runningSources} job source(s)`}
           </span>
         </div>
 

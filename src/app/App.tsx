@@ -12,15 +12,22 @@ import SignInPage from "../features/auth/SignInPage";
 import UsersPage from "../features/admin/UsersPage";
 import UserDetailPage from "../features/admin/UserDetailPage";
 import FeatureDefaultsPage from "../features/admin/FeatureDefaultsPage";
+import AdminModelsPage from "../features/admin/AdminModelsPage";
+import AdminKeysPage from "../features/admin/AdminKeysPage";
+import AdminSourcesPage from "../features/admin/AdminSourcesPage";
+import AdminUsagePage from "../features/admin/AdminUsagePage";
+import AiModelsPage from "../features/models/AiModelsPage";
+import ApiKeysPage from "../features/models/ApiKeysPage";
 import HomePage from "../pages/HomePage.jsx";
 import KeywordsPage from "../pages/KeywordsPage.jsx";
 import SkillsPage from "../pages/SkillsPage.jsx";
 import AtsTargetsPage from "../pages/AtsTargetsPage.jsx";
-import ProvidersPage from "../pages/ProvidersPage.jsx";
+import ProvidersPage from "../features/providers/ProvidersPage";
 import ProfilePage from "../pages/ProfilePage.jsx";
 import ApplicationsPage from "../pages/ApplicationsPage.jsx";
 
 const ADMIN_ROLES = ["admin", "manager"] as const;
+const ADMIN_ONLY = ["admin"] as const;
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { status } = useAuth();
@@ -72,6 +79,8 @@ export function AppRoutes() {
         <Route path="providers" element={<ProvidersPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings/ai" element={<AiModelsPage />} />
+        <Route path="settings/keys" element={<ApiKeysPage />} />
         <Route
           path="admin/users"
           element={
@@ -85,6 +94,38 @@ export function AppRoutes() {
           element={
             <RequireRole roles={ADMIN_ROLES}>
               <UserDetailPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/models"
+          element={
+            <RequireRole roles={ADMIN_ONLY}>
+              <AdminModelsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/keys"
+          element={
+            <RequireRole roles={ADMIN_ONLY}>
+              <AdminKeysPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/sources"
+          element={
+            <RequireRole roles={ADMIN_ONLY}>
+              <AdminSourcesPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/usage"
+          element={
+            <RequireRole roles={ADMIN_ONLY}>
+              <AdminUsagePage />
             </RequireRole>
           }
         />

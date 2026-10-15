@@ -9,7 +9,7 @@ const DEFAULT_SETTINGS = {
     "LLM Application Developer",
   ],
   locations: ["Mumbai, India", "Pune, India", "Bangalore, India"],
-  providers: { linkedin: true, indeed: true, naukri: false },
+  // Job sources moved to the server (GET/PUT /providers) in F2.
 
   skills: [
     "python", "django", "fastapi", "docker", "aws",

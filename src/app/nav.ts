@@ -35,7 +35,14 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: "/keywords", label: "Keywords", icon: "search" },
       { to: "/skills", label: "Skills and resume", icon: "layers" },
       { to: "/ats-targets", label: "ATS targets", icon: "building", feature: "ats_discovery" },
-      { to: "/providers", label: "Providers", icon: "globe" },
+      { to: "/providers", label: "Job sources", icon: "globe" },
+    ],
+  },
+  {
+    label: "Settings",
+    items: [
+      { to: "/settings/ai", label: "AI models", icon: "sparkle" },
+      { to: "/settings/keys", label: "API keys", icon: "key" },
     ],
   },
   {
@@ -44,6 +51,16 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/admin/users", label: "Users", icon: "users" },
       { to: "/admin/features", label: "Feature defaults", icon: "sliders" },
+    ],
+  },
+  {
+    label: "AI & sources",
+    roles: ["admin"],
+    items: [
+      { to: "/admin/models", label: "AI models", icon: "sparkle" },
+      { to: "/admin/keys", label: "Platform keys", icon: "key" },
+      { to: "/admin/sources", label: "Job sources", icon: "globe" },
+      { to: "/admin/usage", label: "Usage", icon: "activity" },
     ],
   },
 ];

@@ -23,6 +23,24 @@ export type AdminUserCreate = Schemas["AdminUserCreate"];
 export type AdminUserUpdate = Schemas["AdminUserUpdate"];
 export type EntitlementUpdate = Schemas["EntitlementUpdate"];
 
+// ---- P2: models, keys, usage, job sources ----
+export type ModelCatalog = Schemas["ModelCatalogOut"];
+export type UserModel = Schemas["UserModelOut"];
+export type KeyOut = Schemas["KeyOut"];
+export type KeyList = Schemas["KeyList"];
+export type UsageSummary = Schemas["UsageSummary"];
+export type ProviderSettings = Schemas["ProviderSettingsOut"];
+export type ProviderSettingsIn = Schemas["ProviderSettingsIn"];
+export type UserSource = Schemas["UserSourceOut"];
+export type AdminModel = Schemas["AdminModelOut"];
+export type AdminModelCreate = Schemas["AdminModelCreate"];
+export type AdminModelUpdate = Schemas["AdminModelUpdate"];
+export type ModelTestResult = Schemas["ModelTestResult"];
+export type TaskDefaults = Schemas["TaskDefaults"];
+export type PlatformKeyList = Schemas["PlatformKeyList"];
+export type AdminSource = Schemas["AdminSourceOut"];
+export type AdminSourceUpdate = Schemas["AdminSourceUpdate"];
+
 export type TaskResponse = Schemas["TaskResponse"];
 export type TaskStatus = Schemas["TaskStatus"];
 export type ApplyRequest = Schemas["ApplyRequest"];
@@ -58,6 +76,8 @@ export type RunStatus = "running" | "completed" | "failed" | "cancelled";
 
 export interface PipelineRunStarted {
   run_id: string;
+  /** Sources left out of this run and why (admin/user switch, Free tools only, missing key). */
+  skipped_sources?: string[];
 }
 
 export interface PipelineRunMeta {

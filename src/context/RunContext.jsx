@@ -151,6 +151,7 @@ export function RunProvider({ children }) {
         const runId = data.run_id;
         setTaskId(runId); // reused as the "current run" id for UI purposes
         logProgress("Pipeline dispatched — jobs will appear as they're found and scored.");
+        for (const note of data.skipped_sources ?? []) logProgress(`Skipped source — ${note}`);
         trackedRunId = runId;
         track({ id: runId, kind: "search", label: "Job search", status: "running", detail: "Searching and scoring…", href: "/" });
 
