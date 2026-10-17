@@ -116,7 +116,7 @@ Status: **fixed** = done in F0; otherwise the plan step that fixes it.
 | S1  | Access JWT (7-day) stored in `localStorage` — readable by any injected script                                                                                                                                                                              | **fixed**: memory only; old keys deleted on startup (`purgeLegacySessionStorage`)                                    |
 | S2  | User object stored in `localStorage`                                                                                                                                                                                                                       | **fixed**                                                                                                            |
 | S3  | API URL switched by editing source (`client.js`), easy to ship the localhost URL                                                                                                                                                                           | **fixed**: `VITE_API_BASE_URL`                                                                                       |
-| S4  | Applicant info (name, email, phone), resume summary and search settings stored in `localStorage` by `SettingsContext`; also shared between accounts on the same browser                                                                                    | step 7 (moves to backend `/profile`, `/preferences`, `/search-profiles`)                                             |
+| S4  | Applicant info (name, email, phone), resume summary and search settings stored in `localStorage` by `SettingsContext`; also shared between accounts on the same browser                                                                                    | **fixed** in F3: on the server; one-time import, then deleted (ATS targets stay local until F6)                      |
 | S5  | Post-login redirect took `location.state.from` as-is; react-router 6 has an open-redirect advisory (GHSA-wrjc-x8rr-h8h6)                                                                                                                                   | **mitigated**: `safeRedirectPath`; full fix with react-router 7 (step 4)                                             |
 | S6  | 3 high-severity npm advisories                                                                                                                                                                                                                             | **fixed**; 2 moderate remain (S5)                                                                                    |
 | S7  | No Content-Security-Policy or other security headers on Vercel                                                                                                                                                                                             | step 9                                                                                                               |
@@ -125,17 +125,17 @@ Status: **fixed** = done in F0; otherwise the plan step that fixes it.
 
 ### 5.2 Bugs
 
-| #   | Problem                                                                                                                                                                                                | Status                                                            |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| B1  | `POST /apply/{id}/close` is called but not implemented on the backend                                                                                                                                  | open — 8.3                                                        |
-| B2  | Cancel on a streaming run calls `POST /tasks/{run_id}/cancel`; a run id is not a task id, so since backend P0 it returns 404, and HomePage only logs to the console — **Cancel silently does nothing** | open — needs `POST /pipeline/{run_id}/cancel` (8.4); UI fix in F3 |
-| B3  | After Auto-Apply, HomePage finds the application id by scanning the first 20 applications for the URL; misses older rows and duplicates by alias URL                                                   | open — 8.5, F4                                                    |
-| B4  | Streaming loop stopped only on `completed`/`failed`; a `cancelled` run (e.g. user disabled by admin) was polled forever                                                                                | **fixed**                                                         |
-| B5  | Errors whose `detail` is an object (e.g. `account_disabled`) were put straight into React state → React throws "Objects are not valid as a React child"                                                | **fixed**: `errorMessage()`                                       |
-| B6  | "✓ Auto-Applied" label appears as soon as the apply task is dispatched, though the flow only opens/prefills and never submits                                                                          | open — F3 copy ("Prefilled") per spec §11                         |
-| B7  | Old README says auth is a local stub                                                                                                                                                                   | **fixed** (README rewritten)                                      |
-| B8  | `RunContext.run()` (non-streaming) and several helpers are dead code                                                                                                                                   | open — removed when RunContext is replaced (step 3)               |
-| B9  | Keyword/skill/threshold inputs save on blur with no confirmation; a number field cleared to empty silently saves the default                                                                           | open — F3                                                         |
+| #   | Problem                                                                                                                                                                                                | Status                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| B1  | `POST /apply/{id}/close` is called but not implemented on the backend                                                                                                                                  | open — 8.3                                                      |
+| B2  | Cancel on a streaming run calls `POST /tasks/{run_id}/cancel`; a run id is not a task id, so since backend P0 it returns 404, and HomePage only logs to the console — **Cancel silently does nothing** | **fixed** in F3 (`POST /pipeline/{run_id}/cancel`, Stop search) |
+| B3  | After Auto-Apply, HomePage finds the application id by scanning the first 20 applications for the URL; misses older rows and duplicates by alias URL                                                   | open — 8.5, F4                                                  |
+| B4  | Streaming loop stopped only on `completed`/`failed`; a `cancelled` run (e.g. user disabled by admin) was polled forever                                                                                | **fixed**                                                       |
+| B5  | Errors whose `detail` is an object (e.g. `account_disabled`) were put straight into React state → React throws "Objects are not valid as a React child"                                                | **fixed**: `errorMessage()`                                     |
+| B6  | "✓ Auto-Applied" label appears as soon as the apply task is dispatched, though the flow only opens/prefills and never submits                                                                          | **fixed** in F3: "Prefilled — finish in the browser"            |
+| B7  | Old README says auth is a local stub                                                                                                                                                                   | **fixed** (README rewritten)                                    |
+| B8  | `RunContext.run()` (non-streaming) and several helpers are dead code                                                                                                                                   | open — removed when RunContext is replaced (step 3)             |
+| B9  | Keyword/skill/threshold inputs save on blur with no confirmation; a number field cleared to empty silently saves the default                                                                           | **fixed** in F3: explicit Save changes + "Saved"                |
 
 ### 5.3 Duplicated code
 
@@ -244,6 +244,17 @@ F2 added the P2 endpoints (backend `routes/models.py`, `providers.py`, `admin_ai
 `/admin/providers`, `/admin/usage`, `/admin/users/{id}/usage`. `POST /pipeline/run/stream` applies
 the source rules and returns `skipped_sources`. Seed: Gemini, Groq, Hugging Face (paused) free;
 Claude Opus 5.5 paid; platform keys for gemini/groq/anthropic.
+
+F3 added the P3–P3.2 and F3 endpoints in `src/mocks/f3.ts` (state in `src/mocks/f3State.ts`):
+`GET/PUT /profile` (incl. sealed `eeo`), `GET/PUT /preferences`, `/resumes` (upload → `pending` →
+`parsed` on the next list poll; review, master, re-parse, delete), `/search-profiles` (+
+`/from-resume`, `/suggest-titles`), `GET /jobs?state=`, `POST /jobs/{id}/save|hide|seen`,
+`POST /applications/manual`, `/alerts` (+ `/run-now`, `/runs`, `/runs/{id}/jobs`) and
+`POST /pipeline/{id}/cancel`. The pipeline mock runs a search profile (404 for someone else's, 422
+`resume_required` without a resume), returns jobs with match breakdown, freshness and applicant
+count, skips jobs already seen unless `include_seen`, and appends one `replaces: true` entry.
+The source list mirrors the backend's 18 sources (defaults, multi-key Google Jobs). Under jsdom an
+uploaded file arrives named "blob"; the mock names it from its content type.
 
 ## 8. Contract gaps (proposed for PROJECT.md)
 

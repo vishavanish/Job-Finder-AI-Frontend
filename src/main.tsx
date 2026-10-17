@@ -8,6 +8,7 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/shell.css";
 import "./styles/screens.css";
+import "./styles/components.css";
 import App from "./app/App";
 
 async function start() {

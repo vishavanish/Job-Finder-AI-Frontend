@@ -15,18 +15,73 @@ import { KeyForm } from "../models/KeyForm";
 import "../admin/admin.css";
 import "../models/models.css";
 
+/** Sources grouped the way users think about them (keys from backend registry.py). */
+const GROUPS: { title: string; note?: string; keys: string[] }[] = [
+  { title: "Job boards", keys: ["linkedin", "indeed", "glassdoor", "google_jobs"] },
+  {
+    title: "Job APIs with a free key",
+    note: "Official APIs. Get a free key from each provider and save it here; it's used only for your searches.",
+    keys: ["adzuna", "jooble", "careerjet", "google_jobs_api"],
+  },
+  {
+    title: "Remote job feeds",
+    note: "Run when a search is for remote work — add Remote to your work modes in Profile or to a location.",
+    keys: [
+      "remoteok",
+      "remotive",
+      "himalayas",
+      "jobicy",
+      "wwr",
+      "hn_hiring",
+      "arbeitnow",
+      "themuse",
+    ],
+  },
+  { title: "Naukri", keys: ["naukri", "naukri_apify"] },
+];
+
+const KEY_LABELS: Record<string, string> = {
+  brightdata: "Your Bright Data key (API_KEY:ZONE)",
+  serpapi: "Your SerpApi key",
+  jsearch: "Your JSearch (RapidAPI) key",
+  adzuna: "Your Adzuna key (APP_ID:APP_KEY)",
+  jooble: "Your Jooble key",
+  careerjet: "Your Careerjet key",
+  apify: "Your apify key",
+};
+
+function keyScopes(keyScope: string): string[] {
+  return keyScope
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function grouped(sources: UserSource[]): { title: string; note?: string; sources: UserSource[] }[] {
+  const known = new Set(GROUPS.flatMap((g) => g.keys));
+  const out = GROUPS.map((g) => ({
+    ...g,
+    sources: g.keys
+      .map((k) => sources.find((s) => s.key === k))
+      .filter((s): s is UserSource => Boolean(s)),
+  }));
+  const other = sources.filter((s) => !known.has(s.key));
+  if (other.length) out.push({ title: "Other", keys: [], sources: other });
+  return out.filter((g) => g.sources.length);
+}
+
 function SourceRow({
   source,
   busy,
-  savedKey,
+  savedKeys,
   onToggle,
   onSaveKey,
 }: {
   source: UserSource;
   busy: boolean;
-  savedKey: string | null;
+  savedKeys: Record<string, string>;
   onToggle: (enabled: boolean) => void;
-  onSaveKey: (key: string) => Promise<unknown>;
+  onSaveKey: (scope: string, key: string) => Promise<unknown>;
 }) {
   const id = useId();
   return (
@@ -44,18 +99,25 @@ function SourceRow({
           />
         </div>
         {source.description && <p className="source-desc">{source.description}</p>}
+        {!source.default_enabled && !source.enabled && (
+          <p className="source-desc">Off unless you turn it on.</p>
+        )}
         <p className="source-desc">{riskText(source.tos_risk)}</p>
         <p className={source.available ? "source-state is-on" : "source-state"} id={`${id}-state`}>
           {source.available ? "Will run in your next search." : `Won't run: ${source.reason}.`}
         </p>
-        {source.requires_key && source.key_scope && source.enabled && (
-          <KeyForm
-            scope={source.key_scope}
-            label={`Your ${source.key_scope} key`}
-            saved={savedKey}
-            onSave={onSaveKey}
-          />
-        )}
+        {source.requires_key &&
+          source.key_scope &&
+          source.enabled &&
+          keyScopes(source.key_scope).map((scope) => (
+            <KeyForm
+              key={scope}
+              scope={scope}
+              label={KEY_LABELS[scope] ?? `Your ${scope} key`}
+              saved={savedKeys[scope] ?? null}
+              onSave={(key) => onSaveKey(scope, key)}
+            />
+          ))}
       </div>
       <label className="switch">
         <input
@@ -181,18 +243,24 @@ export default function ProvidersPage() {
             <h3 id={`${freeId}-list`}>
               Sources <span className="count-note">{running} will run</span>
             </h3>
-            <ul className="source-list">
-              {data.sources.map((s) => (
-                <SourceRow
-                  key={s.key}
-                  source={s}
-                  busy={busy}
-                  savedKey={s.key_scope ? (keys[s.key_scope] ?? null) : null}
-                  onToggle={(enabled) => void save({ enabled: { [s.key]: enabled } })}
-                  onSaveKey={(key) => saveKey(s.key_scope!, key)}
-                />
-              ))}
-            </ul>
+            {grouped(data.sources).map((g) => (
+              <div key={g.title} className="source-group">
+                <h4 className="model-group-title">{g.title}</h4>
+                {g.note && <p className="field-hint">{g.note}</p>}
+                <ul className="source-list">
+                  {g.sources.map((s) => (
+                    <SourceRow
+                      key={s.key}
+                      source={s}
+                      busy={busy}
+                      savedKeys={keys}
+                      onToggle={(enabled) => void save({ enabled: { [s.key]: enabled } })}
+                      onSaveKey={(scope, key) => saveKey(scope, key)}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ))}
           </section>
         </>
       )}

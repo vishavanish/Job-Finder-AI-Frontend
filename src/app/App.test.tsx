@@ -34,16 +34,18 @@ describe("app shell", () => {
 
     const nav = await screen.findByRole("navigation", { name: "Main" });
     for (const name of [
-      "Run and results",
+      "Jobs",
+      "Job alerts",
       "Applications",
-      "Keywords",
-      "Skills and resume",
+      "Keywords and skills",
+      "Profile and resume",
       "ATS targets",
       "Job sources",
     ]) {
       expect(within(nav).getByRole("link", { name })).toBeInTheDocument();
     }
-    expect(screen.getByRole("heading", { name: "Run & Results" })).toBeInTheDocument();
+    // "/" opens Jobs until the Dashboard (F5).
+    expect(screen.getByRole("heading", { name: "Jobs", level: 2 })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Activity" }));
     const tray = screen.getByRole("region", { name: "Activity" });
@@ -82,23 +84,23 @@ describe("app shell", () => {
     expect(screen.getByRole("button", { name: "Email me a code" })).toBeInTheDocument();
   });
 
-  it("streams a search into the results table and the activity tray", async () => {
+  it("streams a search into the job feed and the activity tray", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
-      renderApp("/");
+      renderApp("/jobs");
       const user = await signIn();
-      await user.click(await screen.findByRole("button", { name: /Run Job Search/ }));
+      await user.click(await screen.findByRole("button", { name: "Run search" }));
 
       await waitFor(() =>
         expect(screen.getByRole("button", { name: /Activity, 1 running/ })).toBeInTheDocument(),
       );
-      for (let i = 0; i < 5; i += 1) await vi.advanceTimersByTimeAsync(2100);
+      for (let i = 0; i < 6; i += 1) await vi.advanceTimersByTimeAsync(2100);
 
-      expect(await screen.findByText("Matching Jobs (6)")).toBeInTheDocument();
+      expect(await screen.findByText(/Search finished: 6 new matching jobs/)).toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /Activity/ }));
       const tray = screen.getByRole("region", { name: "Activity" });
       expect(within(tray).getByText("Job search")).toBeInTheDocument();
-      expect(within(tray).getByText("6 matching job(s)")).toBeInTheDocument();
+      expect(within(tray).getByText("Search finished")).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }

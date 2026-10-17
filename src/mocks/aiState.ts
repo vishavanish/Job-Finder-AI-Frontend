@@ -64,7 +64,11 @@ export interface MockSource {
   description: string | null;
   rate_limit: string | null;
   enabled_global: boolean;
+  /** On for users who never switched it themselves (backend P3.1). */
+  default_enabled: boolean;
   last_success_at: string | null;
+  /** Paused after repeated errors until this time (backend P3.1 breaker). */
+  paused_until?: string | null;
 }
 
 export const NOW = "2026-10-15T09:00:00Z";
@@ -133,15 +137,101 @@ function seedModels(): MockModel[] {
   ];
 }
 
+/** Mirrors backend migrations 0004/0006/0007 (app/providers/job_sources/registry.py). */
 function seedSources(): MockSource[] {
   const base = {
     rate_limit: null,
     enabled_global: true,
+    default_enabled: true,
     last_success_at: NOW,
     requires_key: false,
     key_scope: null,
   };
+  const feed = (key: string, name: string, description: string, on = true): MockSource => ({
+    ...base,
+    key,
+    name,
+    tier: "free",
+    tos_risk: "low",
+    default_enabled: on,
+    description,
+    rate_limit: "one download per hour (cached)",
+  });
+  const keyed = (
+    key: string,
+    name: string,
+    scope: string,
+    description: string,
+    on = true,
+  ): MockSource => ({
+    ...base,
+    key,
+    name,
+    tier: "free_key",
+    tos_risk: "none",
+    requires_key: true,
+    key_scope: scope,
+    default_enabled: on,
+    description,
+    last_success_at: null,
+    rate_limit: "daily cap per user",
+  });
   return [
+    {
+      ...base,
+      key: "glassdoor",
+      name: "Glassdoor",
+      tier: "free",
+      tos_risk: "high",
+      default_enabled: false,
+      description: "Public job search via JobSpy (scraping). Off by default.",
+    },
+    {
+      ...base,
+      key: "google_jobs",
+      name: "Google Jobs",
+      tier: "free",
+      tos_risk: "high",
+      default_enabled: false,
+      description:
+        "Google's job listings via JobSpy (scraping); often returns nothing. Off by default.",
+    },
+    keyed(
+      "adzuna",
+      "Adzuna",
+      "adzuna",
+      "Official API, covers India. Save the key as APP_ID:APP_KEY.",
+    ),
+    keyed("jooble", "Jooble", "jooble", "Official API, covers India."),
+    keyed("careerjet", "Careerjet", "careerjet", "Official API (en_IN for India)."),
+    keyed(
+      "google_jobs_api",
+      "Google Jobs (your key)",
+      "brightdata,serpapi,jsearch",
+      "Google Jobs through YOUR OWN free key: Bright Data, SerpApi or JSearch. Off by default.",
+      false,
+    ),
+    feed("remoteok", "RemoteOK", "Remote jobs feed. Runs when you search for remote work."),
+    feed("remotive", "Remotive", "Remote jobs feed. Runs when you search for remote work."),
+    feed("himalayas", "Himalayas", "Remote jobs feed. Runs when you search for remote work."),
+    feed("jobicy", "Jobicy", "Remote jobs feed. Runs when you search for remote work."),
+    feed("wwr", "We Work Remotely", "Remote jobs RSS feed. Runs when you search for remote work."),
+    feed("hn_hiring", "HN Who is hiring", "Monthly Hacker News 'Who is hiring?' thread."),
+    feed(
+      "arbeitnow",
+      "Arbeitnow",
+      "Remote jobs feed, mostly Germany/EU roles. Off by default.",
+      false,
+    ),
+    {
+      ...feed(
+        "themuse",
+        "The Muse",
+        "Remote/flexible jobs feed, mostly US roles. Off by default.",
+        false,
+      ),
+      paused_until: null,
+    },
     {
       ...base,
       key: "indeed",
@@ -163,8 +253,8 @@ function seedSources(): MockSource[] {
       key: "naukri",
       name: "Naukri",
       tier: "free",
-      tos_risk: "high",
-      description: "Manual import, or JobSpy when automatic Naukri search is on.",
+      tos_risk: "none",
+      description: "Jobs you paste in. Naukri blocks automated search (captcha).",
     },
     {
       ...base,
@@ -260,19 +350,23 @@ export function sourceAvailability(
   s: MockSource,
 ): { ok: boolean; reason: string | null } {
   if (!s.enabled_global) return { ok: false, reason: "turned off by the admin" };
-  if ((aiDb.sourceChoices[user.id] ?? {})[s.key] === false) {
+  if (!((aiDb.sourceChoices[user.id] ?? {})[s.key] ?? s.default_enabled)) {
     return { ok: false, reason: "turned off in your Providers settings" };
   }
   if (aiDb.freeOnly[user.id] && (s.tier === "paid" || s.tier === "byok")) {
     return { ok: false, reason: 'paid source — "Free tools only" is on' };
   }
-  if (
-    s.requires_key &&
-    s.key_scope &&
-    !userScopes(user.id).has(s.key_scope) &&
-    !platformKey(s.key_scope)
-  ) {
-    return { ok: false, reason: `needs a ${s.key_scope} API key` };
+  if (s.requires_key && s.key_scope) {
+    const scopes = s.key_scope.split(",");
+    if (!scopes.some((sc) => userScopes(user.id).has(sc) || platformKey(sc))) {
+      return { ok: false, reason: `needs a ${scopes.join(" or ")} API key` };
+    }
+  }
+  if (s.paused_until && new Date(s.paused_until) > new Date()) {
+    return {
+      ok: false,
+      reason: `paused after repeated errors — retrying after ${s.paused_until.slice(11, 16)} UTC`,
+    };
   }
   return { ok: true, reason: null };
 }
@@ -282,6 +376,7 @@ export const health = (s: MockSource) => ({
   last_success_at: s.last_success_at,
   last_error_at: null,
   last_error: null,
+  paused_until: s.paused_until ?? null,
 });
 
 /** Which of the requested sources would run, and why the rest are skipped (search payloads). */

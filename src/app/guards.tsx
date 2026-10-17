@@ -16,8 +16,8 @@ export function RequireRole({ roles, children }: { roles: readonly Role[]; child
     <div className="access-denied" role="alert">
       <h2>You don't have access to this page</h2>
       <p>Only {who} can open it. If you need access, ask an admin to change your role.</p>
-      <Link className="btn-small" to="/">
-        Go to Run and results
+      <Link className="btn-small" to="/jobs">
+        Go to Jobs
       </Link>
     </div>
   );

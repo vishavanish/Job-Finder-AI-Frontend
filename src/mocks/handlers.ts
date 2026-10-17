@@ -21,7 +21,8 @@ import {
   type MockRun,
   type MockTask,
 } from "./data";
-import { planSources } from "./aiState";
+import { aiDb, planSources } from "./aiState";
+import { enrich, f3Db, setUserJob, userJobs } from "./f3State";
 import type { User } from "../lib/api/types";
 
 export const API = "*/api/v1";
@@ -305,14 +306,46 @@ export const workHandlers = [
   http.post(`${API}/pipeline/run/stream`, async ({ request }) => {
     const auth = authenticate(request);
     if ("response" in auth) return auth.response;
-    const body = await readJson<{ search: { sources?: string[]; enable_naukri_apify?: boolean } }>(
-      request,
-    );
-    const plan = planSources(
-      auth.user,
-      body.search?.sources ?? ["linkedin", "indeed"],
-      Boolean(body.search?.enable_naukri_apify),
-    );
+    const body = await readJson<{
+      search: { sources?: string[]; enable_naukri_apify?: boolean };
+      search_profile_id?: string;
+      include_seen?: boolean;
+    }>(request);
+    // Like the backend (P3): profile mode needs the user's own profile and a resume.
+    if (body.search_profile_id) {
+      const owned = (f3Db.searchProfiles[auth.user.id] ?? []).some(
+        (p) => p.id === body.search_profile_id,
+      );
+      if (!owned) {
+        return HttpResponse.json(
+          {
+            detail: {
+              code: "search_profile_not_found",
+              message: "No search profile with this id.",
+            },
+          },
+          { status: 404 },
+        );
+      }
+      if (!(f3Db.resumes[auth.user.id] ?? []).length) {
+        return HttpResponse.json(
+          {
+            detail: {
+              code: "resume_required",
+              message: "Upload a resume before searching with a profile.",
+            },
+          },
+          { status: 422 },
+        );
+      }
+    }
+    // Sources left out of the request: every source that can run, skipped ones not reported (P3.1).
+    const requested =
+      body.search?.sources ??
+      aiDb.sources.map((s) => s.key).filter((k) => k !== "naukri" && k !== "naukri_apify");
+    const plan = planSources(auth.user, requested, Boolean(body.search?.enable_naukri_apify));
+    // Like the backend: with no sources named, sources that can't run are left out quietly.
+    if (!body.search?.sources) plan.skipped = [];
     if (!plan.sources.length && !plan.apify) {
       return HttpResponse.json(
         {
@@ -325,14 +358,22 @@ export const workHandlers = [
         { status: 422 },
       );
     }
+    // Canonical jobs with stable ids; seen/saved/hidden/applied ones are skipped unless include_seen.
+    const mine = userJobs(auth.user.id);
+    const jobs = mockDb.sampleJobs
+      .map((j, i) => enrich(j, i))
+      .filter((j) => body.include_seen || !mine[j.id]);
+    for (const j of jobs) {
+      f3Db.jobs.set(j.id, j);
+      if (!mine[j.id]) setUserJob(auth.user.id, j.id, "seen");
+    }
+    // A better copy of the first job turns up later: same id, replaces: true (backend P3).
+    const first = jobs[0];
+    if (first) jobs.push({ ...first, applicants: "Over 200", replaces: true });
     const run: MockRun = {
       id: crypto.randomUUID(),
       createdAt: Date.now(),
-      jobs: mockDb.sampleJobs.map((j) => ({
-        ...j,
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-      })),
+      jobs,
       delivered: 0,
       status: "running",
     };
@@ -349,7 +390,9 @@ export const workHandlers = [
       user_id: auth.user.id,
       status: run.status,
       total_keywords: 3,
-      keywords_completed: Math.min(3, Math.floor((run.delivered / run.jobs.length) * 3)),
+      keywords_completed: run.jobs.length
+        ? Math.min(3, Math.floor((run.delivered / run.jobs.length) * 3))
+        : 3,
       error: "",
       created_at: new Date(run.createdAt).toISOString(),
     });
@@ -361,13 +404,29 @@ export const workHandlers = [
     const run = mockDb.runs.get(String(params.runId));
     if (!run) return HttpResponse.json({ detail: "no run found with this id" }, { status: 404 });
     const offset = Number(new URL(request.url).searchParams.get("offset") ?? 0);
-    // Release two more jobs per poll until all are out.
-    run.delivered = Math.min(run.jobs.length, Math.max(run.delivered, offset) + 2);
-    if (run.delivered >= run.jobs.length && run.status === "running") run.status = "completed";
+    // Release two more jobs per poll until all are out (none after a cancel).
+    if (run.status === "running") {
+      run.delivered = Math.min(run.jobs.length, Math.max(run.delivered, offset) + 2);
+      if (run.delivered >= run.jobs.length) run.status = "completed";
+    }
     await delay(150);
+    const jobs = run.jobs.slice(offset, run.delivered);
+    return HttpResponse.json({ run_status: run.status, jobs, next_offset: offset + jobs.length });
+  }),
+
+  http.post(`${API}/pipeline/:runId/cancel`, ({ request, params }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const run = mockDb.runs.get(String(params.runId));
+    if (!run) return HttpResponse.json({ detail: "no run found with this id" }, { status: 404 });
+    if (run.status === "running") run.status = "cancelled";
     return HttpResponse.json({
-      run_status: run.status,
-      jobs: run.jobs.slice(offset, run.delivered),
+      run_id: run.id,
+      user_id: auth.user.id,
+      status: run.status,
+      total_keywords: 3,
+      keywords_completed: 3,
+      error: run.status === "cancelled" ? "cancelled by you" : null,
     });
   }),
 

@@ -17,6 +17,7 @@ export const FEATURE_LABELS: Record<string, string> = {
   live_copilot: "Live Copilot",
   resume_tailoring: "resume tailoring",
   premium_models: "premium AI models",
+  job_alerts: "job alerts",
 };
 
 export function featureLabel(feature: string): string {

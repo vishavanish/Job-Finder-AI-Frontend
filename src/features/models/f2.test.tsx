@@ -72,24 +72,24 @@ describe("job sources", () => {
     expect(document.body.innerHTML).not.toContain(OWN_KEY);
   });
 
-  it("a search sends the user's sources and reports skipped ones", async () => {
+  it("a search runs from the search profile and lets the server pick the sources", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
-      let sent: { sources?: string[]; enable_naukri_apify?: boolean } | undefined;
+      // Since P3.1/F3 a search names no sources: the server runs every source the user has on.
+      let sent: Record<string, unknown> | undefined;
       server.events.on("request:start", async ({ request }) => {
         if (request.url.endsWith("/pipeline/run/stream")) {
-          sent = ((await request.clone().json()) as { search: typeof sent }).search;
+          sent = (await request.clone().json()) as Record<string, unknown>;
         }
       });
-      aiDb.sourceChoices.u_demo = { indeed: false, naukri_apify: true };
-      aiDb.freeOnly.u_demo = true;
-      renderApp("/");
+      aiDb.sourceChoices.u_demo = { indeed: false };
+      renderApp("/jobs");
       const user = await signIn();
-      await screen.findByText(/job source\(s\)/);
-      await user.click(screen.getByRole("button", { name: /Run Job Search/ }));
+      await screen.findByText(/job sources will run/);
+      await user.click(screen.getByRole("button", { name: "Run search" }));
       await waitFor(() => expect(sent).toBeDefined());
-      expect(sent!.sources).toEqual(["linkedin", "naukri"]);
-      expect(sent!.enable_naukri_apify).toBe(true); // asked for; the server skips it (Free tools only)
+      expect(sent!.search_profile_id).toBe("sp_demo_1");
+      expect(sent).not.toHaveProperty("search");
     } finally {
       server.events.removeAllListeners();
       vi.useRealTimers();

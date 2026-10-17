@@ -252,7 +252,7 @@
           "pipeline"
         ],
         "summary": "Run Pipeline Stream",
-        "description": "Fan-out version: dispatches one search+score sub-task PER KEYWORD\nin parallel (Celery group), each pushing scored jobs to Redis the\ninstant they're ready. Returns immediately with a run_id \u2014 poll\nGET /pipeline/{run_id}/jobs to watch results arrive live, and\nGET /pipeline/{run_id} for run-level progress (X/Y keywords done).",
+        "description": "Fan-out version: dispatches one search+score sub-task PER KEYWORD\nin parallel (Celery group), each pushing scored jobs to Redis the\ninstant they're ready. Returns immediately with a run_id \u2014 poll\nGET /pipeline/{run_id}/jobs to watch results arrive live, and\nGET /pipeline/{run_id} for run-level progress (X/Y keywords done).\n\nEach job appears once per run. If a better copy of a job already in the\nfeed turns up later (LinkedIn over Indeed), an updated entry with the\nSAME `id` and `replaces: true` is appended \u2014 upsert entries by `id`.",
         "operationId": "run_pipeline_stream_api_v1_pipeline_run_stream_post",
         "parameters": [
           {
@@ -360,13 +360,70 @@
         }
       }
     },
+    "/api/v1/pipeline/{run_id}/cancel": {
+      "post": {
+        "tags": [
+          "pipeline"
+        ],
+        "summary": "Cancel Pipeline Run",
+        "description": "Stops a streaming run: keyword tasks that haven't started skip their\nwork; jobs already in the feed stay. Idempotent.",
+        "operationId": "cancel_pipeline_run_api_v1_pipeline__run_id__cancel_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pipeline/{run_id}/jobs": {
       "get": {
         "tags": [
           "pipeline"
         ],
         "summary": "Get Pipeline Run Jobs",
-        "description": "Poll this every ~2s, passing `offset` = however many jobs you\nalready have client-side, to fetch only the NEW ones each tick.",
+        "description": "Poll this every ~2s, passing `offset` = the previous response's\n`next_offset`, to fetch only the NEW entries each tick. An entry whose\n`id` you already have (`replaces: true`) is a better copy of that job:\nreplace it in place.",
         "operationId": "get_pipeline_run_jobs_api_v1_pipeline__run_id__jobs_get",
         "parameters": [
           {
@@ -1253,6 +1310,66 @@
         },
         "responses": {
           "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationLogEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applications/manual": {
+      "post": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Mark Applied Manually",
+        "description": "\"Apply manually \u2192 Mark as applied\" (CLAUDE.md 7.7): the user applied\non the job's own page. Records a `submitted` application with\nstatus_source `manual` and moves the job to the user's Applied list so\nlater searches skip it.",
+        "operationId": "mark_applied_manually_api_v1_applications_manual_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualApplyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
@@ -3490,6 +3607,1626 @@
         }
       }
     },
+    "/api/v1/profile": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Get Profile",
+        "operationId": "get_profile_api_v1_profile_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Put Profile",
+        "operationId": "put_profile_api_v1_profile_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preferences": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Get Preferences",
+        "operationId": "get_preferences_api_v1_preferences_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Put Preferences",
+        "operationId": "put_preferences_api_v1_preferences_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resumes": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Upload Resume",
+        "description": "Stores a new version (the first one becomes the master). With\n`parse` (default), a worker reads it with AI: poll GET /resumes/{id}\nuntil `parse_status` leaves \"pending\", then let the user review and\nsave it with PUT /resumes/{id}.",
+        "operationId": "upload_resume_api_v1_resumes_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_resume_api_v1_resumes_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "List Resumes",
+        "operationId": "list_resumes_api_v1_resumes_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resume_id}": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Get Resume",
+        "operationId": "get_resume_api_v1_resumes__resume_id__get",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Update Resume",
+        "operationId": "update_resume_api_v1_resumes__resume_id__put",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Delete Resume",
+        "operationId": "delete_resume_api_v1_resumes__resume_id__delete",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resume_id}/file": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Download Resume",
+        "operationId": "download_resume_api_v1_resumes__resume_id__file_get",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resume_id}/master": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Make Master",
+        "operationId": "make_master_api_v1_resumes__resume_id__master_post",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resume_id}/parse": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Reparse Resume",
+        "description": "Reads the resume again with AI. Replaces the parsed profile when it\nfinishes (including edits saved earlier).",
+        "operationId": "reparse_resume_api_v1_resumes__resume_id__parse_post",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search-profiles": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "List Search Profiles",
+        "operationId": "list_search_profiles_api_v1_search_profiles_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchProfileList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Create Search Profile",
+        "operationId": "create_search_profile_api_v1_search_profiles_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchProfileIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search-profiles/from-resume": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Seed Search Profile",
+        "description": "A new profile with the skills and recent titles from a parsed resume\n(the master by default). Weights start as \"strong\"; edit them after.",
+        "operationId": "seed_search_profile_api_v1_search_profiles_from_resume_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedFromResumeIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search-profiles/{profile_id}": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Get Search Profile",
+        "operationId": "get_search_profile_api_v1_search_profiles__profile_id__get",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Update Search Profile",
+        "operationId": "update_search_profile_api_v1_search_profiles__profile_id__put",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchProfileIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Delete Search Profile",
+        "operationId": "delete_search_profile_api_v1_search_profiles__profile_id__delete",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search-profiles/{profile_id}/suggest-titles": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Suggest Titles",
+        "description": "Adjacent job titles from the profile's skills (AI). Nothing is saved:\nthe user picks which to add.",
+        "operationId": "suggest_titles_api_v1_search_profiles__profile_id__suggest_titles_post",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TitleSuggestions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "List My Jobs",
+        "operationId": "list_my_jobs_api_v1_jobs_get",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "saved",
+                "hidden",
+                "seen",
+                "applied"
+              ],
+              "type": "string",
+              "default": "saved",
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserJobList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}/{action}": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Set Job State",
+        "operationId": "set_job_state_api_v1_jobs__job_id___action__post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "action",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "save",
+                "hide",
+                "seen"
+              ],
+              "type": "string",
+              "title": "Action"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserJobOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "List Alerts",
+        "operationId": "list_alerts_api_v1_alerts_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Create Alert",
+        "operationId": "create_alert_api_v1_alerts_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{alert_id}": {
+      "put": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Update Alert",
+        "operationId": "update_alert_api_v1_alerts__alert_id__put",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Alert Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Delete Alert",
+        "operationId": "delete_alert_api_v1_alerts__alert_id__delete",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Alert Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{alert_id}/run-now": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Run Now",
+        "operationId": "run_now_api_v1_alerts__alert_id__run_now_post",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Alert Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{alert_id}/runs": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "List Runs",
+        "operationId": "list_runs_api_v1_alerts__alert_id__runs_get",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Alert Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertRunList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/runs/{run_id}/jobs": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Run Jobs",
+        "operationId": "run_jobs_api_v1_alerts_runs__run_id__jobs_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertRunJobs"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -3997,6 +5734,11 @@
             "type": "boolean",
             "title": "Enabled Global"
           },
+          "default_enabled": {
+            "type": "boolean",
+            "title": "Default Enabled",
+            "default": true
+          },
           "key_configured": {
             "anyOf": [
               {
@@ -4106,6 +5848,18 @@
               }
             ],
             "title": "Enabled Global"
+          },
+          "default_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Enabled",
+            "description": "On for users who never switched it themselves"
           }
         },
         "type": "object",
@@ -4233,6 +5987,284 @@
         "title": "AdminUserUpdate",
         "description": "Only the fields you send are changed; send manager_id: null to\nremove a user from their manager's team."
       },
+      "AlertIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "search_profile_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Search Profile Id"
+          },
+          "hour_local": {
+            "type": "integer",
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Hour Local",
+            "description": "Local hour the alert runs at",
+            "default": 9
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Timezone",
+            "default": "Asia/Kolkata"
+          },
+          "min_score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Min Score"
+          },
+          "email_digest": {
+            "type": "boolean",
+            "title": "Email Digest",
+            "default": true
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "search_profile_id"
+        ],
+        "title": "AlertIn"
+      },
+      "AlertList": {
+        "properties": {
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/AlertOut"
+            },
+            "type": "array",
+            "title": "Alerts"
+          },
+          "max_alerts": {
+            "type": "integer",
+            "title": "Max Alerts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "alerts",
+          "max_alerts"
+        ],
+        "title": "AlertList"
+      },
+      "AlertOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "search_profile_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Search Profile Id"
+          },
+          "hour_local": {
+            "type": "integer",
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Hour Local",
+            "description": "Local hour the alert runs at",
+            "default": 9
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Timezone",
+            "default": "Asia/Kolkata"
+          },
+          "min_score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Min Score"
+          },
+          "email_digest": {
+            "type": "boolean",
+            "title": "Email Digest",
+            "default": true
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At",
+            "description": "UTC"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "search_profile_id",
+          "id",
+          "created_at"
+        ],
+        "title": "AlertOut"
+      },
+      "AlertRunJobs": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/AlertRunOut"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/UserJobOut"
+            },
+            "type": "array",
+            "title": "Jobs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "jobs"
+        ],
+        "title": "AlertRunJobs"
+      },
+      "AlertRunList": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/AlertRunOut"
+            },
+            "type": "array",
+            "title": "Runs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "runs"
+        ],
+        "title": "AlertRunList"
+      },
+      "AlertRunOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "alert_id": {
+            "type": "string",
+            "title": "Alert Id"
+          },
+          "trigger": {
+            "type": "string",
+            "title": "Trigger"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "counts": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Counts"
+          },
+          "new_jobs": {
+            "type": "integer",
+            "title": "New Jobs",
+            "default": 0
+          },
+          "emailed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailed At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "alert_id",
+          "trigger",
+          "status",
+          "started_at"
+        ],
+        "title": "AlertRunOut"
+      },
       "ApplicantInfo": {
         "properties": {
           "first_name": {
@@ -4260,6 +6292,141 @@
           "email"
         ],
         "title": "ApplicantInfo"
+      },
+      "ApplicantInfoIn": {
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "First Name",
+            "default": ""
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Last Name",
+            "default": ""
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Email",
+            "default": ""
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Phone",
+            "default": ""
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "City",
+            "default": ""
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Country",
+            "default": ""
+          },
+          "linkedin_url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Linkedin Url",
+            "default": ""
+          },
+          "github_url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Github Url",
+            "default": ""
+          },
+          "portfolio_url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Portfolio Url",
+            "default": ""
+          },
+          "notice_period_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 365.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice Period Days"
+          },
+          "current_ctc": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Current Ctc",
+            "default": ""
+          },
+          "expected_ctc": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Expected Ctc",
+            "default": ""
+          },
+          "total_experience_years": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 60.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Experience Years"
+          },
+          "willing_to_relocate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "yes",
+                  "no",
+                  "depends"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Willing To Relocate"
+          },
+          "relocation_locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Relocation Locations"
+          },
+          "requires_sponsorship": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Sponsorship"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ApplicantInfoIn",
+        "description": "Deterministic answers auto-apply fills forms with (CLAUDE.md 7.2)."
       },
       "ApplicationLogEntry": {
         "properties": {
@@ -4561,6 +6728,39 @@
         ],
         "title": "AuditList"
       },
+      "Body_upload_resume_api_v1_resumes_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "PDF or DOCX"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "parse": {
+            "type": "boolean",
+            "title": "Parse",
+            "description": "Read it with AI right away",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_resume_api_v1_resumes_post"
+      },
       "CompanyAtsRequest": {
         "properties": {
           "targets": {
@@ -4589,6 +6789,11 @@
               "lever",
               "smartrecruiters",
               "workday",
+              "ashby",
+              "recruitee",
+              "workable",
+              "personio",
+              "breezy",
               "custom"
             ],
             "title": "Platform"
@@ -4691,6 +6896,80 @@
           "slug"
         ],
         "title": "CompanyAtsTarget"
+      },
+      "EducationItem": {
+        "properties": {
+          "school": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "School",
+            "default": ""
+          },
+          "degree": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Degree",
+            "default": ""
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Field",
+            "default": ""
+          },
+          "start": {
+            "type": "string",
+            "maxLength": 30,
+            "title": "Start",
+            "default": ""
+          },
+          "end": {
+            "type": "string",
+            "maxLength": 30,
+            "title": "End",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "EducationItem"
+      },
+      "EeoAnswers": {
+        "properties": {
+          "gender": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Gender",
+            "default": "prefer_not_to_say"
+          },
+          "ethnicity": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Ethnicity",
+            "default": "prefer_not_to_say"
+          },
+          "veteran_status": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Veteran Status",
+            "default": "prefer_not_to_say"
+          },
+          "disability_status": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Disability Status",
+            "default": "prefer_not_to_say"
+          },
+          "pronouns": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Pronouns",
+            "default": "prefer_not_to_say"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "EeoAnswers",
+        "description": "Optional diversity answers some employers ask for (P3.2). Stored\nencrypted, filled only by the user, never sent to an AI model or a log."
       },
       "EntitlementOut": {
         "properties": {
@@ -4859,6 +7138,55 @@
           "enabled"
         ],
         "title": "EntitlementUpdate"
+      },
+      "ExperienceItem": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "default": ""
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Company",
+            "default": ""
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Location",
+            "default": ""
+          },
+          "start": {
+            "type": "string",
+            "maxLength": 30,
+            "title": "Start",
+            "default": ""
+          },
+          "end": {
+            "type": "string",
+            "maxLength": 30,
+            "title": "End",
+            "default": ""
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current",
+            "default": false
+          },
+          "highlights": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Highlights"
+          }
+        },
+        "type": "object",
+        "title": "ExperienceItem"
       },
       "FlagUpdate": {
         "properties": {
@@ -5109,6 +7437,24 @@
         ],
         "title": "KeyOut"
       },
+      "LinkItem": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Label",
+            "default": ""
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "LinkItem"
+      },
       "LoginRequest": {
         "properties": {
           "email": {
@@ -5126,6 +7472,22 @@
           "password"
         ],
         "title": "LoginRequest"
+      },
+      "ManualApplyIn": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Job Id",
+            "description": "Canonical job id (a feed entry's `id`)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id"
+        ],
+        "title": "ManualApplyIn"
       },
       "MeOut": {
         "properties": {
@@ -5456,13 +7818,153 @@
         ],
         "title": "OtpVerify"
       },
+      "ParsedResume": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name",
+            "default": ""
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Email",
+            "default": ""
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Phone",
+            "default": ""
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Location",
+            "default": ""
+          },
+          "headline": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Headline",
+            "default": ""
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Summary",
+            "default": ""
+          },
+          "total_experience_years": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 60.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Experience Years"
+          },
+          "experience": {
+            "items": {
+              "$ref": "#/components/schemas/ExperienceItem"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Experience"
+          },
+          "education": {
+            "items": {
+              "$ref": "#/components/schemas/EducationItem"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Education"
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 150,
+            "title": "Skills"
+          },
+          "certifications": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Certifications"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Languages"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/LinkItem"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Links"
+          }
+        },
+        "type": "object",
+        "title": "ParsedResume",
+        "description": "The structured profile the AI extracts and the user reviews."
+      },
       "PipelineRequest": {
         "properties": {
           "search": {
             "$ref": "#/components/schemas/SearchRequest"
           },
           "score": {
-            "$ref": "#/components/schemas/ScoreRequestPartial"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScoreRequestPartial"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "search_profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 36
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Profile Id"
+          },
+          "thresholds": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScoreThresholds"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Profile mode: score thresholds (default 30 / 40 / 70). Ignored when `score` is sent."
+          },
+          "include_seen": {
+            "type": "boolean",
+            "title": "Include Seen",
+            "description": "Show jobs already seen or saved in earlier runs again",
+            "default": false
           },
           "apply": {
             "anyOf": [
@@ -5476,11 +7978,8 @@
           }
         },
         "type": "object",
-        "required": [
-          "search",
-          "score"
-        ],
-        "title": "PipelineRequest"
+        "title": "PipelineRequest",
+        "description": "Two ways to describe what to look for (CLAUDE.md 7.3):\n\n- **search_profile_id** (preferred): keywords, skills, must/nice/exclude\n  terms come from the saved Keywords & Skills profile; the resume context\n  from the master resume (or `score.resume_summary`); locations and\n  posted-within from the user's preferences unless `search` sets them.\n- **legacy**: `search.keywords` + `score` (resume_summary, skills, \u2026) sent\n  every time. Still works; deprecated once the frontend uses profiles.\n\nEither way, jobs the user has already seen, hidden or applied to are\nskipped (`include_seen: true` shows seen/saved ones again), avoided\ncompanies are dropped, and each job is scored once per run."
       },
       "PlatformKeyList": {
         "properties": {
@@ -5535,6 +8034,408 @@
         ],
         "title": "PlatformKeyScope"
       },
+      "PreferencesIn": {
+        "properties": {
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Titles"
+          },
+          "seniority": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Seniority"
+          },
+          "locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Locations"
+          },
+          "work_modes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "remote",
+                "hybrid",
+                "onsite"
+              ]
+            },
+            "type": "array",
+            "title": "Work Modes"
+          },
+          "job_types": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "full_time",
+                "part_time",
+                "contract",
+                "internship",
+                "temporary",
+                "freelance"
+              ]
+            },
+            "type": "array",
+            "title": "Job Types"
+          },
+          "salary_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Min"
+          },
+          "salary_max": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Max"
+          },
+          "salary_currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Currency"
+          },
+          "notice_period_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 365.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice Period Days"
+          },
+          "industries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Industries"
+          },
+          "avoid_companies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avoid Companies"
+          },
+          "posted_within_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 720.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted Within Hours"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages"
+          }
+        },
+        "type": "object",
+        "title": "PreferencesIn"
+      },
+      "PreferencesOut": {
+        "properties": {
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Titles"
+          },
+          "seniority": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Seniority"
+          },
+          "locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Locations"
+          },
+          "work_modes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "remote",
+                "hybrid",
+                "onsite"
+              ]
+            },
+            "type": "array",
+            "title": "Work Modes"
+          },
+          "job_types": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "full_time",
+                "part_time",
+                "contract",
+                "internship",
+                "temporary",
+                "freelance"
+              ]
+            },
+            "type": "array",
+            "title": "Job Types"
+          },
+          "salary_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Min"
+          },
+          "salary_max": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Max"
+          },
+          "salary_currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Currency"
+          },
+          "notice_period_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 365.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice Period Days"
+          },
+          "industries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Industries"
+          },
+          "avoid_companies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avoid Companies"
+          },
+          "posted_within_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 720.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted Within Hours"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "title": "PreferencesOut"
+      },
+      "ProfileIn": {
+        "properties": {
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headline"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "applicant_info": {
+            "$ref": "#/components/schemas/ApplicantInfoIn"
+          },
+          "work_authorization": {
+            "items": {
+              "$ref": "#/components/schemas/QA"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Work Authorization"
+          },
+          "eeo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EeoAnswers"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Leave out to keep the saved answers"
+          }
+        },
+        "type": "object",
+        "title": "ProfileIn"
+      },
+      "ProfileOut": {
+        "properties": {
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headline"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "applicant_info": {
+            "$ref": "#/components/schemas/ApplicantInfoIn"
+          },
+          "work_authorization": {
+            "items": {
+              "$ref": "#/components/schemas/QA"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Work Authorization"
+          },
+          "eeo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EeoAnswers"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Leave out to keep the saved answers"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "title": "ProfileOut"
+      },
       "ProviderSettingsIn": {
         "properties": {
           "free_only": {
@@ -5581,6 +8482,27 @@
         ],
         "title": "ProviderSettingsOut"
       },
+      "QA": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "answer"
+        ],
+        "title": "QA"
+      },
       "RegisterRequest": {
         "properties": {
           "email": {
@@ -5611,6 +8533,291 @@
           "password"
         ],
         "title": "RegisterRequest"
+      },
+      "ResumeDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "is_master": {
+            "type": "boolean",
+            "title": "Is Master"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "parse_status": {
+            "type": "string",
+            "enum": [
+              "unparsed",
+              "pending",
+              "parsed",
+              "reviewed",
+              "failed",
+              "no_text"
+            ],
+            "title": "Parse Status"
+          },
+          "parse_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parse Error"
+          },
+          "parsed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parsed By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "parsed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ParsedResume"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "is_master",
+          "file_name",
+          "content_type",
+          "size_bytes",
+          "parse_status",
+          "created_at",
+          "updated_at",
+          "text"
+        ],
+        "title": "ResumeDetail"
+      },
+      "ResumeList": {
+        "properties": {
+          "resumes": {
+            "items": {
+              "$ref": "#/components/schemas/ResumeOut"
+            },
+            "type": "array",
+            "title": "Resumes"
+          },
+          "master_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Master Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resumes"
+        ],
+        "title": "ResumeList"
+      },
+      "ResumeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "is_master": {
+            "type": "boolean",
+            "title": "Is Master"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "parse_status": {
+            "type": "string",
+            "enum": [
+              "unparsed",
+              "pending",
+              "parsed",
+              "reviewed",
+              "failed",
+              "no_text"
+            ],
+            "title": "Parse Status"
+          },
+          "parse_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parse Error"
+          },
+          "parsed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parsed By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "is_master",
+          "file_name",
+          "content_type",
+          "size_bytes",
+          "parse_status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ResumeOut"
+      },
+      "ResumeUpdate": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "parsed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ParsedResume"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResumeUpdate",
+        "description": "The user's reviewed/edited parse result (and/or a new label)."
       },
       "ScoreRequest": {
         "properties": {
@@ -5743,7 +8950,6 @@
               "type": "string"
             },
             "type": "array",
-            "minItems": 1,
             "title": "Skills"
           },
           "career_targets": {
@@ -5834,11 +9040,182 @@
         },
         "type": "object",
         "required": [
-          "resume_summary",
-          "skills"
+          "resume_summary"
         ],
         "title": "ScoreRequestPartial",
-        "description": "Same as ScoreRequest but without `jobs` \u2014 the pipeline supplies jobs\nfrom the search step automatically."
+        "description": "Same as ScoreRequest but without `jobs` \u2014 the pipeline supplies jobs\nfrom the search step automatically. With a search profile, `skills` and\n`career_targets` come from the profile and only `resume_summary`, the\nthresholds and one-run keys here are used."
+      },
+      "ScoreThresholds": {
+        "properties": {
+          "keyword_prefilter_min_pct": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Keyword Prefilter Min Pct",
+            "default": 30
+          },
+          "llm_top_n_to_rank": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Llm Top N To Rank",
+            "default": 40
+          },
+          "llm_min_score_to_keep": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Llm Min Score To Keep",
+            "default": 70
+          }
+        },
+        "type": "object",
+        "title": "ScoreThresholds"
+      },
+      "SearchProfileIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "is_default": {
+            "type": "boolean",
+            "title": "Is Default",
+            "default": false
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillIn"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Skills"
+          },
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Titles"
+          },
+          "must_have": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Must Have"
+          },
+          "nice_to_have": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Nice To Have"
+          },
+          "exclude": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exclude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "SearchProfileIn"
+      },
+      "SearchProfileList": {
+        "properties": {
+          "profiles": {
+            "items": {
+              "$ref": "#/components/schemas/SearchProfileOut"
+            },
+            "type": "array",
+            "title": "Profiles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profiles"
+        ],
+        "title": "SearchProfileList"
+      },
+      "SearchProfileOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "is_default": {
+            "type": "boolean",
+            "title": "Is Default",
+            "default": false
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillIn"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Skills"
+          },
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Titles"
+          },
+          "must_have": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Must Have"
+          },
+          "nice_to_have": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Nice To Have"
+          },
+          "exclude": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exclude"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SearchProfileOut"
       },
       "SearchRequest": {
         "properties": {
@@ -5858,16 +9235,19 @@
             "title": "Locations"
           },
           "sources": {
-            "items": {
-              "type": "string",
-              "enum": [
-                "linkedin",
-                "indeed",
-                "naukri"
-              ]
-            },
-            "type": "array",
-            "title": "Sources"
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sources",
+            "description": "Source keys from GET /providers (e.g. linkedin, indeed, adzuna, remoteok). Leave out to use every source that can run for you."
           },
           "results_per_keyword": {
             "type": "integer",
@@ -5915,6 +9295,7 @@
           "enable_naukri_auto": {
             "type": "boolean",
             "title": "Enable Naukri Auto",
+            "description": "Deprecated and ignored: Naukri blocks automated search (captcha).",
             "default": false
           },
           "manual_naukri_jobs": {
@@ -5953,6 +9334,31 @@
         "type": "object",
         "title": "SearchRequest"
       },
+      "SeedFromResumeIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "default": "From my resume"
+          },
+          "resume_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Id",
+            "description": "Defaults to the master resume"
+          }
+        },
+        "type": "object",
+        "title": "SeedFromResumeIn"
+      },
       "SetPasswordRequest": {
         "properties": {
           "password": {
@@ -5966,6 +9372,51 @@
           "password"
         ],
         "title": "SetPasswordRequest"
+      },
+      "SkillIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "weight": {
+            "type": "string",
+            "enum": [
+              "core",
+              "strong",
+              "familiar"
+            ],
+            "title": "Weight",
+            "default": "strong"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Synonyms"
+          },
+          "years": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 60.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Years"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "SkillIn"
       },
       "SourceHealth": {
         "properties": {
@@ -6008,6 +9459,19 @@
               }
             ],
             "title": "Last Error"
+          },
+          "paused_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused Until",
+            "description": "Skipped after repeated errors until this time"
           }
         },
         "type": "object",
@@ -6107,6 +9571,33 @@
           "failed"
         ],
         "title": "TaskStatus"
+      },
+      "TitleSuggestions": {
+        "properties": {
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Titles"
+          },
+          "engine": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "titles"
+        ],
+        "title": "TitleSuggestions"
       },
       "TokenResponse": {
         "properties": {
@@ -6358,6 +9849,175 @@
         ],
         "title": "UsageTotals"
       },
+      "UserJobList": {
+        "properties": {
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/UserJobOut"
+            },
+            "type": "array",
+            "title": "Jobs"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jobs",
+          "total"
+        ],
+        "title": "UserJobList"
+      },
+      "UserJobOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Canonical job id (same as the pipeline feed's `id`)"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "company": {
+            "type": "string",
+            "title": "Company"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "posted": {
+            "type": "string",
+            "title": "Posted"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "keyword_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keyword Score"
+          },
+          "llm_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Score"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "Every source this job was found on"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match",
+            "description": "Skills matched/missing, title fit, seniority, missing required"
+          },
+          "posted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted At"
+          },
+          "posted_hours_ago": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted Hours Ago"
+          },
+          "early": {
+            "type": "boolean",
+            "title": "Early",
+            "default": false
+          },
+          "applicants": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applicants",
+            "description": "LinkedIn applicant count as shown, e.g. 143 or Over 200"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "company",
+          "location",
+          "url",
+          "source",
+          "posted",
+          "state",
+          "updated_at"
+        ],
+        "title": "UserJobOut"
+      },
       "UserModelOut": {
         "properties": {
           "id": {
@@ -6575,6 +10235,12 @@
             "type": "boolean",
             "title": "Enabled",
             "description": "The user's own switch"
+          },
+          "default_enabled": {
+            "type": "boolean",
+            "title": "Default Enabled",
+            "description": "Switch position for users who never changed it",
+            "default": true
           },
           "available": {
             "type": "boolean",

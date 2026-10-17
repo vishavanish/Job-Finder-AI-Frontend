@@ -38,6 +38,8 @@ export default defineConfig(({ mode }) => {
       setupFiles: ["./src/test/setup.ts"],
       css: false,
       restoreMocks: true,
+      // Screen tests sign in and stream jobs through MSW; 5 s is too tight on slower machines and CI.
+      testTimeout: 15_000,
       include: ["src/**/*.test.{ts,tsx}"],
     },
   };

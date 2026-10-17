@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { SettingsProvider } from "../context/SettingsContext.jsx";
-import { RunProvider } from "../context/RunContext.jsx";
 import { ActivityProvider } from "./activity";
 import { ThemeProvider } from "./theme";
 import AppShell from "./AppShell";
@@ -18,13 +17,14 @@ import AdminSourcesPage from "../features/admin/AdminSourcesPage";
 import AdminUsagePage from "../features/admin/AdminUsagePage";
 import AiModelsPage from "../features/models/AiModelsPage";
 import ApiKeysPage from "../features/models/ApiKeysPage";
-import HomePage from "../pages/HomePage.jsx";
-import KeywordsPage from "../pages/KeywordsPage.jsx";
-import SkillsPage from "../pages/SkillsPage.jsx";
 import AtsTargetsPage from "../pages/AtsTargetsPage.jsx";
 import ProvidersPage from "../features/providers/ProvidersPage";
-import ProfilePage from "../pages/ProfilePage.jsx";
 import ApplicationsPage from "../pages/ApplicationsPage.jsx";
+import JobsPage from "../features/jobs/JobsPage";
+import ProfilePage from "../features/profile/ProfilePage";
+import SearchProfilePage from "../features/search-profile/SearchProfilePage";
+import AlertsPage from "../features/alerts/AlertsPage";
+import { QueryProvider } from "../lib/query";
 
 const ADMIN_ROLES = ["admin", "manager"] as const;
 const ADMIN_ONLY = ["admin"] as const;
@@ -58,16 +58,20 @@ export function AppRoutes() {
           </RequireAuth>
         }
       >
+        {/* "/" opens Jobs until the Dashboard (F5). Old setup pages moved to /search-profile (F3). */}
+        <Route index element={<Navigate to="/jobs" replace />} />
         <Route
-          index
+          path="jobs"
           element={
             <RequireFeature feature="job_search">
-              <HomePage />
+              <JobsPage />
             </RequireFeature>
           }
         />
-        <Route path="keywords" element={<KeywordsPage />} />
-        <Route path="skills" element={<SkillsPage />} />
+        <Route path="alerts" element={<AlertsPage />} />
+        <Route path="search-profile" element={<SearchProfilePage />} />
+        <Route path="keywords" element={<Navigate to="/search-profile" replace />} />
+        <Route path="skills" element={<Navigate to="/search-profile" replace />} />
         <Route
           path="ats-targets"
           element={
@@ -147,13 +151,13 @@ export function AppRoutes() {
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <SettingsProvider>
-          <ActivityProvider>
-            <RunProvider>{children}</RunProvider>
-          </ActivityProvider>
-        </SettingsProvider>
-      </AuthProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <ActivityProvider>{children}</ActivityProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </QueryProvider>
     </ThemeProvider>
   );
 }

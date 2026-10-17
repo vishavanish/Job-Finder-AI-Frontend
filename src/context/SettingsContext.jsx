@@ -1,54 +1,38 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const STORAGE_KEY = "job_finder_settings_v1";
+// F3: search settings, resume summary and applicant info moved to the server
+// (/search-profiles, /preferences, /profile). Only ATS targets stay in the
+// browser until ATS Discovery (F6), under their own key so importing or
+// discarding the old settings (features/search-profile/legacyImport.ts)
+// can't lose them.
+const ATS_KEY = "job_finder_ats_targets_v1";
+const LEGACY_KEY = "job_finder_settings_v1";
+const DEFAULT_TARGETS = [{ platform: "smartrecruiters", slug: "Atlassian" }];
 
-const DEFAULT_SETTINGS = {
-  keywords: [
-    "Senior Python Software Engineer",
-    "AI Engineer",
-    "LLM Application Developer",
-  ],
-  locations: ["Mumbai, India", "Pune, India", "Bangalore, India"],
-  // Job sources moved to the server (GET/PUT /providers) in F2.
-
-  skills: [
-    "python", "django", "fastapi", "docker", "aws",
-    "langchain", "sql", "react",
-  ],
-  resumeSummary:
-    "Senior Software Developer (3+ yrs). Core stack: Python, Django, FastAPI, Docker, AWS, LangChain, SQL, React.",
-  careerTargets: ["AI Engineer", "LLM Application Developer", "Senior Backend Developer"],
-
-  atsTargets: [
-    { platform: "smartrecruiters", slug: "Atlassian" },
-  ],
-
-  thresholds: {
-    keywordPrefilterMinPct: 30,
-    llmTopNToRank: 40,
-    llmMinScoreToKeep: 70,
-    resultsPerKeyword: 25,
-    maxAgeHours: 24,
-  },
-
-  applicant: { first_name: "", last_name: "", email: "", phone: "" },
-};
+function loadTargets() {
+  try {
+    const own = localStorage.getItem(ATS_KEY);
+    if (own) return JSON.parse(own);
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    const targets = legacy ? JSON.parse(legacy).atsTargets : null;
+    return Array.isArray(targets) ? targets : DEFAULT_TARGETS;
+  } catch {
+    return DEFAULT_TARGETS;
+  }
+}
 
 const SettingsContext = createContext(null);
 
 export function SettingsProvider({ children }) {
-  const [settings, setSettings] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SETTINGS;
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
+  const [settings, setSettings] = useState(() => ({ atsTargets: loadTargets() }));
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  }, [settings]);
+    try {
+      localStorage.setItem(ATS_KEY, JSON.stringify(settings.atsTargets));
+    } catch {
+      // Not remembered in this browser.
+    }
+  }, [settings.atsTargets]);
 
   const update = (patch) => setSettings((prev) => ({ ...prev, ...patch }));
 

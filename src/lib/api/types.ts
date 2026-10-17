@@ -50,6 +50,35 @@ export type ScoreRequest = Schemas["ScoreRequest"];
 export type CompanyAtsRequest = Schemas["CompanyAtsRequest"];
 export type ApplicationLogEntry = Schemas["ApplicationLogEntry"];
 export type ApplicationLogResult = Schemas["ApplicationLogResult"];
+export type ApplicantInfo = Schemas["ApplicantInfo"];
+
+// ---- P3 / P3.2: profile, resumes, search profiles, jobs, alerts ----
+export type ProfileIn = Schemas["ProfileIn"];
+export type ProfileOut = Schemas["ProfileOut"];
+/** Applicant info being edited (every field optional); profileApi.fullApplicant fills defaults for PUT /profile. */
+export type ApplicantInfoIn = Partial<Schemas["ApplicantInfoIn"]>;
+export type EeoAnswers = Schemas["EeoAnswers"];
+export type PreferencesIn = Schemas["PreferencesIn"];
+export type PreferencesOut = Schemas["PreferencesOut"];
+export type ResumeOut = Schemas["ResumeOut"];
+export type ResumeDetail = Schemas["ResumeDetail"];
+export type ResumeList = Schemas["ResumeList"];
+export type ParsedResume = Schemas["ParsedResume"];
+export type ExperienceItem = Schemas["ExperienceItem"];
+export type SearchProfileIn = Schemas["SearchProfileIn"];
+export type SearchProfileOut = Schemas["SearchProfileOut"];
+export type SearchProfileList = Schemas["SearchProfileList"];
+export type SkillIn = Schemas["SkillIn"];
+export type TitleSuggestions = Schemas["TitleSuggestions"];
+export type UserJob = Schemas["UserJobOut"];
+export type UserJobList = Schemas["UserJobList"];
+export type ScoreThresholds = Schemas["ScoreThresholds"];
+export type AlertIn = Schemas["AlertIn"];
+export type AlertOut = Schemas["AlertOut"];
+export type AlertList = Schemas["AlertList"];
+export type AlertRunOut = Schemas["AlertRunOut"];
+export type AlertRunList = Schemas["AlertRunList"];
+export type AlertRunJobs = Schemas["AlertRunJobs"];
 
 /*
  * The streaming pipeline routes have no response_model on the backend, so
@@ -70,6 +99,25 @@ export interface StreamedJob {
   llm_reason: string;
   auto_apply_capable: boolean;
   created_at: string;
+  /** P3.2: skills matched/missing, title fit, seniority, missing required skills. */
+  match?: MatchBreakdown | null;
+  posted_at?: string | null;
+  posted_hours_ago?: number | null;
+  early?: boolean;
+  new_since_last_search?: boolean | null;
+  /** LinkedIn applicant count as shown ("143", "Over 200"). */
+  applicants?: string | null;
+  /** A better copy (or an update) of a job already in the feed: replace the entry with this id. */
+  replaces?: boolean;
+}
+
+export interface MatchBreakdown {
+  skills_matched: string[];
+  skills_missing: string[];
+  skills_total: number;
+  title_fit: number | null;
+  seniority?: "match" | "stretch" | "overqualified" | null;
+  missing_required?: string[] | null;
 }
 
 export type RunStatus = "running" | "completed" | "failed" | "cancelled";
@@ -92,4 +140,5 @@ export interface PipelineRunMeta {
 export interface PipelineRunJobsPage {
   run_status: RunStatus;
   jobs: StreamedJob[];
+  next_offset?: number;
 }

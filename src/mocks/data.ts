@@ -20,6 +20,7 @@ export const FEATURES = [
   "live_copilot",
   "resume_tailoring",
   "premium_models",
+  "job_alerts",
 ] as const;
 
 export function defaultEntitlements(): Record<string, EntitlementSummary> {
