@@ -9,18 +9,15 @@ import { useId, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { errorMessage } from "../../lib/api/errors";
 import { useEntitlement } from "../../lib/auth/access";
-import type { ApplicantInfo, StreamedJob } from "../../lib/api/types";
+import type { StreamedJob } from "../../lib/api/types";
 import { getProviders } from "../models/modelsApi";
-import { getProfile, listResumes, profileKeys } from "../profile/profileApi";
 import { listSearchProfiles, searchProfileKeys } from "../search-profile/searchProfileApi";
-import { JobCard, type AutoApplyGate, type JobUiState } from "./JobCard";
+import { JobCard, type JobUiState } from "./JobCard";
 import {
   cancelRun,
   jobKeys,
   listJobs,
-  markApplied,
   setJobState,
-  startAutoApply,
   startRun,
   userJobToCard,
   type JobListState,
@@ -43,41 +40,6 @@ const POSTED_FILTERS = [
   [168, "Last week"],
 ] as const;
 
-function useAutoApplyGate(): (job: StreamedJob) => AutoApplyGate {
-  const ent = useEntitlement("auto_apply");
-  const resumes = useQuery({ queryKey: profileKeys.resumes, queryFn: listResumes });
-  const profile = useQuery({ queryKey: profileKeys.profile, queryFn: getProfile });
-  return (job) => {
-    if (!ent.allowed) return { allowed: false, reason: ent.reason };
-    if (!job.auto_apply_capable) {
-      return {
-        allowed: false,
-        reason: `Auto apply isn't available for ${job.source} jobs yet — use Apply manually.`,
-      };
-    }
-    if (resumes.isSuccess && resumes.data.resumes.length === 0) {
-      return { allowed: false, reason: "Auto apply needs a resume — add one in Profile." };
-    }
-    const a = profile.data?.applicant_info;
-    if (profile.isSuccess && !(a?.first_name && a?.last_name && a?.email)) {
-      return {
-        allowed: false,
-        reason: "Auto apply needs your name and email — add them in Profile.",
-      };
-    }
-    return { allowed: true, reason: "" };
-  };
-}
-
-function applicantFrom(info: Record<string, unknown> | undefined): ApplicantInfo {
-  return {
-    first_name: String(info?.first_name ?? ""),
-    last_name: String(info?.last_name ?? ""),
-    email: String(info?.email ?? ""),
-    phone: String(info?.phone ?? ""),
-  };
-}
-
 function isRemote(job: StreamedJob): boolean {
   return /remote/i.test(job.location);
 }
@@ -89,8 +51,7 @@ export default function JobsPage() {
   const scoring = useEntitlement("scoring");
   const profiles = useQuery({ queryKey: searchProfileKeys.all, queryFn: listSearchProfiles });
   const providers = useQuery({ queryKey: ["providers"], queryFn: getProviders });
-  const profile = useQuery({ queryKey: profileKeys.profile, queryFn: getProfile });
-  const gate = useAutoApplyGate();
+  const applyGate = useEntitlement("auto_apply");
 
   const [tab, setTab] = useState<Tab>("live");
   const [profileId, setProfileId] = useState("");
@@ -153,10 +114,7 @@ export default function JobsPage() {
       setState(job.id, "seen");
       refreshLists();
     },
-    onAutoApply: async () =>
-      (await startAutoApply(job, applicantFrom(profile.data?.applicant_info))).task_id,
-    onMarkApplied: async () => {
-      await markApplied(job.id);
+    onApplied: () => {
       setState(job.id, "applied");
       refreshLists();
     },
@@ -443,7 +401,7 @@ export default function JobsPage() {
                 key={job.id}
                 job={job}
                 state={states[job.id] ?? "seen"}
-                autoApply={gate(job)}
+                applyGate={applyGate}
                 {...handlers(job)}
               />
             ))}
@@ -488,7 +446,7 @@ export default function JobsPage() {
                   job={job}
                   sources={j.sources}
                   state={(states[j.id] ?? j.state) as JobUiState}
-                  autoApply={gate(job)}
+                  applyGate={applyGate}
                   {...handlers(job)}
                 />
               );

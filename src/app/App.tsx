@@ -24,6 +24,8 @@ import JobsPage from "../features/jobs/JobsPage";
 import ProfilePage from "../features/profile/ProfilePage";
 import SearchProfilePage from "../features/search-profile/SearchProfilePage";
 import AlertsPage from "../features/alerts/AlertsPage";
+import ApplyCenterPage from "../features/apply/ApplyCenterPage";
+import RunReviewPage from "../features/apply/RunReviewPage";
 import { QueryProvider } from "../lib/query";
 
 const ADMIN_ROLES = ["admin", "manager"] as const;
@@ -68,6 +70,8 @@ export function AppRoutes() {
             </RequireFeature>
           }
         />
+        <Route path="apply" element={<ApplyCenterPage />} />
+        <Route path="apply/runs/:runId" element={<RunReviewPage />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="search-profile" element={<SearchProfilePage />} />
         <Route path="keywords" element={<Navigate to="/search-profile" replace />} />

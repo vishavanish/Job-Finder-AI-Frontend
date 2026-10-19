@@ -1,6 +1,6 @@
 /**
  * F3 screens against the MSW mocks: Jobs (live feed, breakdown, freshness,
- * upsert by id, save / apply manually / auto-apply gating, cancel), Profile &
+ * upsert by id, save / apply manually / apply-option reasons, cancel), Profile &
  * Resume, Keywords & Skills (incl. the one-time import of old browser
  * settings), Alerts and the grouped Job sources page.
  */
@@ -75,8 +75,10 @@ describe("Jobs", () => {
       );
 
       const kestrel = card("Backend Developer, Platform");
-      await user.click(within(kestrel).getByRole("link", { name: "Apply manually" }));
-      await user.click(within(kestrel).getByRole("button", { name: "Mark as applied" }));
+      await user.click(within(kestrel).getByRole("button", { name: "Apply manually" }));
+      const dialog = await screen.findByRole("dialog", { name: /Apply — Backend Developer/ });
+      await user.click(within(dialog).getByRole("link", { name: "Open job page" }));
+      await user.click(within(dialog).getByRole("button", { name: "Yes, I applied" }));
       await waitFor(() => expect(within(kestrel).getByText("Applied")).toBeInTheDocument());
       expect(mockDb.applications[0]).toMatchObject({
         company: "Kestrel Pay",
@@ -97,56 +99,24 @@ describe("Jobs", () => {
     }
   });
 
-  it("explains why Auto apply is off", async () => {
+  it("explains, from the backend's apply options, why a button is off", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       renderApp("/jobs");
       await runSearch();
-      const indeed = card("AI Engineer (LLM apps)");
-      expect(within(indeed).getByRole("button", { name: "Auto apply" })).toBeDisabled();
-      expect(within(indeed).getByText(/isn't available for Indeed jobs yet/)).toBeInTheDocument();
-      const linkedin = card("Senior Python Engineer");
-      expect(within(linkedin).getByRole("button", { name: "Auto apply" })).toBeDisabled();
-      expect(within(linkedin).getByText(/needs your name and email/)).toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("Auto apply says Prefilled — never Applied — when it runs", async () => {
-    f3Db.profiles.u_demo = {
-      headline: null,
-      summary: null,
-      work_authorization: [],
-      applicant_info: {
-        first_name: "Dev",
-        last_name: "Demo",
-        email: "demo@jobfinder.test",
-        phone: "",
-        city: "",
-        country: "",
-        linkedin_url: "",
-        github_url: "",
-        portfolio_url: "",
-        current_ctc: "",
-        expected_ctc: "",
-      },
-    };
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    try {
-      renderApp("/jobs");
-      const user = await runSearch();
-      const linkedin = card("Senior Python Engineer");
-      await waitFor(() =>
-        expect(within(linkedin).getByRole("button", { name: "Auto apply" })).toBeEnabled(),
-      );
-      await user.click(within(linkedin).getByRole("button", { name: "Auto apply" }));
-      expect(await within(linkedin).findByText("Opening and prefilling…")).toBeInTheDocument();
-      for (let i = 0; i < 4; i += 1) await vi.advanceTimersByTimeAsync(2600);
+      const site = card("Software Engineer II, Data"); // applies on an unknown company site
+      expect(within(site).getByRole("button", { name: "Apply manually" })).toBeEnabled();
+      expect(within(site).getByRole("button", { name: "Auto apply" })).toBeDisabled();
       expect(
-        await within(linkedin).findByText("Prefilled — finish in the browser"),
+        within(site).getByText(/Auto apply works on Greenhouse and Lever job pages only/),
       ).toBeInTheDocument();
-      expect(within(linkedin).queryByText("Applied")).not.toBeInTheDocument();
+      const linkedin = card("Senior Python Engineer"); // LinkedIn Easy Apply
+      expect(within(linkedin).getByRole("button", { name: "Fast apply" })).toBeEnabled();
+      expect(within(linkedin).getByRole("button", { name: "Auto apply" })).toBeDisabled();
+      expect(within(linkedin).getByText(/never submitted automatically/)).toBeInTheDocument();
+      expect(
+        within(card("AI Engineer (LLM apps)")).getByRole("button", { name: "Auto apply" }),
+      ).toBeEnabled(); // Greenhouse
     } finally {
       vi.useRealTimers();
     }

@@ -92,7 +92,10 @@ export interface paths {
         put?: never;
         /**
          * Start Apply
-         * @description Opens top-matched jobs in a real Playwright browser on the Celery
+         * @deprecated
+         * @description Deprecated (P4b): use POST /apply/runs. Kept for one release.
+         *
+         *     Opens top-matched jobs in a real Playwright browser on the Celery
          *     worker and pre-fills LinkedIn Easy Apply forms — never auto-submits.
          *     Poll GET /tasks/{task_id} for status, and GET /applications for the
          *     tracked application rows (scoped to your account).
@@ -101,6 +104,226 @@ export interface paths {
          *     build_apply_params.
          */
         post: operations["start_apply_api_v1_apply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/options/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Apply Options */
+        get: operations["get_apply_options_api_v1_apply_options__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/prep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Prep
+         * @description Returns the ready pack (200) or starts building one (202; poll
+         *     GET /apply/prep/{id}). A ready pack is reused until your master resume
+         *     changes or `regenerate` is true. Asking for nothing (both false) still
+         *     gives the email draft.
+         */
+        post: operations["request_prep_api_v1_apply_prep_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/prep/{pack_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Prep */
+        get: operations["get_prep_api_v1_apply_prep__pack_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Apply Settings */
+        get: operations["get_apply_settings_api_v1_apply_settings_get"];
+        /** Put Apply Settings */
+        put: operations["put_apply_settings_api_v1_apply_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Runs
+         * @description state: a run state, or `waiting` (needs you). job_id: the runs for one job (newest first).
+         */
+        get: operations["list_runs_api_v1_apply_runs_get"];
+        put?: never;
+        /**
+         * Start Run
+         * @description Preflight (switches, level, risk notice, caps, duplicates, company
+         *     cooldown, resume) and a queued run; a worker on the apply queue opens
+         *     the form next. Nothing is submitted until you approve the run.
+         */
+        post: operations["start_run_api_v1_apply_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Run */
+        get: operations["get_run_api_v1_apply_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer Run */
+        post: operations["answer_run_api_v1_apply_runs__run_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Run */
+        post: operations["approve_run_api_v1_apply_runs__run_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Run */
+        post: operations["cancel_run_api_v1_apply_runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finish Run */
+        post: operations["finish_run_api_v1_apply_runs__run_id__done_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/proofs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Proofs */
+        get: operations["list_proofs_api_v1_apply_runs__run_id__proofs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/proofs/{proof_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proof */
+        get: operations["get_proof_api_v1_apply_runs__run_id__proofs__proof_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -486,9 +709,9 @@ export interface paths {
         /**
          * Mark Applied Manually
          * @description "Apply manually → Mark as applied" (CLAUDE.md 7.7): the user applied
-         *     on the job's own page. Records a `submitted` application with
-         *     status_source `manual` and moves the job to the user's Applied list so
-         *     later searches skip it.
+         *     on the job's own page (`submitted`) or sent the Email apply draft
+         *     (`emailed`, P4a). Recorded with status_source `manual`; the job moves
+         *     to the user's Applied list so later searches skip it.
          */
         post: operations["mark_applied_manually_api_v1_applications_manual_post"];
         delete?: never;
@@ -1364,6 +1587,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/answer-bank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Answers */
+        get: operations["list_answers_api_v1_answer_bank_get"];
+        put?: never;
+        /** Save Answer */
+        post: operations["save_answer_api_v1_answer_bank_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/answer-bank/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Answer */
+        put: operations["update_answer_api_v1_answer_bank__entry_id__put"];
+        post?: never;
+        /** Delete Answer */
+        delete: operations["delete_answer_api_v1_answer_bank__entry_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/answer-bank/{entry_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Answer */
+        post: operations["approve_answer_api_v1_answer_bank__entry_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1737,6 +2013,60 @@ export interface components {
             /** Error */
             error?: string | null;
         };
+        /** AnswerIn */
+        AnswerIn: {
+            /** Question */
+            question: string;
+            /** Answer */
+            answer: string;
+            /**
+             * Field Type
+             * @default text
+             * @enum {string}
+             */
+            field_type: "text" | "textarea" | "select" | "yes_no" | "number";
+        };
+        /** AnswerList */
+        AnswerList: {
+            /** Answers */
+            answers: components["schemas"]["AnswerOut"][];
+            /** Total */
+            total: number;
+        };
+        /** AnswerOut */
+        AnswerOut: {
+            /** Id */
+            id: string;
+            /** Question */
+            question: string;
+            /** Answer */
+            answer: string;
+            /** Field Type */
+            field_type: string;
+            /** Approved */
+            approved: boolean;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "ai";
+            /** Uses */
+            uses: number;
+            /** Last Used At */
+            last_used_at?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** AnswerUpdate */
+        AnswerUpdate: {
+            /** Answer */
+            answer?: string | null;
+            /** Approved */
+            approved?: boolean | null;
+        };
         /** ApplicantInfo */
         ApplicantInfo: {
             /** First Name */
@@ -1872,6 +2202,33 @@ export interface components {
              */
             status: "opened" | "submitted" | "interview" | "rejected" | "offer" | "ghosted";
         };
+        /** ApplyOption */
+        ApplyOption: {
+            /** Available */
+            available: boolean;
+            /**
+             * Reason
+             * @description Why the button is off; shown as its tooltip
+             */
+            reason?: string | null;
+        };
+        /**
+         * ApplyOptions
+         * @description The four apply buttons for one job (P4 plan §2).
+         */
+        ApplyOptions: {
+            /** Adapter */
+            adapter?: ("greenhouse" | "lever" | "linkedin") | null;
+            manual: components["schemas"]["ApplyOption"];
+            fast: components["schemas"]["ApplyOption"];
+            auto: components["schemas"]["ApplyOption"];
+            email: components["schemas"]["ApplyOption"];
+            /**
+             * Email To
+             * @description Address from the job post, when Email apply works
+             */
+            email_to?: string | null;
+        };
         /** ApplyRequest */
         ApplyRequest: {
             /** Jobs */
@@ -1906,6 +2263,60 @@ export interface components {
              * @default true
              */
             require_auto_apply_capable: boolean;
+        };
+        /** ApplySettingsIn */
+        ApplySettingsIn: {
+            /**
+             * Level
+             * @description 1 = Assist (nothing submitted), 2 = review & submit
+             */
+            level?: number | null;
+            /** Accept Risk Notice */
+            accept_risk_notice?: boolean | null;
+            /** Hours Start */
+            hours_start?: number | null;
+            /** Hours End */
+            hours_end?: number | null;
+            /** Timezone */
+            timezone?: string | null;
+            /**
+             * Paused
+             * @description Your own off switch; pausing cancels active runs
+             */
+            paused?: boolean | null;
+        };
+        /** ApplySettingsOut */
+        ApplySettingsOut: {
+            /** Level */
+            level: number;
+            /**
+             * Max Level
+             * @description Highest level your account allows (set by an admin)
+             */
+            max_level: number;
+            /**
+             * Risk Notice
+             * @default Auto apply fills and submits applications on company career sites (Greenhouse, Lever) for you, only after you review and approve each one. Some sites limit automated applications, answers can still be wrong, and a submitted application can't be taken back. You stay responsible for every application sent in your name. LinkedIn applications are never submitted by the app.
+             */
+            risk_notice: string;
+            /** Risk Accepted At */
+            risk_accepted_at?: string | null;
+            /** Hours Start */
+            hours_start: number;
+            /** Hours End */
+            hours_end: number;
+            /** Timezone */
+            timezone: string;
+            /** Paused */
+            paused: boolean;
+            /** Usage Today */
+            usage_today: {
+                [key: string]: unknown;
+            };
+            /** Caps */
+            caps: {
+                [key: string]: unknown;
+            };
         };
         /** AuditEntryOut */
         AuditEntryOut: {
@@ -2293,6 +2704,13 @@ export interface components {
              * @description Canonical job id (a feed entry's `id`)
              */
             job_id: string;
+            /**
+             * Via
+             * @description manual: applied on the job's page (status `submitted`); email: sent the Email apply draft (status `emailed`)
+             * @default manual
+             * @enum {string}
+             */
+            via: "manual" | "email";
         };
         /**
          * MeOut
@@ -2588,6 +3006,69 @@ export interface components {
             /** Updated At */
             updated_at?: string | null;
         };
+        /** PrepIn */
+        PrepIn: {
+            /** Job Id */
+            job_id: string;
+            /**
+             * Tailor Resume
+             * @default true
+             */
+            tailor_resume: boolean;
+            /**
+             * Cover Letter
+             * @default true
+             */
+            cover_letter: boolean;
+            /**
+             * Regenerate
+             * @description Build a new pack even if one is ready
+             * @default false
+             */
+            regenerate: boolean;
+        };
+        /** PrepPackOut */
+        PrepPackOut: {
+            /** Id */
+            id: string;
+            /** Job Id */
+            job_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "ready" | "failed";
+            /**
+             * Tailored Resume Id
+             * @description Download with GET /resumes/{id}/file (DOCX)
+             */
+            tailored_resume_id?: string | null;
+            /** Cover Letter */
+            cover_letter?: string | null;
+            /** Email To */
+            email_to?: string | null;
+            /** Email Subject */
+            email_subject?: string | null;
+            /** Email Body */
+            email_body?: string | null;
+            /**
+             * Mailto
+             * @description mailto: link with the subject and body filled in
+             */
+            mailto?: string | null;
+            /**
+             * Dropped
+             * @description Things the AI wrote that are not in your resume, so they were removed
+             */
+            dropped?: string[];
+            /** Error */
+            error?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** ProfileIn */
         ProfileIn: {
             /** Headline */
@@ -2613,6 +3094,25 @@ export interface components {
             eeo?: components["schemas"]["EeoAnswers"] | null;
             /** Updated At */
             updated_at?: string | null;
+        };
+        /** ProofOut */
+        ProofOut: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "confirmation" | "stopped";
+            /** Confirmation Text */
+            confirmation_text?: string | null;
+            /** Page Url */
+            page_url?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** ProviderSettingsIn */
         ProviderSettingsIn: {
@@ -2743,6 +3243,130 @@ export interface components {
             /** Label */
             label?: string | null;
             parsed?: components["schemas"]["ParsedResume"] | null;
+        };
+        /** RunAnswers */
+        RunAnswers: {
+            /**
+             * Answers
+             * @description {field key: answer}
+             */
+            answers: {
+                [key: string]: string;
+            };
+        };
+        /** RunDone */
+        RunDone: {
+            /**
+             * Submitted
+             * @description false = you decided not to apply
+             * @default true
+             */
+            submitted: boolean;
+        };
+        /** RunField */
+        RunField: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Type */
+            type: string;
+            /** Options */
+            options?: string[];
+            /** Required */
+            required: boolean;
+            /** Value */
+            value?: string | null;
+            /**
+             * Source
+             * @description profile | eeo | answer_bank | ai | user | none
+             */
+            source: string;
+            /** Approved */
+            approved: boolean;
+            /** Needs Input */
+            needs_input: boolean;
+        };
+        /** RunIn */
+        RunIn: {
+            /** Job Id */
+            job_id: string;
+            /**
+             * Mode
+             * @default auto
+             * @enum {string}
+             */
+            mode: "auto" | "fast";
+        };
+        /** RunList */
+        RunList: {
+            /** Runs */
+            runs: components["schemas"]["RunOut"][];
+            /** Total */
+            total: number;
+        };
+        /** RunOut */
+        RunOut: {
+            /** Id */
+            id: string;
+            /** Job Id */
+            job_id: string;
+            /** Title */
+            title: string;
+            /** Company */
+            company: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "auto" | "fast";
+            /** Level */
+            level: number;
+            /** Adapter */
+            adapter: string;
+            /** Apply Url */
+            apply_url: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "queued" | "preparing" | "awaiting_input" | "awaiting_review" | "submitting" | "submitted" | "failed" | "cancelled" | "needs_user" | "done";
+            /** Message */
+            message?: string | null;
+            /** Fields */
+            fields?: components["schemas"]["RunField"][];
+            /**
+             * Files
+             * @description {field key: resume | cover_letter}
+             */
+            files?: {
+                [key: string]: unknown;
+            };
+            /** Resume Id */
+            resume_id?: string | null;
+            /** Pack Id */
+            pack_id?: string | null;
+            /** Application Id */
+            application_id?: string | null;
+            /**
+             * Proofs
+             * @default 0
+             */
+            proofs: number;
+            /** Approved At */
+            approved_at?: string | null;
+            /** Submitted At */
+            submitted_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** ScoreRequest */
         ScoreRequest: {
@@ -3255,6 +3879,12 @@ export interface components {
              */
             applicants?: string | null;
             /**
+             * Apply Url
+             * @description The company's own apply page, when the posting links to one
+             */
+            apply_url?: string | null;
+            apply_options?: components["schemas"]["ApplyOptions"] | null;
+            /**
              * Updated At
              * Format: date-time
              */
@@ -3502,6 +4132,493 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_apply_options_api_v1_apply_options__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplyOptions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_prep_api_v1_apply_prep_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrepIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrepPackOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrepPackOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_prep_api_v1_apply_prep__pack_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                pack_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrepPackOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_apply_settings_api_v1_apply_settings_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplySettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_apply_settings_api_v1_apply_settings_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplySettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplySettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_runs_api_v1_apply_runs_get: {
+        parameters: {
+            query?: {
+                state?: string | null;
+                job_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_run_api_v1_apply_runs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_api_v1_apply_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_run_api_v1_apply_runs__run_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunAnswers"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_run_api_v1_apply_runs__run_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_run_api_v1_apply_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finish_run_api_v1_apply_runs__run_id__done_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunDone"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proofs_api_v1_apply_runs__run_id__proofs_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProofOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_proof_api_v1_apply_runs__run_id__proofs__proof_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+                proof_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": unknown;
                 };
             };
             /** @description Validation Error */
@@ -6334,6 +7451,175 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AlertRunJobs"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_answers_api_v1_answer_bank_get: {
+        parameters: {
+            query?: {
+                approved?: boolean | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_answer_api_v1_answer_bank_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_answer_api_v1_answer_bank__entry_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_answer_api_v1_answer_bank__entry_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_answer_api_v1_answer_bank__entry_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerOut"];
                 };
             };
             /** @description Validation Error */

@@ -29,6 +29,8 @@ export interface RequestOptions {
   params?: Record<string, QueryValue>;
   signal?: AbortSignal;
   headers?: Record<string, string>;
+  /** Return the response body as a Blob (files, screenshots) instead of JSON/text. */
+  asBlob?: boolean;
 }
 
 /** Sign-in endpoints answer 401 for wrong credentials; refreshing there makes no sense. */
@@ -174,7 +176,7 @@ export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Pr
     }
     throw err;
   }
-  return (await readBody(res)) as T;
+  return (opts.asBlob ? await res.blob() : await readBody(res)) as T;
 }
 
 type BodyOpts = Omit<RequestOptions, "method" | "body">;
@@ -189,4 +191,7 @@ export const api = {
   patch: <T>(path: string, body?: unknown, opts?: BodyOpts) =>
     apiRequest<T>(path, { ...opts, method: "PATCH", body }),
   delete: <T>(path: string, opts?: BodyOpts) => apiRequest<T>(path, { ...opts, method: "DELETE" }),
+  /** An authenticated file download (with the same refresh-on-401 as JSON calls). */
+  blob: (path: string, opts?: BodyOpts) =>
+    apiRequest<Blob>(path, { ...opts, method: "GET", asBlob: true, headers: { Accept: "*/*" } }),
 };

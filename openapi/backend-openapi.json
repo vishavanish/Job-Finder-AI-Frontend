@@ -192,8 +192,9 @@
           "apply"
         ],
         "summary": "Start Apply",
-        "description": "Opens top-matched jobs in a real Playwright browser on the Celery\nworker and pre-fills LinkedIn Easy Apply forms \u2014 never auto-submits.\nPoll GET /tasks/{task_id} for status, and GET /applications for the\ntracked application rows (scoped to your account).\n\nNOTE: a client-supplied browser_profile_dir is ignored \u2014 see\nbuild_apply_params.",
+        "description": "Deprecated (P4b): use POST /apply/runs. Kept for one release.\n\nOpens top-matched jobs in a real Playwright browser on the Celery\nworker and pre-fills LinkedIn Easy Apply forms \u2014 never auto-submits.\nPoll GET /tasks/{task_id} for status, and GET /applications for the\ntracked application rows (scoped to your account).\n\nNOTE: a client-supplied browser_profile_dir is ignored \u2014 see\nbuild_apply_params.",
         "operationId": "start_apply_api_v1_apply_post",
+        "deprecated": true,
         "parameters": [
           {
             "name": "authorization",
@@ -231,6 +232,893 @@
                   "$ref": "#/components/schemas/TaskResponse"
                 }
               }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/options/{job_id}": {
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Get Apply Options",
+        "operationId": "get_apply_options_api_v1_apply_options__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyOptions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/prep": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Request Prep",
+        "description": "Returns the ready pack (200) or starts building one (202; poll\nGET /apply/prep/{id}). A ready pack is reused until your master resume\nchanges or `regenerate` is true. Asking for nothing (both false) still\ngives the email draft.",
+        "operationId": "request_prep_api_v1_apply_prep_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepPackOut"
+                }
+              }
+            }
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepPackOut"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/prep/{pack_id}": {
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Get Prep",
+        "operationId": "get_prep_api_v1_apply_prep__pack_id__get",
+        "parameters": [
+          {
+            "name": "pack_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pack Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepPackOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/settings": {
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Get Apply Settings",
+        "operationId": "get_apply_settings_api_v1_apply_settings_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplySettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Put Apply Settings",
+        "operationId": "put_apply_settings_api_v1_apply_settings_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplySettingsIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplySettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Start Run",
+        "description": "Preflight (switches, level, risk notice, caps, duplicates, company\ncooldown, resume) and a queued run; a worker on the apply queue opens\nthe form next. Nothing is submitted until you approve the run.",
+        "operationId": "start_run_api_v1_apply_runs_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "List Runs",
+        "description": "state: a run state, or `waiting` (needs you). job_id: the runs for one job (newest first).",
+        "operationId": "list_runs_api_v1_apply_runs_get",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "job_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Get Run",
+        "operationId": "get_run_api_v1_apply_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/answer": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Answer Run",
+        "operationId": "answer_run_api_v1_apply_runs__run_id__answer_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunAnswers"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/approve": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Approve Run",
+        "operationId": "approve_run_api_v1_apply_runs__run_id__approve_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/cancel": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Cancel Run",
+        "operationId": "cancel_run_api_v1_apply_runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/done": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Finish Run",
+        "operationId": "finish_run_api_v1_apply_runs__run_id__done_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunDone"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/proofs": {
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "List Proofs",
+        "operationId": "list_proofs_api_v1_apply_runs__run_id__proofs_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProofOut"
+                  },
+                  "title": "Response List Proofs Api V1 Apply Runs  Run Id  Proofs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/proofs/{proof_id}": {
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Get Proof",
+        "operationId": "get_proof_api_v1_apply_runs__run_id__proofs__proof_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "proof_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proof Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/png": {}
             }
           },
           "422": {
@@ -1338,7 +2226,7 @@
           "applications"
         ],
         "summary": "Mark Applied Manually",
-        "description": "\"Apply manually \u2192 Mark as applied\" (CLAUDE.md 7.7): the user applied\non the job's own page. Records a `submitted` application with\nstatus_source `manual` and moves the job to the user's Applied list so\nlater searches skip it.",
+        "description": "\"Apply manually \u2192 Mark as applied\" (CLAUDE.md 7.7): the user applied\non the job's own page (`submitted`) or sent the Email apply draft\n(`emailed`, P4a). Recorded with status_source `manual`; the job moves\nto the user's Applied list so later searches skip it.",
         "operationId": "mark_applied_manually_api_v1_applications_manual_post",
         "parameters": [
           {
@@ -5227,6 +6115,303 @@
         }
       }
     },
+    "/api/v1/answer-bank": {
+      "get": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "List Answers",
+        "operationId": "list_answers_api_v1_answer_bank_get",
+        "parameters": [
+          {
+            "name": "approved",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Approved"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Save Answer",
+        "operationId": "save_answer_api_v1_answer_bank_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/answer-bank/{entry_id}": {
+      "put": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Update Answer",
+        "operationId": "update_answer_api_v1_answer_bank__entry_id__put",
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entry Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Delete Answer",
+        "operationId": "delete_answer_api_v1_answer_bank__entry_id__delete",
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entry Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/answer-bank/{entry_id}/approve": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Approve Answer",
+        "operationId": "approve_answer_api_v1_answer_bank__entry_id__approve_post",
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entry Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -6265,6 +7450,154 @@
         ],
         "title": "AlertRunOut"
       },
+      "AnswerIn": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Answer"
+          },
+          "field_type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "textarea",
+              "select",
+              "yes_no",
+              "number"
+            ],
+            "title": "Field Type",
+            "default": "text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "answer"
+        ],
+        "title": "AnswerIn"
+      },
+      "AnswerList": {
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerOut"
+            },
+            "type": "array",
+            "title": "Answers"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answers",
+          "total"
+        ],
+        "title": "AnswerList"
+      },
+      "AnswerOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "field_type": {
+            "type": "string",
+            "title": "Field Type"
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "user",
+              "ai"
+            ],
+            "title": "Origin"
+          },
+          "uses": {
+            "type": "integer",
+            "title": "Uses"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "question",
+          "answer",
+          "field_type",
+          "approved",
+          "origin",
+          "uses",
+          "updated_at"
+        ],
+        "title": "AnswerOut"
+      },
+      "AnswerUpdate": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "approved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved"
+          }
+        },
+        "type": "object",
+        "title": "AnswerUpdate"
+      },
       "ApplicantInfo": {
         "properties": {
           "first_name": {
@@ -6543,6 +7876,84 @@
         ],
         "title": "ApplicationStatusUpdate"
       },
+      "ApplyOption": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Why the button is off; shown as its tooltip"
+          }
+        },
+        "type": "object",
+        "required": [
+          "available"
+        ],
+        "title": "ApplyOption"
+      },
+      "ApplyOptions": {
+        "properties": {
+          "adapter": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "greenhouse",
+                  "lever",
+                  "linkedin"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adapter"
+          },
+          "manual": {
+            "$ref": "#/components/schemas/ApplyOption"
+          },
+          "fast": {
+            "$ref": "#/components/schemas/ApplyOption"
+          },
+          "auto": {
+            "$ref": "#/components/schemas/ApplyOption"
+          },
+          "email": {
+            "$ref": "#/components/schemas/ApplyOption"
+          },
+          "email_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email To",
+            "description": "Address from the job post, when Email apply works"
+          }
+        },
+        "type": "object",
+        "required": [
+          "manual",
+          "fast",
+          "auto",
+          "email"
+        ],
+        "title": "ApplyOptions",
+        "description": "The four apply buttons for one job (P4 plan \u00a72)."
+      },
       "ApplyRequest": {
         "properties": {
           "jobs": {
@@ -6604,6 +8015,155 @@
           "applicant_info"
         ],
         "title": "ApplyRequest"
+      },
+      "ApplySettingsIn": {
+        "properties": {
+          "level": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level",
+            "description": "1 = Assist (nothing submitted), 2 = review & submit"
+          },
+          "accept_risk_notice": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accept Risk Notice"
+          },
+          "hours_start": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 23.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours Start"
+          },
+          "hours_end": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 24.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours End"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "paused": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused",
+            "description": "Your own off switch; pausing cancels active runs"
+          }
+        },
+        "type": "object",
+        "title": "ApplySettingsIn"
+      },
+      "ApplySettingsOut": {
+        "properties": {
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "max_level": {
+            "type": "integer",
+            "title": "Max Level",
+            "description": "Highest level your account allows (set by an admin)"
+          },
+          "risk_notice": {
+            "type": "string",
+            "title": "Risk Notice",
+            "default": "Auto apply fills and submits applications on company career sites (Greenhouse, Lever) for you, only after you review and approve each one. Some sites limit automated applications, answers can still be wrong, and a submitted application can't be taken back. You stay responsible for every application sent in your name. LinkedIn applications are never submitted by the app."
+          },
+          "risk_accepted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Accepted At"
+          },
+          "hours_start": {
+            "type": "integer",
+            "title": "Hours Start"
+          },
+          "hours_end": {
+            "type": "integer",
+            "title": "Hours End"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "paused": {
+            "type": "boolean",
+            "title": "Paused"
+          },
+          "usage_today": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Usage Today"
+          },
+          "caps": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Caps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "level",
+          "max_level",
+          "hours_start",
+          "hours_end",
+          "timezone",
+          "paused",
+          "usage_today",
+          "caps"
+        ],
+        "title": "ApplySettingsOut"
       },
       "AuditEntryOut": {
         "properties": {
@@ -7481,6 +9041,16 @@
             "minLength": 1,
             "title": "Job Id",
             "description": "Canonical job id (a feed entry's `id`)"
+          },
+          "via": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "email"
+            ],
+            "title": "Via",
+            "description": "manual: applied on the job's page (status `submitted`); email: sent the Email apply draft (status `emailed`)",
+            "default": "manual"
           }
         },
         "type": "object",
@@ -8320,6 +9890,158 @@
         "type": "object",
         "title": "PreferencesOut"
       },
+      "PrepIn": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Job Id"
+          },
+          "tailor_resume": {
+            "type": "boolean",
+            "title": "Tailor Resume",
+            "default": true
+          },
+          "cover_letter": {
+            "type": "boolean",
+            "title": "Cover Letter",
+            "default": true
+          },
+          "regenerate": {
+            "type": "boolean",
+            "title": "Regenerate",
+            "description": "Build a new pack even if one is ready",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id"
+        ],
+        "title": "PrepIn"
+      },
+      "PrepPackOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "ready",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "tailored_resume_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tailored Resume Id",
+            "description": "Download with GET /resumes/{id}/file (DOCX)"
+          },
+          "cover_letter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Letter"
+          },
+          "email_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email To"
+          },
+          "email_subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Subject"
+          },
+          "email_body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Body"
+          },
+          "mailto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mailto",
+            "description": "mailto: link with the subject and body filled in"
+          },
+          "dropped": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dropped",
+            "description": "Things the AI wrote that are not in your resume, so they were removed"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "job_id",
+          "status",
+          "updated_at"
+        ],
+        "title": "PrepPackOut"
+      },
       "ProfileIn": {
         "properties": {
           "headline": {
@@ -8435,6 +10157,56 @@
         },
         "type": "object",
         "title": "ProfileOut"
+      },
+      "ProofOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "confirmation",
+              "stopped"
+            ],
+            "title": "Kind"
+          },
+          "confirmation_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Text"
+          },
+          "page_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Url"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "created_at"
+        ],
+        "title": "ProofOut"
       },
       "ProviderSettingsIn": {
         "properties": {
@@ -8818,6 +10590,310 @@
         "type": "object",
         "title": "ResumeUpdate",
         "description": "The user's reviewed/edited parse result (and/or a new label)."
+      },
+      "RunAnswers": {
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "maxProperties": 100,
+            "title": "Answers",
+            "description": "{field key: answer}"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "RunAnswers"
+      },
+      "RunDone": {
+        "properties": {
+          "submitted": {
+            "type": "boolean",
+            "title": "Submitted",
+            "description": "false = you decided not to apply",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "RunDone"
+      },
+      "RunField": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "profile | eeo | answer_bank | ai | user | none"
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved"
+          },
+          "needs_input": {
+            "type": "boolean",
+            "title": "Needs Input"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "type",
+          "required",
+          "source",
+          "approved",
+          "needs_input"
+        ],
+        "title": "RunField"
+      },
+      "RunIn": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Job Id"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "fast"
+            ],
+            "title": "Mode",
+            "default": "auto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id"
+        ],
+        "title": "RunIn"
+      },
+      "RunList": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunOut"
+            },
+            "type": "array",
+            "title": "Runs"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "runs",
+          "total"
+        ],
+        "title": "RunList"
+      },
+      "RunOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "company": {
+            "type": "string",
+            "title": "Company"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "fast"
+            ],
+            "title": "Mode"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "adapter": {
+            "type": "string",
+            "title": "Adapter"
+          },
+          "apply_url": {
+            "type": "string",
+            "title": "Apply Url"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "preparing",
+              "awaiting_input",
+              "awaiting_review",
+              "submitting",
+              "submitted",
+              "failed",
+              "cancelled",
+              "needs_user",
+              "done"
+            ],
+            "title": "State"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/RunField"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "files": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Files",
+            "description": "{field key: resume | cover_letter}"
+          },
+          "resume_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Id"
+          },
+          "pack_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pack Id"
+          },
+          "application_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Id"
+          },
+          "proofs": {
+            "type": "integer",
+            "title": "Proofs",
+            "default": 0
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "job_id",
+          "title",
+          "company",
+          "mode",
+          "level",
+          "adapter",
+          "apply_url",
+          "state",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RunOut"
       },
       "ScoreRequest": {
         "properties": {
@@ -9997,6 +12073,28 @@
             ],
             "title": "Applicants",
             "description": "LinkedIn applicant count as shown, e.g. 143 or Over 200"
+          },
+          "apply_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apply Url",
+            "description": "The company's own apply page, when the posting links to one"
+          },
+          "apply_options": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApplyOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "updated_at": {
             "type": "string",

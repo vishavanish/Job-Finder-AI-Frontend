@@ -1,12 +1,9 @@
 /** Streaming search runs, the user's job lists and the two apply paths (backend P3–P3.2, F3 endpoints). */
 import { api } from "../../lib/api/client";
 import type {
-  ApplicantInfo,
-  ApplicationLogEntry,
   PipelineRunJobsPage,
   PipelineRunMeta,
   StreamedJob,
-  TaskResponse,
   UserJob,
   UserJobList,
 } from "../../lib/api/types";
@@ -44,30 +41,6 @@ export const listJobs = (state: JobListState, limit = 100, offset = 0) =>
 export const setJobState = (jobId: string, action: "save" | "hide" | "seen") =>
   api.post<UserJob>(`/jobs/${encodeURIComponent(jobId)}/${action}`);
 
-export const markApplied = (jobId: string) =>
-  api.post<ApplicationLogEntry>("/applications/manual", { job_id: jobId });
-
-export const startAutoApply = (job: StreamedJob, applicant: ApplicantInfo) =>
-  api.post<TaskResponse>("/apply", {
-    jobs: [
-      {
-        source: job.source,
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        url: job.url,
-        description: job.description,
-        posted: job.posted,
-      },
-    ],
-    applicant_info: applicant,
-    open_top_n: 1,
-    auto_fill_easy_apply: true,
-  });
-
-export const getTask = (taskId: string) =>
-  api.get<TaskResponse>(`/tasks/${encodeURIComponent(taskId)}`);
-
 /** A saved/applied/hidden job in the same shape as a feed entry, so one card renders both. */
 export function userJobToCard(j: UserJob): StreamedJob {
   return {
@@ -89,5 +62,7 @@ export function userJobToCard(j: UserJob): StreamedJob {
     posted_hours_ago: j.posted_hours_ago ?? null,
     early: Boolean(j.early),
     applicants: j.applicants ?? null,
+    apply_url: j.apply_url ?? null,
+    apply_options: j.apply_options ?? null,
   };
 }

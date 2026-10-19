@@ -11,6 +11,9 @@ describe("status palette mapping", () => {
     ["rejected", "negative"],
     ["open_failed:TimeoutError", "negative"],
     ["withdrawn", "muted"],
+    ["needs_user", "attention"],
+    ["prefilled", "attention"],
+    ["emailed", "progress"],
     ["something_new", "neutral"],
     [null, "neutral"],
   ])("%s → %s", (status, group) => {
@@ -27,5 +30,7 @@ describe("status palette mapping", () => {
   it("never labels an opened or prefilled application as submitted", () => {
     expect(statusLabel("opened")).not.toMatch(/submitted/i);
     expect(statusLabel("easy_apply_form_filled_awaiting_review")).not.toMatch(/submitted/i);
+    expect(statusLabel("prefilled")).not.toMatch(/submitted/i);
+    expect(statusLabel("needs_user")).not.toMatch(/submitted/i);
   });
 });

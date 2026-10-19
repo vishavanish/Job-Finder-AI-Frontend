@@ -22,9 +22,13 @@ const GROUP_BY_STATUS: Record<string, StatusGroup> = {
   awaiting_input: "attention",
   awaiting_review: "attention",
   needs_review: "attention",
+  needs_user: "attention",
+  prefilled: "attention",
   easy_apply_form_filled_awaiting_review: "attention",
   // Progress — the employer has it
   submitted: "progress",
+  emailed: "progress",
+  done: "progress",
   acknowledged: "progress",
   assessment: "progress",
   // Positive outcomes (and finished tasks)
@@ -49,6 +53,11 @@ const LABELS: Record<string, string> = {
   awaiting_input: "Needs your input",
   awaiting_review: "Awaiting your review",
   needs_review: "Needs review",
+  needs_user: "Needs you — finish on the job page",
+  prefilled: "Prefilled — finish in the browser",
+  preparing: "Reading the form",
+  queued: "Queued",
+  done: "Submitted by you",
   ghosted: "No reply",
   revoked: "Cancelled",
 };

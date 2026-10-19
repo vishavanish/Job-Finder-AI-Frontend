@@ -15,6 +15,7 @@ import type {
   SearchProfileOut,
   StreamedJob,
 } from "../lib/api/types";
+import { applyFields } from "./f4State";
 
 export interface MockResume extends ResumeOut {
   parsed: ParsedResume | null;
@@ -151,6 +152,7 @@ export function enrich(job: Omit<StreamedJob, "id" | "created_at">, i: number): 
   const hours = [2, 9, 30, 52, 80, 120][i % 6] ?? 48;
   return {
     ...job,
+    ...applyFields(job, i),
     id: `job_${i + 1}`,
     created_at: new Date().toISOString(),
     match: {

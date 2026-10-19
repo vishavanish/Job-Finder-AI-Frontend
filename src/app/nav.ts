@@ -8,6 +8,8 @@ export interface NavItem {
   end?: boolean;
   /** Entitlement the page needs; the item shows "Off" with the reason when it's missing. */
   feature?: string;
+  /** A live count shown next to the label. */
+  badge?: "applyWaiting";
 }
 
 export interface NavGroup {
@@ -18,7 +20,7 @@ export interface NavGroup {
 }
 
 /**
- * Today's routes. F4–F7 add Dashboard, Apply Center, Tracker, Interview,
+ * Today's routes. F5–F7 add Dashboard, Tracker, Interview,
  * Settings and more Admin pages here (spec §6); older paths will redirect to the new ones.
  */
 export const NAV_GROUPS: NavGroup[] = [
@@ -26,6 +28,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Workspace",
     items: [
       { to: "/jobs", label: "Jobs", icon: "play", feature: "job_search" },
+      { to: "/apply", label: "Apply Center", icon: "check", badge: "applyWaiting" },
       { to: "/alerts", label: "Job alerts", icon: "activity", feature: "job_alerts" },
       { to: "/applications", label: "Applications", icon: "inbox" },
     ],

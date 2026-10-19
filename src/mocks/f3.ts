@@ -142,6 +142,8 @@ function userJobOut(userId: string, job: StreamedJob) {
     posted_hours_ago: job.posted_hours_ago ?? null,
     early: Boolean(job.early),
     applicants: job.applicants ?? null,
+    apply_url: job.apply_url ?? null,
+    apply_options: job.apply_options ?? null,
     updated_at: uj?.updated_at ?? nowIso(),
   };
 }
@@ -436,7 +438,8 @@ export const f3Handlers = [
   http.post(`${API}/applications/manual`, async ({ request }) => {
     const auth = authenticate(request);
     if ("response" in auth) return auth.response;
-    const { job_id } = await readJson<{ job_id: string }>(request);
+    const { job_id, via } = await readJson<{ job_id: string; via: "manual" | "email" }>(request);
+    const status = via === "email" ? "emailed" : "submitted";
     const job = f3Db.jobs.get(String(job_id));
     if (!job) return notFound("job_not_found", "No job with this id.");
     let row = mockDb.applications.find((a) => a.url === job.url);
@@ -448,13 +451,13 @@ export const f3Handlers = [
         company: job.company,
         source: job.source,
         url: job.url,
-        status: "submitted",
+        status,
         status_source: "manual",
         updated_at: nowIso(),
       };
       mockDb.applications.unshift(row);
     } else {
-      Object.assign(row, { status: "submitted", status_source: "manual", updated_at: nowIso() });
+      Object.assign(row, { status, status_source: "manual", updated_at: nowIso() });
     }
     setUserJob(auth.user.id, job.id, "applied");
     return HttpResponse.json(row, { status: 201 });

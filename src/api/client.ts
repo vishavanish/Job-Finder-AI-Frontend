@@ -10,7 +10,6 @@ import { api } from "../lib/api/client";
 import type {
   ApplicationLogEntry,
   ApplicationLogResult,
-  ApplyRequest,
   CompanyAtsRequest,
   PipelineRequest,
   PipelineRunJobsPage,
@@ -31,17 +30,6 @@ export const startSearch = (payload: SearchRequest) =>
 
 export const startScore = (payload: ScoreRequest) =>
   withData(api.post<TaskResponse>("/score", payload));
-
-export const startApply = (payload: ApplyRequest) =>
-  withData(api.post<TaskResponse>("/apply", payload));
-
-/**
- * NOTE: the backend does not implement POST /apply/{id}/close (PROJECT.md §6.1),
- * so this always fails with 404/405. Kept because RunContext still offers it;
- * see docs/frontend-audit.md.
- */
-export const closeApplyBrowser = (taskId: string) =>
-  withData(api.post<{ closed: boolean; reason?: string }>(`/apply/${taskId}/close`));
 
 export const runPipeline = (payload: PipelineRequest) =>
   withData(api.post<TaskResponse>("/pipeline/run", payload));

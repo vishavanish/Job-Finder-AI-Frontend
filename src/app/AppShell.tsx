@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { ActivityTray } from "./ActivityTray";
 import { hasRole, useEntitlement } from "../lib/auth/access";
 import { NAV_GROUPS, currentNavItem, type NavItem } from "./nav";
+import { ApplyWaitingBadge } from "../features/apply/ApplyWaitingBadge";
 import { useTheme, type ThemePref } from "./theme";
 import { useFocusTrap } from "./useFocusTrap";
 
@@ -36,6 +37,7 @@ function NavEntry({ item, onNavigate }: { item: NavItem; onNavigate?: () => void
     >
       <Icon name={item.icon} />
       {item.label}
+      {item.badge === "applyWaiting" && !locked && <ApplyWaitingBadge />}
       {locked && (
         <span className="nav-item-note">
           <Icon name="lock" size={14} />

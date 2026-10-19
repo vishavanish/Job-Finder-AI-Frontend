@@ -109,6 +109,10 @@ export interface StreamedJob {
   applicants?: string | null;
   /** A better copy (or an update) of a job already in the feed: replace the entry with this id. */
   replaces?: boolean;
+  /** P4a: the company's own apply page behind a board posting, when known. */
+  apply_url?: string | null;
+  /** P4a: which apply buttons work for this job, and why not (from the backend). */
+  apply_options?: ApplyOptions | null;
 }
 
 export interface MatchBreakdown {
@@ -142,3 +146,19 @@ export interface PipelineRunJobsPage {
   jobs: StreamedJob[];
   next_offset?: number;
 }
+
+// ---- P4a / P4b: Apply Center ----
+export type ApplyOptions = Schemas["ApplyOptions"];
+export type ApplyOption = Schemas["ApplyOption"];
+export type PrepPack = Schemas["PrepPackOut"];
+export type PrepIn = Schemas["PrepIn"];
+export type ApplyRun = Schemas["RunOut"];
+export type ApplyRunList = Schemas["RunList"];
+export type ApplyRunField = Schemas["RunField"];
+export type ApplyRunState = ApplyRun["state"];
+export type ApplySettings = Schemas["ApplySettingsOut"];
+export type ApplySettingsIn = Schemas["ApplySettingsIn"];
+export type ApplyProof = Schemas["ProofOut"];
+export type SavedAnswer = Schemas["AnswerOut"];
+export type SavedAnswerIn = Schemas["AnswerIn"];
+export type SavedAnswerList = Schemas["AnswerList"];
