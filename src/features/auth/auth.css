@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin: var(--space-6) 0;
+  margin: var(--space-5) 0;
   color: var(--text-subtle);
   font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
@@ -99,8 +99,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  margin: var(--space-8) 0 0;
-  padding-top: var(--space-5);
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-4);
   border-top: 1px solid var(--border);
   color: var(--text-muted);
   font-size: var(--text-xs);
@@ -112,7 +112,51 @@
 
 @media (max-width: 480px) {
   .login-card {
-    padding: var(--space-8) var(--space-5) var(--space-5);
+    padding: var(--space-6) var(--space-5) var(--space-4);
+  }
+}
+
+/* Short windows (laptops at 125% scaling, phones sideways): tighter so the card still fits. */
+@media (max-height: 720px) {
+  .login-card {
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-4);
+  }
+
+  .login-card .logo-badge {
+    width: 40px;
+    height: 40px;
+    margin-bottom: var(--space-3);
+  }
+
+  .login-card h1 {
+    font-size: var(--text-xl);
+  }
+
+  .login-card p.subtitle {
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .auth-divider {
+    margin: var(--space-3) 0;
+  }
+
+  .login-card .form-field {
+    margin-bottom: var(--space-3);
+  }
+
+  .auth-input input {
+    height: 40px;
+  }
+
+  .btn-primary.btn-auth {
+    height: 42px;
+  }
+
+  .auth-trust {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
   }
 }
 
