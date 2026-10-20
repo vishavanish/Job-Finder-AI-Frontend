@@ -68,17 +68,17 @@ The config is small, the build output and dev server behave the same, and all ch
 
 ## 3. Screen inventory
 
-| Route           | File                                                         | What it does                                                                                                                                                                                                                                                                                    | Data                                                    |
-| --------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `/login`        | `pages/LoginPage.jsx`                                        | Email + password sign-in and register toggle                                                                                                                                                                                                                                                    | `POST /auth/login`, `/auth/register`                    |
-| `/`             | `pages/HomePage.jsx` + `context/RunContext.jsx`              | "Run job search": streams results (`POST /pipeline/run/stream`, then `GET /pipeline/{run_id}/jobs?offset=N` every 2 s), shows score, reason, source; per job **Apply** (opens URL) and **Auto-Apply** (LinkedIn only: `POST /apply`, polls the task), Cancel apply, Mark as applied; Cancel run | Settings context                                        |
-| `/applications` | `pages/ApplicationsPage.jsx`                                 | Paginated history (20/page) with status, source, View, Mark applied                                                                                                                                                                                                                             | `GET /applications`, `PATCH /applications/{id}`         |
-| `/keywords`     | `pages/KeywordsPage.jsx`                                     | Keywords and locations (chips), results per keyword, max age                                                                                                                                                                                                                                    | `localStorage` only                                     |
-| `/skills`       | `pages/SkillsPage.jsx`                                       | Skills, career targets, resume summary, scoring thresholds                                                                                                                                                                                                                                      | `localStorage` only                                     |
-| `/ats-targets`  | `pages/AtsTargetsPage.jsx`                                   | Add/remove company ATS targets (platform + slug / custom URL)                                                                                                                                                                                                                                   | `localStorage` only — nothing calls `company-ats/fetch` |
-| `/providers`    | `pages/ProvidersPage.jsx`                                    | LinkedIn / Indeed / Naukri switches                                                                                                                                                                                                                                                             | `localStorage` only                                     |
-| `/profile`      | `pages/ProfilePage.jsx`                                      | Account name/email (read-only), applicant info for Easy Apply, Logout                                                                                                                                                                                                                           | `localStorage`                                          |
-| layout          | `pages/DashboardLayout.jsx` → replaced by `app/AppShell.tsx` | Sidebar nav, profile link, Logout                                                                                                                                                                                                                                                               | —                                                       |
+| Route           | File                                                                                                             | What it does                                                                                                                                                                                                                                                                                    | Data                                                    |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `/login`        | `pages/LoginPage.jsx`                                                                                            | Email + password sign-in and register toggle                                                                                                                                                                                                                                                    | `POST /auth/login`, `/auth/register`                    |
+| `/`             | `pages/HomePage.jsx` + `context/RunContext.jsx`                                                                  | "Run job search": streams results (`POST /pipeline/run/stream`, then `GET /pipeline/{run_id}/jobs?offset=N` every 2 s), shows score, reason, source; per job **Apply** (opens URL) and **Auto-Apply** (LinkedIn only: `POST /apply`, polls the task), Cancel apply, Mark as applied; Cancel run | Settings context                                        |
+| `/applications` | `pages/ApplicationsPage.jsx` → **replaced in F5** by `features/tracker/` (`/tracker`; `/applications` redirects) | Paginated history (20/page) with status, source, View, Mark applied                                                                                                                                                                                                                             | `GET /applications`, `PATCH /applications/{id}`         |
+| `/keywords`     | `pages/KeywordsPage.jsx`                                                                                         | Keywords and locations (chips), results per keyword, max age                                                                                                                                                                                                                                    | `localStorage` only                                     |
+| `/skills`       | `pages/SkillsPage.jsx`                                                                                           | Skills, career targets, resume summary, scoring thresholds                                                                                                                                                                                                                                      | `localStorage` only                                     |
+| `/ats-targets`  | `pages/AtsTargetsPage.jsx`                                                                                       | Add/remove company ATS targets (platform + slug / custom URL)                                                                                                                                                                                                                                   | `localStorage` only — nothing calls `company-ats/fetch` |
+| `/providers`    | `pages/ProvidersPage.jsx`                                                                                        | LinkedIn / Indeed / Naukri switches                                                                                                                                                                                                                                                             | `localStorage` only                                     |
+| `/profile`      | `pages/ProfilePage.jsx`                                                                                          | Account name/email (read-only), applicant info for Easy Apply, Logout                                                                                                                                                                                                                           | `localStorage`                                          |
+| layout          | `pages/DashboardLayout.jsx` → replaced by `app/AppShell.tsx`                                                     | Sidebar nav, profile link, Logout                                                                                                                                                                                                                                                               | —                                                       |
 
 ## 4. API calls
 
@@ -256,6 +256,19 @@ count, skips jobs already seen unless `include_seen`, and appends one `replaces:
 The source list mirrors the backend's 18 sources (defaults, multi-key Google Jobs). Under jsdom an
 uploaded file arrives named "blob"; the mock names it from its content type.
 
+F5 added the P5 endpoints in `src/mocks/f5.ts` (state in `src/mocks/f5State.ts`):
+`GET /applications` with `status`, `company`, `source`, `since` filters, `GET /applications/stats`
+(funnel by stage reached, computed from the rows and their timelines), `GET /applications/{id}/events`
+(seeded timelines incl. an email-driven interview and rejection with the formal note and the
+email's `gmail_url`), `PATCH /applications/{id}` (records a `manual` step), `GET /gmail/connect`
+(returns the in-app path `/tracker?gmail=connected` instead of Google's URL and adds or reconnects
+the account at once), `GET /gmail/accounts` (`configured` switch in `f5Db`), `DELETE
+/gmail/accounts/{id}`, `POST /gmail/accounts/{id}/sync`, `GET /gmail/review` and `POST
+/gmail/review/{id}/resolve` (confirm / change / ignore, forward-only like the backend). Seed: one
+active and one `needs_reconnect` account, two emails waiting for review (one with suggestions).
+The provider list gains `email_alerts` ("Job alert emails"), unavailable without an active Gmail
+account.
+
 ## 8. Contract gaps (proposed for PROJECT.md)
 
 Not edited in the backend repo; listed here for the backend owner.
@@ -278,6 +291,14 @@ Not edited in the backend repo; listed here for the backend owner.
    serializes refreshes across tabs).
 8. **`TaskStatus`** enum is `pending | running | completed | failed`; the UI also sees
    `cancelled`/`revoked` from cancel paths. Add them to the enum.
+9. ~~**Timeline email link.**~~ Done in F5 (backend `dev`): the timeline's `email` is now a typed
+   `TimelineEmail` with `id`, `snippet`, `category` and `gmail_url`.
+10. **Tracker stats map types.** `TrackerStats.funnel`, `by_status` and `by_source` are typed
+    `dict` (OpenAPI `unknown` values); `Dict[str, int]` would make the generated types exact
+    (the frontend narrows them in `lib/api/types.ts`).
+11. **Application search and resume version.** `GET /applications` has no text search (the
+    tracker loads the latest 500 and searches on the client), and the resume version used isn't
+    recorded per application, so the detail page can't show it yet.
 
 ## 9. Migration plan
 
@@ -301,7 +322,8 @@ Each step ships on its own and leaves the app working. Steps 1–2 are F0.
    Admin Users and Entitlements; Playwright smoke test for sign-in → disabled sign-out.
 6. **Screen by screen (F2–F7).** Rebuild each screen in `src/features/<name>/` as TSX with all
    states (§5.4), remove it from `.prettierignore` and the legacy ESLint override, add tests, and
-   redirect old paths (`/keywords` + `/skills` → `/search-profile`, `/applications` → `/tracker`).
+   redirect old paths (`/keywords` + `/skills` → `/search-profile`, `/applications` → `/tracker`
+   — both done).
 7. **Settings off the browser.** Move keywords, skills, thresholds, providers and applicant info
    from `SettingsContext`/`localStorage` to the backend (`/preferences`, `/search-profiles`,
    `/profile`, `/providers/settings`); one-time import of existing local values, then delete them.
@@ -318,6 +340,9 @@ Each step ships on its own and leaves the app working. Steps 1–2 are F0.
   `phase-1-identity` locally (`npm run dev` with the API on :8000) before release, including the
   `Secure` cookie over `http://localhost` through the dev proxy.
 - **Cross-site cookie in production** (5.1 S8) — needs a real deploy to confirm.
+- **Real Gmail connect (F5).** The mocks return an in-app path; the full redirect through Google
+  (`accounts.google.com` → backend `/gmail/callback` → `/tracker?gmail=…`) needs the Google OAuth
+  client from backend P5 and the owner as a test user.
 - **Vercel build** with Vite 8 — `npm run build` passes locally on Node 24 and CI uses Node 22;
   Vercel's Node version should be ≥ 20.19 (`engines` is set in `package.json`).
 - **Screen readers.** Keyboard, focus and roles were checked in tests and the browser; no

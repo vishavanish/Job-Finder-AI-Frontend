@@ -1,0 +1,466 @@
+/* Tracker (F5): summary cards, filters, table and kanban, timeline, Gmail panel, review inbox. */
+
+.tracker-page .card {
+  margin-bottom: var(--space-4);
+}
+
+.tracker-banner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--status-positive-border);
+  border-radius: var(--radius-md);
+  background: var(--status-positive-bg);
+  color: var(--status-positive-fg);
+}
+
+.tracker-banner.is-error {
+  border-color: var(--status-negative-border);
+  background: var(--status-negative-bg);
+  color: var(--status-negative-fg);
+}
+
+/* ---- summary cards ---- */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.summary-card:hover {
+  background: var(--surface-hover);
+}
+
+.summary-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+}
+
+.summary-label {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- filters ---- */
+.tracker-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  align-items: end;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.tracker-filters input,
+.tracker-filters select {
+  height: 36px;
+}
+
+.tracker-view-switch {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.tracker-view-switch .is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.tracker-skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.skeleton-row {
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+/* ---- table ---- */
+.tracker-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.tracker-table a.job-title-cell {
+  display: block;
+  color: var(--text);
+}
+
+/* On a phone each row becomes a stacked card with inline labels. */
+@media (max-width: 640px) {
+  .tracker-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  table.tracker-table,
+  .tracker-table tbody,
+  .tracker-table tr,
+  .tracker-table td {
+    display: block;
+    min-width: 0;
+  }
+
+  .tracker-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .tracker-table tr {
+    margin-bottom: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  table.tracker-table td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 0;
+  }
+
+  .tracker-table td:not(:first-child)::before {
+    content: attr(data-label) ": ";
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+}
+
+/* ---- kanban ---- */
+.kanban {
+  display: grid;
+  grid-auto-columns: minmax(220px, 1fr);
+  grid-auto-flow: column;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.kanban:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.kanban-col {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.kanban-head {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.kanban-count {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.kanban-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kanban-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.kanban-title {
+  color: var(--text);
+  font-weight: var(--weight-medium);
+}
+
+.kanban-empty {
+  margin: 0;
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+/* ---- detail + timeline ---- */
+.detail-head-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+@media (max-width: 860px) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-step {
+  position: relative;
+  padding: 0 0 var(--space-4) var(--space-6);
+}
+
+.timeline-step::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 0;
+  left: 6px;
+  width: 2px;
+  background: var(--border);
+}
+
+.timeline-step:last-child::before {
+  display: none;
+}
+
+.timeline-dot {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.timeline-step[data-source="email_parser"] .timeline-dot {
+  border-color: var(--signal-teal);
+}
+
+.timeline-step[data-source="manual"] .timeline-dot {
+  border-color: var(--text-muted);
+}
+
+.timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.timeline-source {
+  padding: 1px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+}
+
+.timeline-note {
+  max-width: var(--measure);
+  margin: var(--space-2) 0 0;
+}
+
+.timeline-email {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.timeline-email p {
+  margin: 0 0 var(--space-1);
+}
+
+.timeline-email-label,
+.review-suggest-label {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.timeline-email-subject,
+.review-subject {
+  font-weight: var(--weight-medium);
+}
+
+.review-snippet {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.status-change-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2);
+}
+
+/* ---- Gmail ---- */
+.gmail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.gmail-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.gmail-accounts {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gmail-account {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.gmail-account-main {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.gmail-address {
+  overflow-wrap: anywhere;
+}
+
+.gmail-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+}
+
+.gmail-facts dt {
+  color: var(--text-muted);
+}
+
+.gmail-facts dd {
+  margin: 0;
+}
+
+.gmail-error {
+  color: var(--status-negative-fg);
+  font-size: var(--text-sm);
+}
+
+.gmail-account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: var(--space-2);
+}
+
+.gmail-privacy ul {
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-5);
+}
+
+.gmail-privacy li {
+  margin-bottom: var(--space-1);
+}
+
+/* ---- review inbox ---- */
+.review-list {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--status-attention-border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.review-item p {
+  margin: 0 0 var(--space-1);
+}
+
+.review-actions,
+.review-item > .login-error {
+  grid-column: 1 / -1;
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.review-suggestions {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.match-score {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 640px) {
+  .review-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

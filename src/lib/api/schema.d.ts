@@ -675,6 +675,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/applications/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tracker Stats
+         * @description Dashboard numbers (CLAUDE.md 7.8): funnel (reached at least each stage, so an interview also counts as
+         *     acknowledged), this week, by status and source, and emails waiting for review.
+         */
+        get: operations["tracker_stats_api_v1_applications_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/applications/{application_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Application Events
+         * @description The timeline: every status change with where it came from (apply_engine, manual, email_parser) and, for
+         *     email changes, which email caused it.
+         */
+        get: operations["application_events_api_v1_applications__application_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/applications/{application_id}": {
         parameters: {
             query?: never;
@@ -1640,6 +1682,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/gmail/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Connect */
+        get: operations["connect_api_v1_gmail_connect_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gmail/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accounts */
+        get: operations["accounts_api_v1_gmail_accounts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gmail/accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Disconnect */
+        delete: operations["disconnect_api_v1_gmail_accounts__account_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gmail/accounts/{account_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Now */
+        post: operations["sync_now_api_v1_gmail_accounts__account_id__sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gmail/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Events */
+        get: operations["events_api_v1_gmail_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gmail/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review */
+        get: operations["review_api_v1_gmail_review_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gmail/review/{event_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve */
+        post: operations["resolve_api_v1_gmail_review__event_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -2194,13 +2355,23 @@ export interface components {
             /** Offset */
             offset: number;
         };
-        /** ApplicationStatusUpdate */
+        /**
+         * ApplicationStatusUpdate
+         * @description The status model of CLAUDE.md 7.8 (P5: the full list).
+         */
         ApplicationStatusUpdate: {
             /**
              * Status
              * @enum {string}
              */
-            status: "opened" | "submitted" | "interview" | "rejected" | "offer" | "ghosted";
+            status: "opened" | "submitted" | "emailed" | "acknowledged" | "assessment" | "interview" | "offer" | "accepted" | "declined" | "rejected" | "withdrawn" | "ghosted";
+        };
+        /** ApplicationTimeline */
+        ApplicationTimeline: {
+            /** Application Id */
+            application_id: string;
+            /** Events */
+            events: components["schemas"]["TimelineEvent"][];
         };
         /** ApplyOption */
         ApplyOption: {
@@ -2475,6 +2646,54 @@ export interface components {
              */
             pronouns: string;
         };
+        /** EmailEventList */
+        EmailEventList: {
+            /** Events */
+            events: components["schemas"]["EmailEventOut"][];
+            /** Total */
+            total: number;
+        };
+        /** EmailEventOut */
+        EmailEventOut: {
+            /** Id */
+            id: string;
+            /** Account Id */
+            account_id: string;
+            /** Sender */
+            sender: string;
+            /** Subject */
+            subject: string;
+            /** Snippet */
+            snippet: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Category */
+            category?: ("acknowledgement" | "assessment" | "interview_invite" | "offer" | "rejection" | "job_alert" | "other") | null;
+            /** Confidence */
+            confidence?: number | null;
+            /** Company */
+            company?: string | null;
+            /** Role */
+            role?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "applied" | "needs_review" | "ignored" | "job_alert";
+            /** Application Id */
+            application_id?: string | null;
+            /** Applied Status */
+            applied_status?: string | null;
+            /** Match Score */
+            match_score?: number | null;
+            /** Suggestions */
+            suggestions?: components["schemas"]["Suggestion"][];
+        };
         /** EntitlementOut */
         EntitlementOut: {
             /** Feature */
@@ -2565,6 +2784,52 @@ export interface components {
         FlagUpdate: {
             /** Value */
             value: unknown;
+        };
+        /** GmailAccountList */
+        GmailAccountList: {
+            /** Accounts */
+            accounts: components["schemas"]["GmailAccountOut"][];
+            /**
+             * Configured
+             * @description False when the server has no Gmail OAuth client set up
+             */
+            configured: boolean;
+        };
+        /** GmailAccountOut */
+        GmailAccountOut: {
+            /** Id */
+            id: string;
+            /** Gmail Address */
+            gmail_address: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "needs_reconnect" | "paused";
+            /** Last Synced At */
+            last_synced_at?: string | null;
+            /** Next Sync At */
+            next_sync_at?: string | null;
+            /** Last Error */
+            last_error?: string | null;
+            /**
+             * Connected At
+             * Format: date-time
+             */
+            connected_at: string;
+            /**
+             * Reading
+             * @default Read-only access. Only job-related emails are looked at; the app stores the sender, subject, date and a short snippet — never the full email.
+             */
+            reading: string;
+        };
+        /** GmailConnectOut */
+        GmailConnectOut: {
+            /**
+             * Auth Url
+             * @description Open this in the browser; Google sends the user back to /gmail/callback
+             */
+            auth_url: string;
         };
         /** GoogleSignIn */
         GoogleSignIn: {
@@ -3149,6 +3414,21 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** ResolveIn */
+        ResolveIn: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "confirm" | "change" | "ignore";
+            /**
+             * Application Id
+             * @description For change (or to confirm a different suggestion)
+             */
+            application_id?: string | null;
+            /** Category */
+            category?: ("acknowledgement" | "assessment" | "interview_invite" | "offer" | "rejection") | null;
+        };
         /** ResumeDetail */
         ResumeDetail: {
             /** Id */
@@ -3681,6 +3961,17 @@ export interface components {
              */
             paused_until?: string | null;
         };
+        /** Suggestion */
+        Suggestion: {
+            /** Application Id */
+            application_id: string;
+            /** Score */
+            score: number;
+            /** Title */
+            title: string;
+            /** Company */
+            company: string;
+        };
         /** TaskDefaults */
         TaskDefaults: {
             /**
@@ -3721,6 +4012,51 @@ export interface components {
          * @enum {string}
          */
         TaskStatus: "pending" | "running" | "completed" | "failed";
+        /**
+         * TimelineEmail
+         * @description The email behind a status change: enough to recognise it, plus a link to open it in Gmail.
+         */
+        TimelineEmail: {
+            /** Id */
+            id: string;
+            /** Sender */
+            sender: string;
+            /** Subject */
+            subject: string;
+            /**
+             * Snippet
+             * @default
+             */
+            snippet: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Category */
+            category?: string | null;
+            /**
+             * Gmail Url
+             * @description Opens the message in Gmail (signed in as that account)
+             */
+            gmail_url?: string | null;
+        };
+        /** TimelineEvent */
+        TimelineEvent: {
+            /** Status */
+            status: string;
+            /** Status Source */
+            status_source: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** @description The email that caused this change (email_parser) */
+            email?: components["schemas"]["TimelineEmail"] | null;
+        };
         /** TitleSuggestions */
         TitleSuggestions: {
             /** Titles */
@@ -3738,6 +4074,32 @@ export interface components {
              */
             token_type: string;
             user: components["schemas"]["UserOut"];
+        };
+        /** TrackerStats */
+        TrackerStats: {
+            /** Total */
+            total: number;
+            /** This Week */
+            this_week: number;
+            /**
+             * Funnel
+             * @description applied, acknowledged, assessment, interview, offer (reached at least)
+             */
+            funnel: {
+                [key: string]: unknown;
+            };
+            /** Rejected */
+            rejected: number;
+            /** By Status */
+            by_status: {
+                [key: string]: unknown;
+            };
+            /** By Source */
+            by_source: {
+                [key: string]: unknown;
+            };
+            /** Needs Review */
+            needs_review: number;
         };
         /** UsageByDay */
         UsageByDay: {
@@ -5198,6 +5560,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApplicationLogResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tracker_stats_api_v1_applications_stats_get: {
+        parameters: {
+            query?: {
+                /** @description 0 = all time */
+                days?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackerStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    application_events_api_v1_applications__application_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationTimeline"];
                 };
             };
             /** @description Validation Error */
@@ -7620,6 +8049,235 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnswerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    connect_api_v1_gmail_connect_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailConnectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accounts_api_v1_gmail_accounts_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailAccountList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disconnect_api_v1_gmail_accounts__account_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_now_api_v1_gmail_accounts__account_id__sync_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    events_api_v1_gmail_events_get: {
+        parameters: {
+            query?: {
+                state?: ("pending" | "applied" | "needs_review" | "ignored" | "job_alert") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailEventList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_api_v1_gmail_review_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailEventList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_api_v1_gmail_review__event_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailEventOut"];
                 };
             };
             /** @description Validation Error */

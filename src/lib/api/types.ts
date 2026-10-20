@@ -162,3 +162,24 @@ export type ApplyProof = Schemas["ProofOut"];
 export type SavedAnswer = Schemas["AnswerOut"];
 export type SavedAnswerIn = Schemas["AnswerIn"];
 export type SavedAnswerList = Schemas["AnswerList"];
+
+// ---- P5: tracker and Gmail ----
+type RawTrackerStats = Schemas["TrackerStats"];
+/** OpenAPI types the count maps as `unknown`; the backend sends integers. */
+export type TrackerStats = Omit<RawTrackerStats, "funnel" | "by_status" | "by_source"> & {
+  funnel: Record<string, number>;
+  by_status: Record<string, number>;
+  by_source: Record<string, number>;
+};
+export type ApplicationTimeline = Schemas["ApplicationTimeline"];
+export type TimelineEvent = Schemas["TimelineEvent"];
+export type TimelineEmail = Schemas["TimelineEmail"];
+export type ApplicationStatus = Schemas["ApplicationStatusUpdate"]["status"];
+export type GmailAccountList = Schemas["GmailAccountList"];
+export type GmailAccount = Schemas["GmailAccountOut"];
+export type GmailConnect = Schemas["GmailConnectOut"];
+export type EmailEvent = Schemas["EmailEventOut"];
+export type EmailEventList = Schemas["EmailEventList"];
+export type EmailSuggestion = Schemas["Suggestion"];
+export type ResolveIn = Schemas["ResolveIn"];
+export type ResolveCategory = NonNullable<ResolveIn["category"]>;

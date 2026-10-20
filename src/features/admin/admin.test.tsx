@@ -52,7 +52,7 @@ describe("guards", () => {
       quota_per_day: 10,
       quota_remaining: 0,
     };
-    renderApp("/");
+    renderApp("/jobs");
     await signIn();
     expect(
       await screen.findByText(/used all 10 of today's job search runs/, { selector: "p" }),

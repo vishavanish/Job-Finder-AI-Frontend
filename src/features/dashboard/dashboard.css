@@ -1,0 +1,97 @@
+/* Dashboard (F5): funnel, needs you, recent changes, quick actions. */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.dashboard-grid > .card {
+  margin-bottom: 0;
+}
+
+.dashboard-recent {
+  grid-column: 1 / -1;
+}
+
+.funnel {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.funnel-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.funnel-bar {
+  height: 10px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+}
+
+.funnel-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.funnel-count {
+  text-align: right;
+}
+
+.funnel-rejected {
+  margin: 0 0 var(--space-2);
+}
+
+.dashboard-list {
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-list > li {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-list > li:last-child {
+  border-bottom: 0;
+}
+
+.recent-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.recent-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dashboard-big {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+}
+
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.dashboard-actions a {
+  text-decoration: none;
+}

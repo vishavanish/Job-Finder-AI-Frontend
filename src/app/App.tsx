@@ -19,13 +19,15 @@ import AiModelsPage from "../features/models/AiModelsPage";
 import ApiKeysPage from "../features/models/ApiKeysPage";
 import AtsTargetsPage from "../pages/AtsTargetsPage.jsx";
 import ProvidersPage from "../features/providers/ProvidersPage";
-import ApplicationsPage from "../pages/ApplicationsPage.jsx";
 import JobsPage from "../features/jobs/JobsPage";
 import ProfilePage from "../features/profile/ProfilePage";
 import SearchProfilePage from "../features/search-profile/SearchProfilePage";
 import AlertsPage from "../features/alerts/AlertsPage";
 import ApplyCenterPage from "../features/apply/ApplyCenterPage";
 import RunReviewPage from "../features/apply/RunReviewPage";
+import DashboardPage from "../features/dashboard/DashboardPage";
+import TrackerPage from "../features/tracker/TrackerPage";
+import ApplicationDetailPage from "../features/tracker/ApplicationDetailPage";
 import { QueryProvider } from "../lib/query";
 
 const ADMIN_ROLES = ["admin", "manager"] as const;
@@ -48,6 +50,12 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return children;
 }
 
+/** The old Applications page lives on as the tracker; keep any filters in the query. */
+function ToTracker() {
+  const { search } = useLocation();
+  return <Navigate to={`/tracker${search}`} replace />;
+}
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -60,8 +68,8 @@ export function AppRoutes() {
           </RequireAuth>
         }
       >
-        {/* "/" opens Jobs until the Dashboard (F5). Old setup pages moved to /search-profile (F3). */}
-        <Route index element={<Navigate to="/jobs" replace />} />
+        {/* Old setup pages moved to /search-profile (F3); /applications became the tracker (F5). */}
+        <Route index element={<DashboardPage />} />
         <Route
           path="jobs"
           element={
@@ -85,7 +93,9 @@ export function AppRoutes() {
           }
         />
         <Route path="providers" element={<ProvidersPage />} />
-        <Route path="applications" element={<ApplicationsPage />} />
+        <Route path="tracker" element={<TrackerPage />} />
+        <Route path="tracker/:id" element={<ApplicationDetailPage />} />
+        <Route path="applications" element={<ToTracker />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings/ai" element={<AiModelsPage />} />
         <Route path="settings/keys" element={<ApiKeysPage />} />

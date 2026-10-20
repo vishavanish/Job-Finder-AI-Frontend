@@ -3,6 +3,7 @@
  * pipeline mock (mocks/handlers.ts). Kept separate so the two handler modules
  * don't import each other.
  */
+import { f5Db } from "./f5State";
 import { entitlementsFor } from "./data";
 import type { User } from "../lib/api/types";
 
@@ -267,6 +268,15 @@ function seedSources(): MockSource[] {
       description: "Apify actor; uses Apify credits.",
       last_success_at: null,
     },
+    {
+      ...base,
+      key: "email_alerts",
+      name: "Job alert emails",
+      tier: "free",
+      tos_risk: "none",
+      description:
+        "Jobs from the alert emails Naukri, LinkedIn, Indeed and others send you (experimental).",
+    },
   ];
 }
 
@@ -345,6 +355,10 @@ export function access(user: User, m: MockModel): { allowed: boolean; reason: st
   return { allowed: true, reason: null };
 }
 
+function hasActiveGmail(userId: string): boolean {
+  return f5Db.accounts.some((a) => a.user_id === userId && a.status === "active");
+}
+
 export function sourceAvailability(
   user: User,
   s: MockSource,
@@ -352,6 +366,9 @@ export function sourceAvailability(
   if (!s.enabled_global) return { ok: false, reason: "turned off by the admin" };
   if (!((aiDb.sourceChoices[user.id] ?? {})[s.key] ?? s.default_enabled)) {
     return { ok: false, reason: "turned off in your Providers settings" };
+  }
+  if (s.key === "email_alerts" && !hasActiveGmail(user.id)) {
+    return { ok: false, reason: "connect Gmail to read your job-alert emails" };
   }
   if (aiDb.freeOnly[user.id] && (s.tier === "paid" || s.tier === "byok")) {
     return { ok: false, reason: 'paid source — "Free tools only" is on' };

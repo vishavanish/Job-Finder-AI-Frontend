@@ -34,9 +34,9 @@ describe("app shell", () => {
 
     const nav = await screen.findByRole("navigation", { name: "Main" });
     for (const name of [
+      "Dashboard",
       "Jobs",
       "Job alerts",
-      "Applications",
       "Keywords and skills",
       "Profile and resume",
       "ATS targets",
@@ -44,8 +44,10 @@ describe("app shell", () => {
     ]) {
       expect(within(nav).getByRole("link", { name })).toBeInTheDocument();
     }
-    // "/" opens Jobs until the Dashboard (F5).
-    expect(screen.getByRole("heading", { name: "Jobs", level: 2 })).toBeInTheDocument();
+    // The tracker's name includes its review-count badge.
+    expect(within(nav).getByRole("link", { name: /^Tracker/ })).toBeInTheDocument();
+    // "/" opens the Dashboard (F5).
+    expect(await screen.findByRole("heading", { name: "Dashboard", level: 2 })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Activity" }));
     const tray = screen.getByRole("region", { name: "Activity" });
@@ -63,15 +65,6 @@ describe("app shell", () => {
     await user.click(screen.getByRole("button", { name: /^Theme: Light/ }));
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(window.localStorage.getItem("jf_theme")).toBe("dark");
-  });
-
-  it("keeps the existing Applications screen working, with status badges", async () => {
-    renderApp("/applications");
-    const user = await signIn();
-    await user.click(await screen.findByRole("link", { name: "Applications" }));
-    expect(await screen.findByText("Prefilled, awaiting review")).toBeInTheDocument();
-    expect(screen.getByText("Couldn't open")).toBeInTheDocument();
-    expect(screen.getByText("History (6)")).toBeInTheDocument();
   });
 
   it("signs a disabled user out with a clear message", async () => {

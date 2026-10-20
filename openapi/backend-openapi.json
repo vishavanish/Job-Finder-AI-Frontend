@@ -2095,6 +2095,129 @@
         }
       }
     },
+    "/api/v1/applications/stats": {
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Tracker Stats",
+        "description": "Dashboard numbers (CLAUDE.md 7.8): funnel (reached at least each stage, so an interview also counts as\nacknowledged), this week, by status and source, and emails waiting for review.",
+        "operationId": "tracker_stats_api_v1_applications_stats_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3650,
+              "minimum": 0,
+              "description": "0 = all time",
+              "default": 0,
+              "title": "Days"
+            },
+            "description": "0 = all time"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackerStats"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applications/{application_id}/events": {
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Application Events",
+        "description": "The timeline: every status change with where it came from (apply_engine, manual, email_parser) and, for\nemail changes, which email caused it.",
+        "operationId": "application_events_api_v1_applications__application_id__events_get",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Application Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationTimeline"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/applications/{application_id}": {
       "get": {
         "tags": [
@@ -6412,6 +6535,423 @@
         }
       }
     },
+    "/api/v1/gmail/connect": {
+      "get": {
+        "tags": [
+          "gmail"
+        ],
+        "summary": "Connect",
+        "operationId": "connect_api_v1_gmail_connect_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GmailConnectOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gmail/accounts": {
+      "get": {
+        "tags": [
+          "gmail"
+        ],
+        "summary": "Accounts",
+        "operationId": "accounts_api_v1_gmail_accounts_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GmailAccountList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gmail/accounts/{account_id}": {
+      "delete": {
+        "tags": [
+          "gmail"
+        ],
+        "summary": "Disconnect",
+        "operationId": "disconnect_api_v1_gmail_accounts__account_id__delete",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Account Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gmail/accounts/{account_id}/sync": {
+      "post": {
+        "tags": [
+          "gmail"
+        ],
+        "summary": "Sync Now",
+        "operationId": "sync_now_api_v1_gmail_accounts__account_id__sync_post",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Account Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gmail/events": {
+      "get": {
+        "tags": [
+          "gmail"
+        ],
+        "summary": "Events",
+        "operationId": "events_api_v1_gmail_events_get",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "applied",
+                    "needs_review",
+                    "ignored",
+                    "job_alert"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailEventList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gmail/review": {
+      "get": {
+        "tags": [
+          "gmail"
+        ],
+        "summary": "Review",
+        "operationId": "review_api_v1_gmail_review_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailEventList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gmail/review/{event_id}/resolve": {
+      "post": {
+        "tags": [
+          "gmail"
+        ],
+        "summary": "Resolve",
+        "operationId": "resolve_api_v1_gmail_review__event_id__resolve_post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailEventOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -7862,9 +8402,15 @@
             "enum": [
               "opened",
               "submitted",
+              "emailed",
+              "acknowledged",
+              "assessment",
               "interview",
-              "rejected",
               "offer",
+              "accepted",
+              "declined",
+              "rejected",
+              "withdrawn",
               "ghosted"
             ],
             "title": "Status"
@@ -7874,7 +8420,29 @@
         "required": [
           "status"
         ],
-        "title": "ApplicationStatusUpdate"
+        "title": "ApplicationStatusUpdate",
+        "description": "The status model of CLAUDE.md 7.8 (P5: the full list)."
+      },
+      "ApplicationTimeline": {
+        "properties": {
+          "application_id": {
+            "type": "string",
+            "title": "Application Id"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "application_id",
+          "events"
+        ],
+        "title": "ApplicationTimeline"
       },
       "ApplyOption": {
         "properties": {
@@ -8531,6 +9099,182 @@
         "title": "EeoAnswers",
         "description": "Optional diversity answers some employers ask for (P3.2). Stored\nencrypted, filled only by the user, never sent to an AI model or a log."
       },
+      "EmailEventList": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EmailEventOut"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "events",
+          "total"
+        ],
+        "title": "EmailEventList"
+      },
+      "EmailEventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "snippet": {
+            "type": "string",
+            "title": "Snippet"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "acknowledgement",
+                  "assessment",
+                  "interview_invite",
+                  "offer",
+                  "rejection",
+                  "job_alert",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "applied",
+              "needs_review",
+              "ignored",
+              "job_alert"
+            ],
+            "title": "State"
+          },
+          "application_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Id"
+          },
+          "applied_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied Status"
+          },
+          "match_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Score"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "account_id",
+          "sender",
+          "subject",
+          "snippet",
+          "received_at",
+          "state"
+        ],
+        "title": "EmailEventOut"
+      },
       "EntitlementOut": {
         "properties": {
           "feature": {
@@ -8759,6 +9503,116 @@
           "value"
         ],
         "title": "FlagUpdate"
+      },
+      "GmailAccountList": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/GmailAccountOut"
+            },
+            "type": "array",
+            "title": "Accounts"
+          },
+          "configured": {
+            "type": "boolean",
+            "title": "Configured",
+            "description": "False when the server has no Gmail OAuth client set up"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accounts",
+          "configured"
+        ],
+        "title": "GmailAccountList"
+      },
+      "GmailAccountOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "gmail_address": {
+            "type": "string",
+            "title": "Gmail Address"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "needs_reconnect",
+              "paused"
+            ],
+            "title": "Status"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "next_sync_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Sync At"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "connected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Connected At"
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading",
+            "default": "Read-only access. Only job-related emails are looked at; the app stores the sender, subject, date and a short snippet \u2014 never the full email."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "gmail_address",
+          "status",
+          "connected_at"
+        ],
+        "title": "GmailAccountOut"
+      },
+      "GmailConnectOut": {
+        "properties": {
+          "auth_url": {
+            "type": "string",
+            "title": "Auth Url",
+            "description": "Open this in the browser; Google sends the user back to /gmail/callback"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth_url"
+        ],
+        "title": "GmailConnectOut"
       },
       "GoogleSignIn": {
         "properties": {
@@ -10306,6 +11160,54 @@
         ],
         "title": "RegisterRequest"
       },
+      "ResolveIn": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "change",
+              "ignore"
+            ],
+            "title": "Action"
+          },
+          "application_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Id",
+            "description": "For change (or to confirm a different suggestion)"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "acknowledgement",
+                  "assessment",
+                  "interview_invite",
+                  "offer",
+                  "rejection"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "ResolveIn"
+      },
       "ResumeDetail": {
         "properties": {
           "id": {
@@ -11553,6 +12455,34 @@
         "type": "object",
         "title": "SourceHealth"
       },
+      "Suggestion": {
+        "properties": {
+          "application_id": {
+            "type": "string",
+            "title": "Application Id"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "company": {
+            "type": "string",
+            "title": "Company"
+          }
+        },
+        "type": "object",
+        "required": [
+          "application_id",
+          "score",
+          "title",
+          "company"
+        ],
+        "title": "Suggestion"
+      },
       "TaskDefaults": {
         "properties": {
           "defaults": {
@@ -11648,6 +12578,110 @@
         ],
         "title": "TaskStatus"
       },
+      "TimelineEmail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "snippet": {
+            "type": "string",
+            "title": "Snippet",
+            "default": ""
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "gmail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gmail Url",
+            "description": "Opens the message in Gmail (signed in as that account)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sender",
+          "subject",
+          "received_at"
+        ],
+        "title": "TimelineEmail",
+        "description": "The email behind a status change: enough to recognise it, plus a link to open it in Gmail."
+      },
+      "TimelineEvent": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "status_source": {
+            "type": "string",
+            "title": "Status Source"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimelineEmail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The email that caused this change (email_parser)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "status_source",
+          "created_at"
+        ],
+        "title": "TimelineEvent"
+      },
       "TitleSuggestions": {
         "properties": {
           "titles": {
@@ -11696,6 +12730,53 @@
           "user"
         ],
         "title": "TokenResponse"
+      },
+      "TrackerStats": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "this_week": {
+            "type": "integer",
+            "title": "This Week"
+          },
+          "funnel": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Funnel",
+            "description": "applied, acknowledged, assessment, interview, offer (reached at least)"
+          },
+          "rejected": {
+            "type": "integer",
+            "title": "Rejected"
+          },
+          "by_status": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "By Status"
+          },
+          "by_source": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "By Source"
+          },
+          "needs_review": {
+            "type": "integer",
+            "title": "Needs Review"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "this_week",
+          "funnel",
+          "rejected",
+          "by_status",
+          "by_source",
+          "needs_review"
+        ],
+        "title": "TrackerStats"
       },
       "UsageByDay": {
         "properties": {

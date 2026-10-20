@@ -342,7 +342,9 @@ export const workHandlers = [
     // Sources left out of the request: every source that can run, skipped ones not reported (P3.1).
     const requested =
       body.search?.sources ??
-      aiDb.sources.map((s) => s.key).filter((k) => k !== "naukri" && k !== "naukri_apify");
+      aiDb.sources
+        .map((s) => s.key)
+        .filter((k) => k !== "naukri" && k !== "naukri_apify" && k !== "email_alerts");
     const plan = planSources(auth.user, requested, Boolean(body.search?.enable_naukri_apify));
     // Like the backend: with no sources named, sources that can't run are left out quietly.
     if (!body.search?.sources) plan.skipped = [];
