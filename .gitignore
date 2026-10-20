@@ -10,12 +10,14 @@ dist/
 out/
 
 # ---- environment variables ----
+# Every .env file is ignored except these four, which hold no secrets (VITE_* values are
+# public: they end up in the browser bundle). Vercel builds from .env.production.
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.mocks.local
+.env.*
+!.env.example
+!.env.development
+!.env.mocks
+!.env.production
 
 # ---- logs ----
 npm-debug.log*

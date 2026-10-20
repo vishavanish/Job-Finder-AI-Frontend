@@ -6,7 +6,7 @@ import { renderApp, signIn } from "../../test/renderApp";
 async function toCodeStep(email = "demo@jobfinder.test") {
   const user = userEvent.setup();
   renderApp("/login");
-  await user.type(await screen.findByLabelText("Email"), email);
+  await user.type(await screen.findByLabelText("Work or personal email"), email);
   await user.click(screen.getByRole("button", { name: "Email me a code" }));
   await screen.findByLabelText("Digit 1 of 6");
   return user;
@@ -21,7 +21,7 @@ describe("sign in with an email code", () => {
   it("asks for a valid email before sending", async () => {
     const user = userEvent.setup();
     renderApp("/login");
-    await user.type(await screen.findByLabelText("Email"), "not-an-email");
+    await user.type(await screen.findByLabelText("Work or personal email"), "not-an-email");
     await user.click(screen.getByRole("button", { name: "Email me a code" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter a valid email address");
   });
@@ -75,6 +75,6 @@ describe("sign in with an email code", () => {
   it("goes back to change the email", async () => {
     const user = await toCodeStep();
     await user.click(screen.getByRole("button", { name: "Use a different email" }));
-    expect(screen.getByLabelText("Email")).toHaveValue("demo@jobfinder.test");
+    expect(screen.getByLabelText("Work or personal email")).toHaveValue("demo@jobfinder.test");
   });
 });
