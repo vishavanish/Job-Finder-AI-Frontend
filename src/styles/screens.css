@@ -9,10 +9,11 @@
 /* Sign-in screen after the owner's Stitch design "Modern Responsive Login Portal". */
 .login-screen {
   min-height: 100vh;
+  min-height: 100dvh; /* phones: ignore the browser bar, so no stray scroll */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6) var(--space-4);
+  padding: var(--space-4);
   background:
     radial-gradient(60rem 40rem at 15% 0%, var(--login-wash-1), transparent 60%),
     radial-gradient(50rem 36rem at 100% 100%, var(--login-wash-2), transparent 60%), var(--bg);
@@ -25,7 +26,7 @@
 .login-card {
   width: 100%;
   max-width: 440px;
-  padding: var(--space-10) var(--space-10) var(--space-6);
+  padding: var(--space-8) var(--space-10) var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -42,9 +43,9 @@
 .login-card .logo-badge {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  margin: 0 auto var(--space-5);
+  width: 44px;
+  height: 44px;
+  margin: 0 auto var(--space-4);
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--plum-400), var(--plum-700));
   color: #ffffff;
@@ -61,7 +62,7 @@
 
 .login-card p.subtitle {
   max-width: 34ch;
-  margin: 0 auto var(--space-8);
+  margin: 0 auto var(--space-6);
   color: var(--text-muted);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
