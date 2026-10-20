@@ -1,0 +1,13 @@
+dist
+coverage
+node_modules
+package-lock.json
+public/mockServiceWorker.js
+src/lib/api/schema.d.ts
+openapi/
+docs/frontend-prompt.md
+
+# Legacy plain-JS screens: formatted when each one is migrated to TypeScript
+# (see docs/frontend-audit.md, migration plan). Delete the line in the same change.
+src/context/RunContext.jsx
+src/components/ChipEditor.jsx

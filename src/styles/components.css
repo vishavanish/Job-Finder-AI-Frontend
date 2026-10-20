@@ -1,0 +1,234 @@
+/* Shared F3 building blocks: badges in the status palette, form fields, chips, score ring. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--status-neutral-border);
+  background: var(--status-neutral-bg);
+  color: var(--status-neutral-fg);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+.badge.tone-active {
+  border-color: var(--status-active-border);
+  background: var(--status-active-bg);
+  color: var(--status-active-fg);
+}
+.badge.tone-attention {
+  border-color: var(--status-attention-border);
+  background: var(--status-attention-bg);
+  color: var(--status-attention-fg);
+}
+.badge.tone-progress {
+  border-color: var(--status-progress-border);
+  background: var(--status-progress-bg);
+  color: var(--status-progress-fg);
+}
+.badge.tone-positive {
+  border-color: var(--status-positive-border);
+  background: var(--status-positive-bg);
+  color: var(--status-positive-fg);
+}
+.badge.tone-negative {
+  border-color: var(--status-negative-border);
+  background: var(--status-negative-bg);
+  color: var(--status-negative-fg);
+}
+.badge.tone-muted {
+  border-color: var(--status-muted-border);
+  background: var(--status-muted-bg);
+  color: var(--status-muted-fg);
+}
+
+/* ---------- fields ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.field > span:first-child {
+  font-weight: var(--weight-medium);
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+}
+.field.narrow {
+  max-width: 160px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.form-actions .login-error {
+  margin: 0;
+}
+/* .btn-primary is full-width for the sign-in form; in action rows it sizes to its label. */
+.form-actions .btn-primary,
+.empty-state .btn-primary {
+  width: auto;
+}
+.push-right {
+  margin-left: auto;
+}
+
+.check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+}
+.check-row legend {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+.check-row .field-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+.check-row label,
+.check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.flash-ok {
+  color: var(--status-positive-fg);
+  font-size: var(--text-sm);
+}
+
+/* ---------- chips ---------- */
+.chip-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+  min-width: 0;
+}
+.chip-field > label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+}
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chip-list:empty {
+  display: none;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 4px 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-soft-border);
+  color: var(--accent-text);
+  font-size: var(--text-sm);
+}
+.chip-remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  line-height: 1;
+}
+.chip-remove:hover {
+  background: var(--accent-soft-border);
+}
+.chip-add {
+  cursor: pointer;
+  padding: 2px 10px;
+}
+
+/* ---------- score ring ---------- */
+.score-ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--text);
+}
+.score-ring svg {
+  transform: rotate(-90deg);
+}
+.score-ring-track {
+  fill: none;
+  stroke: var(--surface-sunken);
+  stroke-width: 4;
+}
+.score-ring-value {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke: var(--status-neutral-fg);
+  transition: stroke-dashoffset 600ms ease-out;
+}
+.score-ring.band-high .score-ring-value {
+  stroke: var(--status-positive-fg);
+}
+.score-ring.band-mid .score-ring-value {
+  stroke: var(--status-attention-fg);
+}
+.score-ring.band-low .score-ring-value {
+  stroke: var(--status-negative-fg);
+}
+.score-ring-number {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+.score-ring.is-empty {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px dashed var(--border-strong);
+  color: var(--text-subtle);
+}
+@media (prefers-reduced-motion: reduce) {
+  .score-ring-value {
+    transition: none;
+  }
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}

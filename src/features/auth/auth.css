@@ -1,0 +1,89 @@
+/* Sign-in screen (card layout is .login-* in styles/screens.css). */
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
+.google-button {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-info {
+  margin: 0 0 var(--space-3);
+}
+
+.code-input {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-2);
+}
+
+.code-input-box {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.code-input-box:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  border-color: var(--focus-ring);
+}
+
+.code-input-box[aria-invalid="true"] {
+  border-color: var(--status-negative-border);
+}
+
+.code-input-box:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.code-input + .field-hint {
+  margin: var(--space-2) 0 var(--space-4);
+}
+
+.auth-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.auth-row .btn-primary {
+  width: auto;
+}
+
+.auth-row .link-button {
+  font-size: var(--text-sm);
+}
+
+.link-button:disabled {
+  color: var(--text-subtle);
+  text-decoration: none;
+  cursor: default;
+}

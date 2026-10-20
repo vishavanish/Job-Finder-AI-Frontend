@@ -15,6 +15,7 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.mocks.local
 
 # ---- logs ----
 npm-debug.log*
@@ -32,6 +33,12 @@ Thumbs.db
 
 # ---- testing ----
 coverage/
+test-results/
+playwright-report/
+
+# ---- tool caches ----
+*.tsbuildinfo
+.eslintcache
 
 # ---- misc ----
 *.local
