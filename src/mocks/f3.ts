@@ -221,6 +221,7 @@ export const f3Handlers = [
     if ("response" in auth) return auth.response;
     // Browsers send real multipart; under jsdom formData() can throw, so fall back to the raw body.
     let fileName = "";
+    let fileType = "";
     let fileSize = 0;
     let label: string | null = null;
     try {
@@ -228,22 +229,24 @@ export const f3Handlers = [
       const file = form.get("file");
       if (file && typeof file === "object" && "name" in file) {
         fileName = (file as File).name;
+        fileType = (file as File).type;
         fileSize = (file as File).size;
       }
       label = (form.get("label") as string | null) || null;
     } catch {
       const raw = await request.text();
       fileName = /filename="([^"]+)"/.exec(raw)?.[1] ?? "";
+      fileType = /Content-Type: ([^\r\n]+)/.exec(raw.split("filename=")[1] ?? "")?.[1] ?? "";
       fileSize = raw.length;
-      // jsdom -> undici drops the file name ("blob"); name it from the part's content type.
-      if (fileName === "blob") {
-        const type = /Content-Type: ([^\r\n]+)/.exec(raw.split("filename=")[1] ?? "")?.[1] ?? "";
-        fileName = type.includes("pdf")
-          ? "resume.pdf"
-          : type.includes("word")
-            ? "resume.docx"
-            : "resume.bin";
-      }
+    }
+    // jsdom -> undici can drop the file name ("blob") on either path (Node 22 does it
+    // through formData()); name it from the part's content type.
+    if (fileName === "blob") {
+      fileName = fileType.includes("pdf")
+        ? "resume.pdf"
+        : fileType.includes("word")
+          ? "resume.docx"
+          : "resume.bin";
     }
     if (!fileName) return unprocessable("resume_missing", "Attach a file.");
     if (!/\.(pdf|docx)$/i.test(fileName))
