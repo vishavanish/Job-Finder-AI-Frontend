@@ -63,12 +63,7 @@ export default tseslint.config(
   {
     // Legacy screens predate this config. Their findings are listed in
     // docs/frontend-audit.md and fixed as each file is migrated to TypeScript.
-    files: [
-      "src/pages/**/*.jsx",
-      "src/context/RunContext.jsx",
-      "src/context/SettingsContext.jsx",
-      "src/components/ChipEditor.jsx",
-    ],
+    files: ["src/context/RunContext.jsx", "src/components/ChipEditor.jsx"],
     rules: {
       "react-hooks/exhaustive-deps": "off",
       "jsx-a11y/label-has-associated-control": "off",

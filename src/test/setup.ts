@@ -8,6 +8,7 @@ import { resetAiMock } from "../mocks/aiState";
 import { resetF3Mock } from "../mocks/f3State";
 import { resetF4Mock } from "../mocks/f4State";
 import { resetF5Mock } from "../mocks/f5State";
+import { resetF6Mock } from "../mocks/f6State";
 import { setAccessToken } from "../lib/auth/session";
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
@@ -21,6 +22,7 @@ afterEach(() => {
   resetF3Mock();
   resetF4Mock();
   resetF5Mock();
+  resetF6Mock();
   setAccessToken(null);
   window.localStorage.clear();
   window.sessionStorage.clear();

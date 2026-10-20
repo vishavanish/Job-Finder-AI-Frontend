@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "../context/AuthContext";
-import { SettingsProvider } from "../context/SettingsContext.jsx";
 import { ActivityProvider } from "./activity";
 import { ThemeProvider } from "./theme";
 import AppShell from "./AppShell";
@@ -17,7 +16,8 @@ import AdminSourcesPage from "../features/admin/AdminSourcesPage";
 import AdminUsagePage from "../features/admin/AdminUsagePage";
 import AiModelsPage from "../features/models/AiModelsPage";
 import ApiKeysPage from "../features/models/ApiKeysPage";
-import AtsTargetsPage from "../pages/AtsTargetsPage.jsx";
+import AtsTargetsPage from "../features/ats/AtsTargetsPage";
+import AdminAtsPage from "../features/admin/AdminAtsPage";
 import ProvidersPage from "../features/providers/ProvidersPage";
 import JobsPage from "../features/jobs/JobsPage";
 import ProfilePage from "../features/profile/ProfilePage";
@@ -140,6 +140,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="admin/ats"
+          element={
+            <RequireRole roles={ADMIN_ONLY}>
+              <AdminAtsPage />
+            </RequireRole>
+          }
+        />
+        <Route
           path="admin/usage"
           element={
             <RequireRole roles={ADMIN_ONLY}>
@@ -167,9 +175,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <QueryProvider>
         <AuthProvider>
-          <SettingsProvider>
-            <ActivityProvider>{children}</ActivityProvider>
-          </SettingsProvider>
+          <ActivityProvider>{children}</ActivityProvider>
         </AuthProvider>
       </QueryProvider>
     </ThemeProvider>

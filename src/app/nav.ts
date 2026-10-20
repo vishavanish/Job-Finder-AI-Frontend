@@ -29,6 +29,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/", label: "Dashboard", icon: "layers", end: true },
       { to: "/jobs", label: "Jobs", icon: "play", feature: "job_search" },
+      { to: "/ats-targets", label: "ATS targets", icon: "building", feature: "ats_discovery" },
       { to: "/apply", label: "Apply Center", icon: "check", badge: "applyWaiting" },
       { to: "/alerts", label: "Job alerts", icon: "activity", feature: "job_alerts" },
       { to: "/tracker", label: "Tracker", icon: "inbox", badge: "trackerReview" },
@@ -39,7 +40,6 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/search-profile", label: "Keywords and skills", icon: "search" },
       { to: "/profile", label: "Profile and resume", icon: "user" },
-      { to: "/ats-targets", label: "ATS targets", icon: "building", feature: "ats_discovery" },
       { to: "/providers", label: "Job sources", icon: "globe" },
     ],
   },
@@ -65,6 +65,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: "/admin/models", label: "AI models", icon: "sparkle" },
       { to: "/admin/keys", label: "Platform keys", icon: "key" },
       { to: "/admin/sources", label: "Job sources", icon: "globe" },
+      { to: "/admin/ats", label: "ATS registry", icon: "building" },
       { to: "/admin/usage", label: "Usage", icon: "activity" },
     ],
   },

@@ -9,7 +9,5 @@ docs/frontend-prompt.md
 
 # Legacy plain-JS screens: formatted when each one is migrated to TypeScript
 # (see docs/frontend-audit.md, migration plan). Delete the line in the same change.
-src/pages/
 src/context/RunContext.jsx
-src/context/SettingsContext.jsx
 src/components/ChipEditor.jsx

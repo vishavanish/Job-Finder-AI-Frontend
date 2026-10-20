@@ -39,6 +39,11 @@ const GROUPS: { title: string; note?: string; keys: string[] }[] = [
   },
   { title: "Naukri", keys: ["naukri", "naukri_apify"] },
   {
+    title: "Company career pages",
+    note: "Jobs from the shared registry of company career pages, matched to your search titles. Browse it by title in ATS targets.",
+    keys: ["company_ats"],
+  },
+  {
     title: "Your inbox",
     note: "Jobs from the job-alert emails you already get (Naukri, LinkedIn, Indeed and more). Needs Gmail connected in the Tracker.",
     keys: ["email_alerts"],
@@ -111,6 +116,11 @@ function SourceRow({
         <p className={source.available ? "source-state is-on" : "source-state"} id={`${id}-state`}>
           {source.available ? "Will run in your next search." : `Won't run: ${source.reason}.`}
         </p>
+        {source.key === "company_ats" && (
+          <p className="source-desc">
+            <Link to="/ats-targets">Search the registry by job title</Link>
+          </p>
+        )}
         {source.key === "email_alerts" && !source.available && (
           <p className="source-desc">
             <Link to="/tracker?tab=gmail">Connect Gmail</Link> to turn this on.

@@ -75,7 +75,7 @@ The config is small, the build output and dev server behave the same, and all ch
 | `/applications` | `pages/ApplicationsPage.jsx` → **replaced in F5** by `features/tracker/` (`/tracker`; `/applications` redirects) | Paginated history (20/page) with status, source, View, Mark applied                                                                                                                                                                                                                             | `GET /applications`, `PATCH /applications/{id}`         |
 | `/keywords`     | `pages/KeywordsPage.jsx`                                                                                         | Keywords and locations (chips), results per keyword, max age                                                                                                                                                                                                                                    | `localStorage` only                                     |
 | `/skills`       | `pages/SkillsPage.jsx`                                                                                           | Skills, career targets, resume summary, scoring thresholds                                                                                                                                                                                                                                      | `localStorage` only                                     |
-| `/ats-targets`  | `pages/AtsTargetsPage.jsx`                                                                                       | Add/remove company ATS targets (platform + slug / custom URL)                                                                                                                                                                                                                                   | `localStorage` only — nothing calls `company-ats/fetch` |
+| `/ats-targets`  | `pages/AtsTargetsPage.jsx` → **replaced in F6** by `features/ats/` (title search over the P6 registry)           | Add/remove company ATS targets (platform + slug / custom URL)                                                                                                                                                                                                                                   | `localStorage` only — nothing calls `company-ats/fetch` |
 | `/providers`    | `pages/ProvidersPage.jsx`                                                                                        | LinkedIn / Indeed / Naukri switches                                                                                                                                                                                                                                                             | `localStorage` only                                     |
 | `/profile`      | `pages/ProfilePage.jsx`                                                                                          | Account name/email (read-only), applicant info for Easy Apply, Logout                                                                                                                                                                                                                           | `localStorage`                                          |
 | layout          | `pages/DashboardLayout.jsx` → replaced by `app/AppShell.tsx`                                                     | Sidebar nav, profile link, Logout                                                                                                                                                                                                                                                               | —                                                       |
@@ -269,6 +269,18 @@ active and one `needs_reconnect` account, two emails waiting for review (one wit
 The provider list gains `email_alerts` ("Job alert emails"), unavailable without an active Gmail
 account.
 
+F6 added the P6 endpoints in `src/mocks/f6.ts` (state in `src/mocks/f6State.ts`): `GET /ats/search`
+(30 seeded companies over the 13 platforms, synonym groups, filters incl. repeated `platform`, hide
+applied, pages of 25, and a `topup_task_id` when fewer than 10 companies match — the top-up task on
+`GET /tasks/{id}` completes on the third poll and adds three companies), `GET /ats/stats`,
+`POST /ats/companies` (Greenhouse / Lever / Recruitee / Workday / Ashby links; private hosts → 400
+`ats_private_host`; unknown pages → 422 `ats_unsupported`; existing → `created: false`),
+`GET /ats/companies/{id}/jobs`, `GET /ats/jobs/{id}` (plain-text description), `POST
+/ats/jobs/{id}/track` (creates the F3 job with `apply_options`: Auto apply on Greenhouse/Lever), and
+the admin routes `GET /admin/ats/health`, `GET/PATCH /admin/ats/companies`, `POST
+/admin/ats/companies/{id}/crawl`, `PATCH /admin/ats/platforms/{platform}`. The provider list gains
+`company_ats` ("Company career pages").
+
 ## 8. Contract gaps (proposed for PROJECT.md)
 
 Not edited in the backend repo; listed here for the backend owner.
@@ -299,6 +311,9 @@ Not edited in the backend repo; listed here for the backend owner.
 11. **Application search and resume version.** `GET /applications` has no text search (the
     tracker loads the latest 500 and searches on the client), and the resume version used isn't
     recorded per application, so the detail page can't show it yet.
+12. **ATS stats map type.** `AtsRegistryStats.by_platform` is fine (`dict[str, int]`), but
+    `GET /ats/search` returns `expansions` only after the cached AI expansion finishes
+    (`expansion_pending`); the UI shows them when present and doesn't poll for them.
 
 ## 9. Migration plan
 
@@ -340,6 +355,8 @@ Each step ships on its own and leaves the app working. Steps 1–2 are F0.
   `phase-1-identity` locally (`npm run dev` with the API on :8000) before release, including the
   `Secure` cookie over `http://localhost` through the dev proxy.
 - **Cross-site cookie in production** (5.1 S8) — needs a real deploy to confirm.
+- **ATS search speed (F6).** The < 3 s target is proven only by the backend's `ats-postgres` CI job;
+  F6 was checked against mocks, not a real 300k-job index.
 - **Real Gmail connect (F5).** The mocks return an in-app path; the full redirect through Google
   (`accounts.google.com` → backend `/gmail/callback` → `/tracker?gmail=…`) needs the Google OAuth
   client from backend P5 and the owner as a test user.

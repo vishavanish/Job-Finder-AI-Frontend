@@ -183,3 +183,16 @@ export type EmailEventList = Schemas["EmailEventList"];
 export type EmailSuggestion = Schemas["Suggestion"];
 export type ResolveIn = Schemas["ResolveIn"];
 export type ResolveCategory = NonNullable<ResolveIn["category"]>;
+
+// ---- P6: ATS Discovery ----
+export type AtsSearchResult = Schemas["AtsSearchResult"];
+export type AtsCompanyGroup = Schemas["AtsCompanyGroup"];
+export type AtsJob = Schemas["AtsJobOut"];
+export type AtsJobDetail = Schemas["AtsJobDetail"];
+export type AtsCompany = Schemas["AtsCompanyOut"];
+export type AtsCompanyIn = Schemas["AtsCompanyIn"];
+export type AtsCompanyJobs = Schemas["AtsCompanyJobs"];
+export type AtsRegistryStats = Schemas["AtsRegistryStats"];
+export type AtsHealth = Schemas["AtsHealth"];
+export type AtsPlatform = Schemas["AtsPlatformOut"];
+export type AtsTracked = Schemas["AtsTracked"];

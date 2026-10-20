@@ -270,6 +270,15 @@ function seedSources(): MockSource[] {
     },
     {
       ...base,
+      key: "company_ats",
+      name: "Company career pages",
+      tier: "free",
+      tos_risk: "none",
+      description:
+        "Open jobs from the company career-page registry (Greenhouse, Lever, Workday and 10 more).",
+    },
+    {
+      ...base,
       key: "email_alerts",
       name: "Job alert emails",
       tier: "free",

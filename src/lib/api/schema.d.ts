@@ -1801,6 +1801,201 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ats/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search */
+        get: operations["search_api_v1_ats_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stats */
+        get: operations["stats_api_v1_ats_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Company
+         * @description Adds a company to the shared registry; its jobs appear after the first crawl (a minute or two).
+         */
+        post: operations["add_company_api_v1_ats_companies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/companies/{company_id}/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Company Jobs */
+        get: operations["company_jobs_api_v1_ats_companies__company_id__jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Job Detail */
+        get: operations["job_detail_api_v1_ats_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/jobs/{job_id}/track": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Track Job
+         * @description Stores the job in the canonical jobs table (same dedupe as search runs) and returns its id, so the
+         *     usual /jobs/{id}/save|hide, /apply/options/{id} and /applications/manual work on it.
+         */
+        post: operations["track_job_api_v1_ats_jobs__job_id__track_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ats/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Health */
+        get: operations["admin_health_api_v1_admin_ats_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ats/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Companies */
+        get: operations["admin_companies_api_v1_admin_ats_companies_get"];
+        put?: never;
+        /** Admin Add Company */
+        post: operations["admin_add_company_api_v1_admin_ats_companies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ats/companies/{company_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Admin Edit Company */
+        patch: operations["admin_edit_company_api_v1_admin_ats_companies__company_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/ats/companies/{company_id}/crawl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Crawl Now */
+        post: operations["admin_crawl_now_api_v1_admin_ats_companies__company_id__crawl_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ats/platforms/{platform}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Admin Edit Platform */
+        patch: operations["admin_edit_platform_api_v1_admin_ats_platforms__platform__patch"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -2488,6 +2683,229 @@ export interface components {
             caps: {
                 [key: string]: unknown;
             };
+        };
+        /** AtsCompanyGroup */
+        AtsCompanyGroup: {
+            /** Company Id */
+            company_id: string;
+            /** Name */
+            name: string;
+            /** Platform */
+            platform: string;
+            /** Platform Name */
+            platform_name: string;
+            /** Careers Url */
+            careers_url: string;
+            /** Open Jobs */
+            open_jobs: number;
+            /** Matching Jobs */
+            matching_jobs: number;
+            /** Top Jobs */
+            top_jobs: components["schemas"]["AtsJobOut"][];
+            /** Locations */
+            locations: string[];
+            /** Newest Posted At */
+            newest_posted_at?: string | null;
+            /** Last Refreshed At */
+            last_refreshed_at?: string | null;
+        };
+        /**
+         * AtsCompanyIn
+         * @description A careers / job link (preferred), or platform + company id.
+         */
+        AtsCompanyIn: {
+            /** Url */
+            url?: string | null;
+            /** Platform */
+            platform?: string | null;
+            /** Slug */
+            slug?: string | null;
+            /** Name */
+            name?: string | null;
+        };
+        /** AtsCompanyJobs */
+        AtsCompanyJobs: {
+            company: components["schemas"]["AtsCompanyOut"];
+            /** Jobs */
+            jobs: components["schemas"]["AtsJobOut"][];
+        };
+        /** AtsCompanyOut */
+        AtsCompanyOut: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Platform */
+            platform: string;
+            /** Platform Name */
+            platform_name: string;
+            /** Slug */
+            slug: string;
+            /** Careers Url */
+            careers_url: string;
+            /** Origin */
+            origin: string;
+            /** Active */
+            active: boolean;
+            /** Job Count */
+            job_count: number;
+            /** Last Crawled At */
+            last_crawled_at?: string | null;
+            /** Last Ok At */
+            last_ok_at?: string | null;
+            /** Next Crawl At */
+            next_crawl_at?: string | null;
+            /** Last Error */
+            last_error?: string | null;
+            /**
+             * Created
+             * @default false
+             */
+            created: boolean;
+        };
+        /** AtsCompanyUpdate */
+        AtsCompanyUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Active */
+            active?: boolean | null;
+        };
+        /** AtsHealth */
+        AtsHealth: {
+            registry: components["schemas"]["AtsRegistryStats"];
+            /** Index Limit */
+            index_limit: number;
+            /** Platforms */
+            platforms: components["schemas"]["AtsPlatformOut"][];
+            /** Failing Companies */
+            failing_companies: components["schemas"]["AtsCompanyOut"][];
+            /** Switched Off */
+            switched_off: number;
+        };
+        /** AtsJobDetail */
+        AtsJobDetail: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Location */
+            location: string;
+            /** Remote */
+            remote: boolean;
+            /** Department */
+            department: string;
+            /** Url */
+            url: string;
+            /** Posted At */
+            posted_at?: string | null;
+            /** First Seen At */
+            first_seen_at?: string | null;
+            /**
+             * Applied
+             * @default false
+             */
+            applied: boolean;
+            /** Company Id */
+            company_id: string;
+            /** Company */
+            company: string;
+            /** Platform */
+            platform: string;
+            /** Description */
+            description: string;
+            /** Job Id */
+            job_id?: string | null;
+        };
+        /** AtsJobOut */
+        AtsJobOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Location */
+            location: string;
+            /** Remote */
+            remote: boolean;
+            /** Department */
+            department: string;
+            /** Url */
+            url: string;
+            /** Posted At */
+            posted_at?: string | null;
+            /** First Seen At */
+            first_seen_at?: string | null;
+            /**
+             * Applied
+             * @default false
+             */
+            applied: boolean;
+        };
+        /** AtsPlatformOut */
+        AtsPlatformOut: {
+            /** Platform */
+            platform: string;
+            /** Name */
+            name: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Companies */
+            companies: number;
+            /** Consecutive Failures */
+            consecutive_failures: number;
+            /** Last Success At */
+            last_success_at?: string | null;
+            /** Last Error At */
+            last_error_at?: string | null;
+            /** Last Error */
+            last_error?: string | null;
+        };
+        /** AtsPlatformUpdate */
+        AtsPlatformUpdate: {
+            /** Enabled */
+            enabled: boolean;
+        };
+        /** AtsRegistryStats */
+        AtsRegistryStats: {
+            /** Companies */
+            companies: number;
+            /** Jobs */
+            jobs: number;
+            /** Last Refresh At */
+            last_refresh_at?: string | null;
+            /**
+             * By Platform
+             * @default {}
+             */
+            by_platform: {
+                [key: string]: number;
+            };
+        };
+        /** AtsSearchResult */
+        AtsSearchResult: {
+            /** Query */
+            query: string;
+            /** Expansions */
+            expansions: string[];
+            /** Expansion Pending */
+            expansion_pending: boolean;
+            /** Groups */
+            groups: components["schemas"]["AtsCompanyGroup"][];
+            /** Total Companies */
+            total_companies: number;
+            /** Total Jobs */
+            total_jobs: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            registry: components["schemas"]["AtsRegistryStats"];
+            /** Topup Task Id */
+            topup_task_id?: string | null;
+        };
+        /** AtsTracked */
+        AtsTracked: {
+            /** Job Id */
+            job_id: string;
         };
         /** AuditEntryOut */
         AuditEntryOut: {
@@ -8278,6 +8696,422 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmailEventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_ats_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                platform?: string[] | null;
+                location?: string | null;
+                remote?: boolean | null;
+                posted_within_days?: number | null;
+                hide_applied?: boolean;
+                page?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsSearchResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stats_api_v1_ats_stats_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsRegistryStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_company_api_v1_ats_companies_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtsCompanyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsCompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    company_jobs_api_v1_ats_companies__company_id__jobs_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsCompanyJobs"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    job_detail_api_v1_ats_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsJobDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    track_job_api_v1_ats_jobs__job_id__track_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsTracked"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_health_api_v1_admin_ats_health_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsHealth"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_companies_api_v1_admin_ats_companies_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                platform?: string | null;
+                active?: boolean | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsCompanyOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_add_company_api_v1_admin_ats_companies_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtsCompanyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsCompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_edit_company_api_v1_admin_ats_companies__company_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtsCompanyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsCompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_crawl_now_api_v1_admin_ats_companies__company_id__crawl_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsCompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_edit_platform_api_v1_admin_ats_platforms__platform__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                platform: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtsPlatformUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtsPlatformOut"];
                 };
             };
             /** @description Validation Error */

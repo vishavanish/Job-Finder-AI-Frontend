@@ -21,7 +21,8 @@ import {
 import { ApiError, parseErrorBody } from "./errors";
 import type { TokenResponse } from "./types";
 
-export type QueryValue = string | number | boolean | null | undefined;
+/** An array is sent as a repeated key (`?platform=a&platform=b`), as FastAPI's list parameters expect. */
+export type QueryValue = string | number | boolean | null | undefined | readonly string[];
 
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -50,7 +51,9 @@ export function buildUrl(path: string, params?: Record<string, QueryValue>): str
   const url = new URL(`${API_PREFIX}${path}`, base);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+      if (value === undefined || value === null) continue;
+      if (Array.isArray(value)) for (const v of value) url.searchParams.append(key, v);
+      else url.searchParams.set(key, String(value));
     }
   }
   return url.toString();

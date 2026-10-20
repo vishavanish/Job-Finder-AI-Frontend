@@ -2,9 +2,10 @@
 /**
  * Before F3 the app kept keywords, skills, the resume summary and applicant
  * info in localStorage (audit S4). This reads them once so the user can move
- * them to the server, then deletes them. ATS targets live under their own key until F6.
+ * them to the server, then deletes them. ATS targets move to their own key for the F6 import.
  */
 import type { ApplicantInfoIn, SearchProfileIn } from "../../lib/api/types";
+import { keepLegacyTargets } from "../ats/legacyTargets";
 
 export const LEGACY_SETTINGS_KEY = "job_finder_settings_v1";
 
@@ -33,8 +34,9 @@ export function readLegacySettings(): LegacySettings | null {
   }
 }
 
-/** Deletes the old settings. ATS targets were already copied to their own key by SettingsContext. */
+/** Deletes the old settings, after moving their ATS targets to their own key (F6 offers to import them). */
 export function forgetLegacySettings(): void {
+  keepLegacyTargets();
   try {
     localStorage.removeItem(LEGACY_SETTINGS_KEY);
   } catch {
