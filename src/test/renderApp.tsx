@@ -17,7 +17,7 @@ export function renderApp(path = "/") {
 /** Email → code flow against the MSW mocks. The sixth digit submits by itself. */
 export async function signIn(email = "demo@jobfinder.test", code = MOCK_OTP_CODE) {
   const user = userEvent.setup();
-  await user.type(await screen.findByLabelText("Email"), email);
+  await user.type(await screen.findByLabelText("Work or personal email"), email);
   await user.click(screen.getByRole("button", { name: "Email me a code" }));
   await user.click(await screen.findByLabelText("Digit 1 of 6"));
   await user.keyboard(code);

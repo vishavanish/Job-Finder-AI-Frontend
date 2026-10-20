@@ -152,10 +152,18 @@
   --z-drawer: 40;
   --z-popover: 50;
   --z-dialog: 60;
+
+  /* ---- Sign-in screen (the one place with a background wash) ---- */
+  --login-wash-1: rgb(195 166 224 / 0.35);
+  --login-wash-2: rgb(178 148 214 / 0.22);
+  --login-card-shadow: 0 2px 6px rgb(44 34 56 / 0.06), 0 24px 60px -16px rgb(87 48 126 / 0.28);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --login-wash-1: rgb(106 61 152 / 0.28);
+  --login-wash-2: rgb(87 48 126 / 0.22);
+  --login-card-shadow: 0 2px 6px rgb(0 0 0 / 0.4), 0 24px 60px -16px rgb(0 0 0 / 0.7);
   --bg: var(--graphite-950);
   --surface: var(--graphite-900);
   --surface-sunken: #0d0c0b;

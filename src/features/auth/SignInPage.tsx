@@ -52,7 +52,8 @@ export default function SignInPage() {
   const [codeDead, setCodeDead] = useState(false);
   const [info, setInfo] = useState("");
   const [resendIn, setResendIn] = useCountdown();
-  const ids = { email: useId(), codeHelp: useId() };
+  const [helpOpen, setHelpOpen] = useState(false);
+  const ids = { email: useId(), codeHelp: useId(), help: useId() };
 
   const finish = (data: TokenResponse) => {
     acceptSession(data);
@@ -140,7 +141,7 @@ export default function SignInPage() {
 
   return (
     <div className="login-screen">
-      <div className="login-card">
+      <main className="login-card">
         <div className="logo-badge" aria-hidden="true">
           JF
         </div>
@@ -168,26 +169,55 @@ export default function SignInPage() {
               <>
                 <GoogleButton onToken={onGoogleToken} onError={setError} disabled={busy} />
                 <p className="auth-divider">
-                  <span>or</span>
+                  <span>Or continue with email</span>
                 </p>
               </>
             )}
             <form onSubmit={submitEmail} noValidate>
               <div className="form-field">
-                <label htmlFor={ids.email}>Email</label>
-                <input
-                  id={ids.email}
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  // eslint-disable-next-line jsx-a11y/no-autofocus -- the only field on the screen
-                  autoFocus
-                />
+                <label htmlFor={ids.email} className="auth-label">
+                  Work or personal email
+                </label>
+                <div className="auth-input">
+                  <MailIcon />
+                  <input
+                    id={ids.email}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    // eslint-disable-next-line jsx-a11y/no-autofocus -- the only field on the screen
+                    autoFocus
+                  />
+                </div>
               </div>
-              <button className="btn-primary" type="submit" disabled={busy}>
-                {busy ? "Sending code…" : "Email me a code"}
+              <div className="auth-help-row">
+                <button
+                  type="button"
+                  className="link-button"
+                  aria-expanded={helpOpen}
+                  aria-controls={ids.help}
+                  onClick={() => setHelpOpen((o) => !o)}
+                >
+                  Need help?
+                </button>
+              </div>
+              {helpOpen && (
+                <ul className="auth-help" id={ids.help}>
+                  <li>No email? Check spam, or ask for a new code after a minute.</li>
+                  <li>A code works once and expires in 10 minutes.</li>
+                  <li>Can't get in at all? Ask your admin to check your account.</li>
+                </ul>
+              )}
+              <button className="btn-primary btn-auth" type="submit" disabled={busy}>
+                {busy ? (
+                  "Sending code…"
+                ) : (
+                  <>
+                    Email me a code <ArrowIcon />
+                  </>
+                )}
               </button>
             </form>
           </>
@@ -214,7 +244,11 @@ export default function SignInPage() {
               The code expires in 10 minutes and works once.
             </p>
             {!codeDead && (
-              <button className="btn-primary" type="submit" disabled={busy || code.length !== 6}>
+              <button
+                className="btn-primary btn-auth"
+                type="submit"
+                disabled={busy || code.length !== 6}
+              >
                 {busy ? "Checking…" : "Sign in"}
               </button>
             )}
@@ -233,7 +267,70 @@ export default function SignInPage() {
             </div>
           </form>
         )}
-      </div>
+
+        <p className="auth-trust">
+          <ShieldIcon /> Fast, passwordless &amp; encrypted security
+        </p>
+      </main>
     </div>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
   );
 }
