@@ -18,6 +18,13 @@ import AiModelsPage from "../features/models/AiModelsPage";
 import ApiKeysPage from "../features/models/ApiKeysPage";
 import AtsTargetsPage from "../features/ats/AtsTargetsPage";
 import AdminAtsPage from "../features/admin/AdminAtsPage";
+import AdminVoicePage from "../features/admin/AdminVoicePage";
+import InterviewHubPage from "../features/interview/InterviewHubPage";
+import PracticeSessionPage from "../features/interview/PracticeSessionPage";
+import SessionReportPage from "../features/interview/SessionReportPage";
+import CopilotPage from "../features/interview/CopilotPage";
+import HistoryPage from "../features/interview/HistoryPage";
+import StoryBankPage from "../features/interview/StoryBankPage";
 import ProvidersPage from "../features/providers/ProvidersPage";
 import JobsPage from "../features/jobs/JobsPage";
 import ProfilePage from "../features/profile/ProfilePage";
@@ -92,6 +99,34 @@ export function AppRoutes() {
             </RequireFeature>
           }
         />
+        <Route
+          path="interview"
+          element={
+            <RequireFeature feature="voice_prep">
+              <InterviewHubPage />
+            </RequireFeature>
+          }
+        />
+        <Route
+          path="interview/practice/:id"
+          element={
+            <RequireFeature feature="voice_prep">
+              <PracticeSessionPage />
+            </RequireFeature>
+          }
+        />
+        <Route
+          path="interview/copilot"
+          element={
+            <RequireFeature feature="live_copilot">
+              <CopilotPage />
+            </RequireFeature>
+          }
+        />
+        {/* Reports, history and stories stay readable even if a voice feature is switched off later. */}
+        <Route path="interview/sessions/:id" element={<SessionReportPage />} />
+        <Route path="interview/history" element={<HistoryPage />} />
+        <Route path="interview/stories" element={<StoryBankPage />} />
         <Route path="providers" element={<ProvidersPage />} />
         <Route path="tracker" element={<TrackerPage />} />
         <Route path="tracker/:id" element={<ApplicationDetailPage />} />
@@ -144,6 +179,14 @@ export function AppRoutes() {
           element={
             <RequireRole roles={ADMIN_ONLY}>
               <AdminAtsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/voice"
+          element={
+            <RequireRole roles={ADMIN_ONLY}>
+              <AdminVoicePage />
             </RequireRole>
           }
         />

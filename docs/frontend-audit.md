@@ -281,6 +281,25 @@ the admin routes `GET /admin/ats/health`, `GET/PATCH /admin/ats/companies`, `POS
 /admin/ats/companies/{id}/crawl`, `PATCH /admin/ats/platforms/{platform}`. The provider list gains
 `company_ats` ("Company career pages").
 
+F7 added the P7 endpoints in `src/mocks/f7.ts` (state in `src/mocks/f7State.ts`), built against the
+real backend P7 contract (types regenerated from its OpenAPI): `GET /voice/providers` (free mode),
+`GET/PUT /voice/settings` (with the Live Copilot notice text and version), `POST
+/voice/copilot/acknowledge` (wrong version → 409 `ack_version_changed`), `POST /voice/sessions`
+(Practice needs `voice_prep`; Copilot needs `live_copilot` — off by default — and the
+acknowledgement → 403 `copilot_ack_required`; an open socket → 409 `voice_session_busy`), `POST
+/voice/sessions/{id}/token`, `GET /voice/sessions/{id}` and `/feedback` (pending until the second
+poll), `GET/DELETE /voice/history`, `DELETE /voice/sessions/{id}`, `GET /voice/progress`, the
+story bank (`GET/POST /story-bank`, `PUT/DELETE /story-bank/{id}`, `POST /story-bank/{id}/approve`,
+`POST /story-bank/draft-from-resume` with its task on `GET /tasks/{id}` adding one draft on the second
+poll) and `GET /admin/voice/health`. Two MSW WebSocket links stand in for the sockets: Practice
+(`/voice/sessions/{id}/stream`: first-message auth with a single-use token, scripted questions,
+typed answers, 50 binary frames = one spoken answer, pause/repeat/skip/end, closing turn) and Live
+Copilot (`/voice/copilot/{id}/stream`: every 60 frames or `mockCopilotSay()` → a line; questions
+become cards with streamed answers; follow-ups, interrupts, shorter/expand/regenerate, dismiss,
+answer_now, screenshot, stop; `mockDropSocket()` closes with 4500 to test the reconnect + resume).
+Seed per user: one scored Practice session, one Copilot session, two stories (one AI draft). MSW
+drops messages sent right before it closes a socket, so the mocks close one tick later.
+
 ## 8. Contract gaps (proposed for PROJECT.md)
 
 Not edited in the backend repo; listed here for the backend owner.
@@ -365,3 +384,11 @@ Each step ships on its own and leaves the app working. Steps 1–2 are F0.
 - **Screen readers.** Keyboard, focus and roles were checked in tests and the browser; no
   NVDA/VoiceOver pass yet.
 - Contrast ratios were chosen to meet WCAG AA by calculation, not measured with a tool.
+- **Voice audio (F7).** The Browser pane blocks the microphone and tab capture, and jsdom has no
+  AudioWorklet, so real capture (worklet → 16 kHz frames, tab audio via `getDisplayMedia`, echo,
+  barge-in) and browser speech were not exercised end to end; the resampler, framing, bounded queue
+  and both socket loops are tested with a fake capture against the MSW sockets. Try it in Chrome
+  against the real backend with a Groq key (and a Deepgram key for the < 1 s copilot path), and
+  run `python -m app.scripts.voice_bench` for real p50/p95.
+- **Document Picture-in-Picture (F7)** pop-out and the floating panel's drag were not exercised in
+  tests (Chrome only).

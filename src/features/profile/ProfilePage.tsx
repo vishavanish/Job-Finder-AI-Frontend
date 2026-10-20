@@ -3,6 +3,7 @@
  * job preferences, applicant info for apply forms and optional EEO answers.
  * Everything is stored on the server — nothing here lives in the browser.
  */
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { errorMessage } from "../../lib/api/errors";
 import { useAuth } from "../../context/AuthContext";
@@ -23,7 +24,8 @@ export default function ProfilePage() {
           <h2>Profile and resume</h2>
           <p>
             {user?.email ? `Signed in as ${user.email}. ` : ""}Your resume is what every job is
-            scored against; your preferences shape every search.
+            scored against; your preferences shape every search. Interview stories live in the{" "}
+            <Link to="/interview/stories">story bank</Link>.
           </p>
         </div>
       </div>

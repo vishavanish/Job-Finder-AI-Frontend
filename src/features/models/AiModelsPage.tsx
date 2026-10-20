@@ -77,7 +77,7 @@ function TaskPicker({
       )}
       <div className="task-picker">
         {catalog.tasks.map((task) => {
-          const options = catalog.models.filter((m) => servesTask(m.tasks, task));
+          const options = catalog.models.filter((m) => servesTask(m.tasks, task, m.provider));
           const id = `${base}-${task}`;
           return (
             <div key={task} style={{ display: "contents" }}>

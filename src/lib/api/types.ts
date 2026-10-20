@@ -196,3 +196,27 @@ export type AtsRegistryStats = Schemas["AtsRegistryStats"];
 export type AtsHealth = Schemas["AtsHealth"];
 export type AtsPlatform = Schemas["AtsPlatformOut"];
 export type AtsTracked = Schemas["AtsTracked"];
+
+// ---- P7: voice interview prep (Practice + Live Copilot) and the story bank ----
+export type VoiceProviders = Schemas["VoiceProvidersOut"];
+export type SpeechModel = Schemas["SpeechModelOut"];
+export type VoiceSettings = Schemas["VoiceSettingsOut"];
+export type VoiceSettingsIn = Schemas["VoiceSettingsIn"];
+export type CopilotAckIn = Schemas["CopilotAckIn"];
+export type VoiceSessionCreate = Schemas["SessionCreateIn"];
+export type VoiceSessionCreated = Schemas["SessionCreateOut"];
+export type VoiceSession = Schemas["VoiceSessionOut"];
+export type VoiceSessionDetail = Schemas["VoiceSessionDetail"];
+export type VoiceTurn = Schemas["VoiceTurnOut"];
+export type VoiceStreamToken = Schemas["StreamTokenOut"];
+export type VoiceFeedback = Schemas["VoiceFeedbackOut"];
+export type AnswerFeedback = Schemas["AnswerFeedbackOut"];
+export type VoiceHistory = Schemas["VoiceHistoryOut"];
+export type VoiceProgress = Schemas["VoiceProgressOut"];
+export type ProgressArea = Schemas["ProgressArea"];
+export type VoiceHealth = Schemas["VoiceHealthOut"];
+export type InterviewType = VoiceSessionCreate["interview_type"];
+export type Story = Schemas["StoryOut"];
+export type StoryIn = Schemas["StoryIn"];
+export type StoryList = Schemas["StoryList"];
+export type TaskQueued = Schemas["TaskQueuedOut"];

@@ -20,7 +20,7 @@ export interface NavGroup {
 }
 
 /**
- * Today's routes. F6–F7 add Interview, Settings and more Admin pages here
+ * Today's routes. Later phases add Settings and more Admin pages here
  * (spec §6); older paths redirect to the new ones (/applications → /tracker).
  */
 export const NAV_GROUPS: NavGroup[] = [
@@ -33,6 +33,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: "/apply", label: "Apply Center", icon: "check", badge: "applyWaiting" },
       { to: "/alerts", label: "Job alerts", icon: "activity", feature: "job_alerts" },
       { to: "/tracker", label: "Tracker", icon: "inbox", badge: "trackerReview" },
+      { to: "/interview", label: "Interview prep", icon: "mic", feature: "voice_prep" },
     ],
   },
   {
@@ -66,6 +67,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: "/admin/keys", label: "Platform keys", icon: "key" },
       { to: "/admin/sources", label: "Job sources", icon: "globe" },
       { to: "/admin/ats", label: "ATS registry", icon: "building" },
+      { to: "/admin/voice", label: "Voice health", icon: "mic" },
       { to: "/admin/usage", label: "Usage", icon: "activity" },
     ],
   },

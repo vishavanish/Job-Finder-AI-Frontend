@@ -7830,6 +7830,1079 @@
         }
       }
     },
+    "/api/v1/voice/providers": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Providers",
+        "operationId": "providers_api_v1_voice_providers_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceProvidersOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/settings": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Get Voice Settings",
+        "operationId": "get_voice_settings_api_v1_voice_settings_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Put Voice Settings",
+        "operationId": "put_voice_settings_api_v1_voice_settings_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceSettingsIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/copilot/acknowledge": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Acknowledge Copilot",
+        "operationId": "acknowledge_copilot_api_v1_voice_copilot_acknowledge_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopilotAckIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/sessions": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Create Session",
+        "operationId": "create_session_api_v1_voice_sessions_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCreateOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/sessions/{session_id}/token": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Stream Token",
+        "operationId": "stream_token_api_v1_voice_sessions__session_id__token_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamTokenOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Get Session",
+        "operationId": "get_session_api_v1_voice_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSessionDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Delete Session",
+        "operationId": "delete_session_api_v1_voice_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/sessions/{session_id}/feedback": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Get Feedback",
+        "operationId": "get_feedback_api_v1_voice_sessions__session_id__feedback_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceFeedbackOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/history": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "History",
+        "operationId": "history_api_v1_voice_history_get",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "mock",
+                    "copilot"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mode"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceHistoryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Delete History",
+        "operationId": "delete_history_api_v1_voice_history_delete",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/progress": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Progress",
+        "operationId": "progress_api_v1_voice_progress_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceProgressOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/voice/health": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Voice Health View",
+        "operationId": "voice_health_view_api_v1_admin_voice_health_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceHealthOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/story-bank": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "List Stories",
+        "operationId": "list_stories_api_v1_story_bank_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Create Story",
+        "operationId": "create_story_api_v1_story_bank_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoryIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/story-bank/draft-from-resume": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Draft From Resume",
+        "operationId": "draft_from_resume_api_v1_story_bank_draft_from_resume_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskQueuedOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/story-bank/{story_id}": {
+      "put": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Update Story",
+        "operationId": "update_story_api_v1_story_bank__story_id__put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoryIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Delete Story",
+        "operationId": "delete_story_api_v1_story_bank__story_id__delete",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/story-bank/{story_id}/approve": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Approve Story",
+        "operationId": "approve_story_api_v1_story_bank__story_id__approve_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -7861,7 +8934,9 @@
               "groq",
               "huggingface",
               "anthropic",
-              "openai_compatible"
+              "openai_compatible",
+              "browser",
+              "deepgram"
             ],
             "title": "Provider"
           },
@@ -8867,6 +9942,90 @@
           "started_at"
         ],
         "title": "AlertRunOut"
+      },
+      "AnswerFeedbackOut": {
+        "properties": {
+          "turn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turn Id"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "skill_area": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Area"
+          },
+          "scores": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Scores"
+          },
+          "star": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Star"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strengths"
+          },
+          "improvements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Improvements"
+          },
+          "model_answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Answer"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "answer",
+          "scores",
+          "star",
+          "strengths",
+          "improvements"
+        ],
+        "title": "AnswerFeedbackOut"
       },
       "AnswerIn": {
         "properties": {
@@ -10598,6 +11757,21 @@
           "slug"
         ],
         "title": "CompanyAtsTarget"
+      },
+      "CopilotAckIn": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Version",
+            "description": "The copilot_ack_version the user just read"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "CopilotAckIn"
       },
       "EducationItem": {
         "properties": {
@@ -12586,6 +13760,61 @@
         "type": "object",
         "title": "ProfileOut"
       },
+      "ProgressArea": {
+        "properties": {
+          "skill_area": {
+            "type": "string",
+            "title": "Skill Area"
+          },
+          "answers": {
+            "type": "integer",
+            "title": "Answers"
+          },
+          "average": {
+            "type": "number",
+            "title": "Average"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/ProgressPoint"
+            },
+            "type": "array",
+            "title": "Trend"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_area",
+          "answers",
+          "average",
+          "trend"
+        ],
+        "title": "ProgressArea"
+      },
+      "ProgressPoint": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "date",
+          "score"
+        ],
+        "title": "ProgressPoint"
+      },
       "ProofOut": {
         "properties": {
           "id": {
@@ -13911,6 +15140,173 @@
         "type": "object",
         "title": "SeedFromResumeIn"
       },
+      "SessionCreateIn": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "copilot"
+            ],
+            "title": "Mode",
+            "default": "mock"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "Typed role when no job is chosen"
+          },
+          "interview_type": {
+            "type": "string",
+            "enum": [
+              "behavioral",
+              "technical",
+              "system_design",
+              "role_specific",
+              "rapid_fire",
+              "resume_walkthrough"
+            ],
+            "title": "Interview Type",
+            "default": "behavioral"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "easy",
+              "medium",
+              "hard"
+            ],
+            "title": "Difficulty",
+            "default": "medium"
+          },
+          "length": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Length",
+            "description": "Main questions (follow-ups are extra)",
+            "default": 5
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "focus_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Focus Questions",
+            "description": "Questions to drill (e.g. weak ones from an earlier session)"
+          },
+          "answer_style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bullets",
+                  "script",
+                  "star"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Style"
+          },
+          "answer_length": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "short",
+                  "medium",
+                  "long"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Length"
+          },
+          "sources": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "tab_mic",
+                  "mic"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sources",
+            "description": "Tab audio + mic, or mic only"
+          }
+        },
+        "type": "object",
+        "title": "SessionCreateIn"
+      },
+      "SessionCreateOut": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/VoiceSessionOut"
+          },
+          "stream_token": {
+            "type": "string",
+            "title": "Stream Token",
+            "description": "Single-use; send as the first socket message {type:'auth', token}"
+          },
+          "stream_path": {
+            "type": "string",
+            "title": "Stream Path"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session",
+          "stream_token",
+          "stream_path",
+          "expires_in"
+        ],
+        "title": "SessionCreateOut"
+      },
       "SetPasswordRequest": {
         "properties": {
           "password": {
@@ -14029,6 +15425,215 @@
         "type": "object",
         "title": "SourceHealth"
       },
+      "SpeechModelOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "tier": {
+            "type": "string",
+            "title": "Tier"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "provider",
+          "model_id",
+          "tier"
+        ],
+        "title": "SpeechModelOut"
+      },
+      "StoryIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "situation": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Situation",
+            "default": ""
+          },
+          "task": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Task",
+            "default": ""
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Action",
+            "default": ""
+          },
+          "result": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Result",
+            "default": ""
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Skills"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "StoryIn"
+      },
+      "StoryList": {
+        "properties": {
+          "stories": {
+            "items": {
+              "$ref": "#/components/schemas/StoryOut"
+            },
+            "type": "array",
+            "title": "Stories"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "needs_review": {
+            "type": "integer",
+            "title": "Needs Review"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stories",
+          "total",
+          "needs_review"
+        ],
+        "title": "StoryList"
+      },
+      "StoryOut": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "situation": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Situation",
+            "default": ""
+          },
+          "task": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Task",
+            "default": ""
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Action",
+            "default": ""
+          },
+          "result": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Result",
+            "default": ""
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Skills"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "origin": {
+            "type": "string",
+            "title": "Origin"
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved"
+          },
+          "uses": {
+            "type": "integer",
+            "title": "Uses"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "id",
+          "origin",
+          "approved",
+          "uses",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "StoryOut"
+      },
+      "StreamTokenOut": {
+        "properties": {
+          "stream_token": {
+            "type": "string",
+            "title": "Stream Token"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stream_token",
+          "expires_in"
+        ],
+        "title": "StreamTokenOut"
+      },
       "Suggestion": {
         "properties": {
           "application_id": {
@@ -14080,6 +15685,24 @@
           "defaults"
         ],
         "title": "TaskDefaults"
+      },
+      "TaskQueuedOut": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "message"
+        ],
+        "title": "TaskQueuedOut"
       },
       "TaskResponse": {
         "properties": {
@@ -15067,6 +16690,716 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VoiceFeedbackOut": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State",
+            "description": "none | pending | ready | failed"
+          },
+          "overall_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Score"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "scores": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Scores"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strengths"
+          },
+          "improvements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Improvements"
+          },
+          "weak_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Weak Questions"
+          },
+          "delivery": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Delivery"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerFeedbackOut"
+            },
+            "type": "array",
+            "title": "Answers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state"
+        ],
+        "title": "VoiceFeedbackOut"
+      },
+      "VoiceHealthOut": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "sessions": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Sessions"
+          },
+          "latency": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Latency",
+            "description": "p50/p95 per stage, by mode"
+          },
+          "speech": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Speech"
+          },
+          "llm": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Llm"
+          },
+          "spend_usd": {
+            "type": "number",
+            "title": "Spend Usd"
+          },
+          "flags": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Flags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "sessions",
+          "latency",
+          "speech",
+          "llm",
+          "spend_usd",
+          "flags"
+        ],
+        "title": "VoiceHealthOut"
+      },
+      "VoiceHistoryOut": {
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceSessionOut"
+            },
+            "type": "array",
+            "title": "Sessions"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sessions",
+          "total"
+        ],
+        "title": "VoiceHistoryOut"
+      },
+      "VoiceProgressOut": {
+        "properties": {
+          "sessions": {
+            "type": "integer",
+            "title": "Sessions"
+          },
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/ProgressArea"
+            },
+            "type": "array",
+            "title": "Areas"
+          },
+          "by_type": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "By Type"
+          },
+          "weak_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Weak Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sessions",
+          "areas",
+          "by_type",
+          "weak_questions"
+        ],
+        "title": "VoiceProgressOut"
+      },
+      "VoiceProvidersOut": {
+        "properties": {
+          "stt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpeechModelOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tts": {
+            "$ref": "#/components/schemas/SpeechModelOut"
+          },
+          "llm_fast": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Fast"
+          },
+          "llm_strong": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Strong"
+          },
+          "streaming_stt": {
+            "type": "boolean",
+            "title": "Streaming Stt"
+          },
+          "diarization": {
+            "type": "boolean",
+            "title": "Diarization"
+          },
+          "expected_first_word_ms": {
+            "type": "integer",
+            "title": "Expected First Word Ms"
+          },
+          "ready": {
+            "type": "boolean",
+            "title": "Ready",
+            "description": "False when no speech-to-text model can run (see reason)"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tts",
+          "streaming_stt",
+          "diarization",
+          "expected_first_word_ms",
+          "ready"
+        ],
+        "title": "VoiceProvidersOut"
+      },
+      "VoiceSessionDetail": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/VoiceSessionOut"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceTurnOut"
+            },
+            "type": "array",
+            "title": "Turns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session",
+          "turns"
+        ],
+        "title": "VoiceSessionDetail"
+      },
+      "VoiceSessionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config"
+          },
+          "providers": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Providers"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "end_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Reason"
+          },
+          "duration_s": {
+            "type": "integer",
+            "title": "Duration S"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd"
+          },
+          "cost_cap_usd": {
+            "type": "number",
+            "title": "Cost Cap Usd"
+          },
+          "feedback_state": {
+            "type": "string",
+            "title": "Feedback State"
+          },
+          "overall_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Score"
+          },
+          "question_count": {
+            "type": "integer",
+            "title": "Question Count",
+            "default": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "mode",
+          "state",
+          "config",
+          "providers",
+          "duration_s",
+          "cost_usd",
+          "cost_cap_usd",
+          "feedback_state",
+          "created_at"
+        ],
+        "title": "VoiceSessionOut"
+      },
+      "VoiceSettingsIn": {
+        "properties": {
+          "answer_style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bullets",
+                  "script",
+                  "star"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Style"
+          },
+          "answer_length": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "short",
+                  "medium",
+                  "long"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Length"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "tts_voice": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tts Voice"
+          },
+          "default_sources": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "tab_mic",
+                  "mic"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Sources"
+          }
+        },
+        "type": "object",
+        "title": "VoiceSettingsIn"
+      },
+      "VoiceSettingsOut": {
+        "properties": {
+          "answer_style": {
+            "type": "string",
+            "enum": [
+              "bullets",
+              "script",
+              "star"
+            ],
+            "title": "Answer Style"
+          },
+          "answer_length": {
+            "type": "string",
+            "enum": [
+              "short",
+              "medium",
+              "long"
+            ],
+            "title": "Answer Length"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "tts_voice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tts Voice"
+          },
+          "default_sources": {
+            "type": "string",
+            "enum": [
+              "tab_mic",
+              "mic"
+            ],
+            "title": "Default Sources"
+          },
+          "copilot_ack_version": {
+            "type": "string",
+            "title": "Copilot Ack Version",
+            "description": "Current acknowledgement version"
+          },
+          "copilot_ack_text": {
+            "type": "string",
+            "title": "Copilot Ack Text"
+          },
+          "copilot_acknowledged": {
+            "type": "boolean",
+            "title": "Copilot Acknowledged",
+            "description": "True when the user accepted the CURRENT version"
+          },
+          "copilot_ack_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Copilot Ack At"
+          },
+          "transcript_retention_days": {
+            "type": "integer",
+            "title": "Transcript Retention Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer_style",
+          "answer_length",
+          "language",
+          "default_sources",
+          "copilot_ack_version",
+          "copilot_ack_text",
+          "copilot_acknowledged",
+          "transcript_retention_days"
+        ],
+        "title": "VoiceSettingsOut"
+      },
+      "VoiceTurnOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "speaker": {
+            "type": "string",
+            "title": "Speaker"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "is_followup": {
+            "type": "boolean",
+            "title": "Is Followup",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "start_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Ms"
+          },
+          "end_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Ms"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics"
+          },
+          "latency": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Latency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "seq",
+          "speaker",
+          "kind",
+          "text",
+          "state"
+        ],
+        "title": "VoiceTurnOut"
       }
     }
   }

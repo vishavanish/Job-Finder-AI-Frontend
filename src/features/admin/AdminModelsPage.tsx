@@ -79,7 +79,7 @@ function Defaults({
             >
               <option value="">By priority</option>
               {models
-                .filter((m) => m.enabled_global && servesTask(m.tasks, task))
+                .filter((m) => m.enabled_global && servesTask(m.tasks, task, m.provider))
                 .map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.display_name}

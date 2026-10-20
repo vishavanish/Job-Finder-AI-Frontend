@@ -30,6 +30,8 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: env.DEV_API_PROXY_TARGET || "http://127.0.0.1:8000",
           changeOrigin: true,
+          // Voice sockets (/api/v1/voice/.../stream) go through the same proxy.
+          ws: true,
         },
       },
     },
