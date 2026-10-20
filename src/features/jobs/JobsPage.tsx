@@ -7,6 +7,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Icon, type IconName } from "../../components/Icon";
 import { errorMessage } from "../../lib/api/errors";
 import { useEntitlement } from "../../lib/auth/access";
 import type { StreamedJob } from "../../lib/api/types";
@@ -42,6 +43,30 @@ const POSTED_FILTERS = [
 
 function isRemote(job: StreamedJob): boolean {
   return /remote/i.test(job.location);
+}
+
+/** The skills found jobs ask for that the profile lacks, most asked first. */
+function skillGaps(jobs: StreamedJob[]): { skill: string; n: number }[] {
+  const counts = new Map<string, number>();
+  for (const j of jobs) {
+    for (const s of j.match?.missing_required ?? []) counts.set(s, (counts.get(s) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([skill, n]) => ({ skill, n }))
+    .sort((a, b) => b.n - a.n || a.skill.localeCompare(b.skill))
+    .slice(0, 8);
+}
+
+function StatTile({ icon, value, label }: { icon: IconName; value: string; label: string }) {
+  return (
+    <div className="stat-tile">
+      <Icon name={icon} size={18} />
+      <span>
+        <strong className="num">{value}</strong>
+        <span className="stat-label">{label}</span>
+      </span>
+    </div>
+  );
 }
 
 export default function JobsPage() {
@@ -146,19 +171,37 @@ export default function JobsPage() {
     );
   }, [run.jobs, states, filters]);
 
-  const runnable = providers.data?.sources.filter((s) => s.available).length;
+  const activeSources = providers.data?.sources.filter((s) => s.available) ?? [];
+  const runnable = providers.data ? activeSources.length : undefined;
+  const scored = run.jobs.filter((j) => j.llm_score !== null && j.llm_score !== undefined);
+  const avgFit = scored.length
+    ? Math.round(scored.reduce((sum, j) => sum + (j.llm_score ?? 0), 0) / scored.length)
+    : null;
+  const newCount = run.jobs.filter((j) => j.new_since_last_search).length;
+  const gaps = skillGaps(run.jobs);
   const noProfiles = profiles.isSuccess && profiles.data.profiles.length === 0;
   const blocked = !search.allowed ? search.reason : !scoring.allowed ? scoring.reason : "";
 
   return (
     <div className="jobs-page">
-      <div className="page-header">
+      <div className="page-header jobs-header">
         <div>
+          <span className={"jobs-eyebrow" + (running ? " is-live" : "")}>
+            <span className="jobs-dot" aria-hidden="true" />
+            {running ? "Search running" : "Job search"}
+          </span>
           <h2>Jobs</h2>
           <p>
             Run a search from one of your search profiles. Jobs appear as they're scored; each job
             shows once.
           </p>
+        </div>
+        <div className="stat-tiles">
+          {runnable !== undefined && (
+            <StatTile icon="globe" value={String(runnable)} label="Sources" />
+          )}
+          {avgFit !== null && <StatTile icon="activity" value={String(avgFit)} label="Avg fit" />}
+          {run.jobs.length > 0 && <StatTile icon="sparkle" value={String(newCount)} label="New" />}
         </div>
       </div>
 
@@ -180,7 +223,10 @@ export default function JobsPage() {
             }}
           >
             <label className="field">
-              <span>Search profile</span>
+              <span className="run-label">
+                <Icon name="search" size={14} />
+                Search profile
+              </span>
               <select
                 value={chosenProfile}
                 onChange={(e) => setProfileId(e.target.value)}
@@ -195,8 +241,9 @@ export default function JobsPage() {
               </select>
             </label>
             <label className="field">
-              <span>
-                Keep jobs scoring at least <span className="num">{minScore}</span>
+              <span className="run-label">
+                <Icon name="sliders" size={14} />
+                Keep jobs scoring at least <span className="num run-score">{minScore}</span>
               </span>
               <input
                 type="range"
@@ -234,13 +281,15 @@ export default function JobsPage() {
                   disabled={Boolean(blocked) || !chosenProfile || start.isPending}
                   aria-describedby={blocked ? `${id}-blocked` : undefined}
                 >
+                  <Icon name="play" size={14} />
                   {start.isPending ? "Starting…" : "Run search"}
                 </button>
               )}
               <span className="field-hint">
                 {runnable === undefined ? "" : `${runnable} job sources will run. `}
                 {providers.data?.free_only ? "Free tools only is on. " : ""}
-                <Link to="/providers">Job sources</Link>
+                <Link to="/providers">Job sources</Link> ·{" "}
+                <Link to="/search-profile">Edit profiles</Link>
               </span>
             </div>
             {blocked && (
@@ -274,7 +323,8 @@ export default function JobsPage() {
           </details>
         )}
         {run.meta && (
-          <p className="run-progress" role="status">
+          <p className={`run-progress is-${run.status}`} role="status">
+            <span className="jobs-dot" aria-hidden="true" />
             {run.status === "running" &&
               `Searching… ${run.meta.keywords_completed} of ${run.meta.total_keywords} titles done.`}
             {run.status === "completed" &&
@@ -291,7 +341,7 @@ export default function JobsPage() {
         )}
       </section>
 
-      <div className="tabs" role="tablist" aria-label="Job lists">
+      <div className="tabs jobs-tabs" role="tablist" aria-label="Job lists">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -303,7 +353,10 @@ export default function JobsPage() {
           >
             {t.label}
             {t.id === "live" && run.jobs.length > 0 && (
-              <span className="num"> {run.jobs.length}</span>
+              <span className="num tab-count"> {run.jobs.length}</span>
+            )}
+            {t.id !== "live" && t.id === tab && listQuery.data && (
+              <span className="num tab-count"> {listQuery.data.jobs.length}</span>
             )}
           </button>
         ))}
@@ -395,17 +448,89 @@ export default function JobsPage() {
           {visible.length === 0 && run.jobs.length > 0 && (
             <p className="empty-state">No jobs match these filters.</p>
           )}
-          <ul className="job-list">
-            {visible.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                state={states[job.id] ?? "seen"}
-                applyGate={applyGate}
-                {...handlers(job)}
-              />
-            ))}
-          </ul>
+          <div className={"jobs-layout" + (run.jobs.length > 0 ? " has-side" : "")}>
+            <ul className="job-list">
+              {visible.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  state={states[job.id] ?? "seen"}
+                  applyGate={applyGate}
+                  {...handlers(job)}
+                />
+              ))}
+            </ul>
+            {run.jobs.length > 0 && (
+              <aside className="card copilot" aria-labelledby={`${id}-copilot`}>
+                <div className="copilot-head">
+                  <span className="copilot-icon" aria-hidden="true">
+                    <Icon name="sparkle" size={16} />
+                  </span>
+                  <div>
+                    <h3 id={`${id}-copilot`}>Search insights</h3>
+                    <p>From the jobs in this search</p>
+                  </div>
+                </div>
+
+                {avgFit !== null && (
+                  <div className="copilot-strength">
+                    <p>
+                      <span>Average fit</span>
+                      <strong className="num">{avgFit}%</strong>
+                    </p>
+                    <span className="copilot-bar" aria-hidden="true">
+                      <span style={{ width: `${avgFit}%` }} />
+                    </span>
+                    <p className="field-hint">
+                      <span className="num">
+                        {scored.filter((j) => (j.llm_score ?? 0) >= 80).length}
+                      </span>{" "}
+                      of <span className="num">{scored.length}</span> scored 80 or more
+                    </p>
+                  </div>
+                )}
+
+                <h4 className="copilot-label">Skills these jobs ask for</h4>
+                {gaps.length ? (
+                  <>
+                    <p className="field-hint">
+                      Missing from your profile. Add the ones you have so scoring counts them.
+                    </p>
+                    <ul className="gap-list">
+                      {gaps.map((g) => (
+                        <li key={g.skill} className="gap-chip">
+                          {g.skill}
+                          {g.n > 1 && <span className="num"> ×{g.n}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link to="/search-profile" className="copilot-link">
+                      Update keywords and skills
+                    </Link>
+                  </>
+                ) : (
+                  <p className="field-hint">No missing skills in these jobs.</p>
+                )}
+
+                <div className="copilot-label-row">
+                  <h4 className="copilot-label">
+                    Active sources (<span className="num">{activeSources.length}</span>)
+                  </h4>
+                  <Link to="/providers" className="copilot-link">
+                    Manage
+                  </Link>
+                </div>
+                <ul className="source-grid">
+                  {activeSources.map((s) => (
+                    <li key={s.key}>
+                      <span className="jobs-dot" aria-hidden="true" />
+                      {s.name}
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            )}
+          </div>
         </>
       )}
 

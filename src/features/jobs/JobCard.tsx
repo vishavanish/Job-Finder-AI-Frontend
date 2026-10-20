@@ -6,6 +6,7 @@
  * Prefilled and Submitted apart (audit B6). Job text is rendered as plain text.
  */
 import { useId, useState } from "react";
+import { Icon } from "../../components/Icon";
 import { ScoreRing } from "../../components/ScoreRing";
 import { errorMessage } from "../../lib/api/errors";
 import type { StreamedJob } from "../../lib/api/types";
@@ -38,26 +39,36 @@ function Breakdown({ job }: { job: StreamedJob }) {
   return (
     <div className="match">
       {m.skills_total > 0 && (
-        <p>
+        <p className="match-skills">
           <strong className="num">
             {m.skills_matched.length} of {m.skills_total}
           </strong>{" "}
           of your skills mentioned
-          {m.skills_matched.length > 0 && (
-            <span className="match-list"> · {m.skills_matched.join(", ")}</span>
-          )}
+          {m.skills_matched.map((s) => (
+            <span key={s} className="skill-chip">
+              {s}
+            </span>
+          ))}
         </p>
       )}
       <ul className="match-facts">
         {m.title_fit !== null && m.title_fit !== undefined && (
           <li>
-            Title fit <span className="num">{m.title_fit}%</span>
+            Title fit <span className="num match-strong">{m.title_fit}%</span>
           </li>
         )}
         {m.seniority && <li>{SENIORITY[m.seniority] ?? m.seniority}</li>}
         {m.missing_required && m.missing_required.length > 0 && (
           <li className="match-missing">Asks for: {m.missing_required.join(", ")}</li>
         )}
+        {m.skills_total > 0 &&
+          m.skills_matched.length === m.skills_total &&
+          !m.missing_required?.length && (
+            <li className="match-complete">
+              <Icon name="check" size={14} />
+              No missing skills
+            </li>
+          )}
       </ul>
     </div>
   );
@@ -101,75 +112,84 @@ export function JobCard({
 
   const allSources = sources?.length ? sources : [job.source];
   const applied = state === "applied";
+  const top = (job.llm_score ?? 0) >= 90;
 
   return (
-    <li className={`job-card${state === "hidden" ? " is-hidden" : ""}`} aria-labelledby={`${id}-t`}>
-      <ScoreRing score={job.llm_score} />
-      <div className="job-body">
-        <div className="job-head">
-          <h3 id={`${id}-t`} className="job-title">
-            <a href={job.url} target="_blank" rel="noopener noreferrer">
-              {job.title}
-            </a>
-          </h3>
-          <div className="job-badges">
-            {job.early && <span className="badge tone-positive">Early</span>}
-            {job.new_since_last_search && <span className="badge tone-active">New</span>}
-            {state === "saved" && <span className="badge tone-neutral">Saved</span>}
-            {applied && <span className="badge tone-progress">Applied</span>}
+    <li
+      className={`job-card${state === "hidden" ? " is-hidden" : ""}${top ? " is-top" : ""}`}
+      aria-labelledby={`${id}-t`}
+    >
+      <div className="job-card-top">
+        <ScoreRing score={job.llm_score} size={52} />
+        <div className="job-body">
+          <div className="job-head">
+            <h3 id={`${id}-t`} className="job-title">
+              <a href={job.url} target="_blank" rel="noopener noreferrer">
+                {job.title}
+              </a>
+            </h3>
+            <div className="job-badges">
+              {job.early && <span className="badge tone-positive">Early</span>}
+              {job.new_since_last_search && <span className="badge tone-active">New</span>}
+              {state === "saved" && <span className="badge tone-neutral">Saved</span>}
+              {applied && <span className="badge tone-progress">Applied</span>}
+            </div>
           </div>
-        </div>
-        <p className="job-meta">
-          {job.company}
-          {job.location ? ` · ${job.location}` : ""}
-        </p>
-        <p className="job-meta">
-          {ago(job.posted_hours_ago, job.posted)}
-          {job.applicants ? (
-            <>
-              {" "}
-              · <span className="num">{job.applicants}</span> applicants
-            </>
-          ) : null}
-          {" · "}
-          <span className="sources">
-            {allSources.map((s) => (
-              <span key={s} className="source-badge">
-                {s}
+          <p className="job-meta">
+            <span className="job-company">
+              <span className="job-logo" aria-hidden="true">
+                {job.company.charAt(0).toUpperCase()}
               </span>
-            ))}
-          </span>
-        </p>
-        {job.llm_reason && <p className="job-reason">{job.llm_reason}</p>}
-        <Breakdown job={job} />
-
-        {!applied && state !== "hidden" && (
-          <ApplyButtons
-            job={job}
-            applied={applied}
-            entitlement={applyGate}
-            onApplied={onApplied}
-            onNotInterested={onHide}
-          />
-        )}
-        <div className="job-actions">
+              {job.company}
+            </span>
+            {job.location && (
+              <span className={"job-fact" + (/remote/i.test(job.location) ? " is-remote" : "")}>
+                <Icon name={/remote/i.test(job.location) ? "globe" : "mapPin"} size={14} />
+                {job.location}
+              </span>
+            )}
+          </p>
+          <p className="job-meta">
+            <span className="job-fact">
+              <Icon name="clock" size={14} />
+              {ago(job.posted_hours_ago, job.posted)}
+            </span>
+            {job.applicants ? (
+              <span className="job-fact">
+                <span className="num">{job.applicants}</span> applicants
+              </span>
+            ) : null}
+            <span className="sources">
+              {allSources.map((s) => (
+                <span key={s} className="source-badge">
+                  {s}
+                </span>
+              ))}
+            </span>
+          </p>
+        </div>
+        <div className="job-corner">
           {state === "saved" ? (
             <button
               type="button"
-              className="btn-small"
+              className="icon-btn is-on"
               disabled={busy}
+              aria-label="Unsave"
+              title="Unsave"
               onClick={() => void act(onUnsave, "Couldn't update.")}
             >
-              Unsave
+              <Icon name="bookmark" size={18} />
             </button>
           ) : !applied && state !== "hidden" ? (
             <button
               type="button"
-              className="btn-small"
+              className="icon-btn"
               disabled={busy}
+              aria-label="Save"
+              title="Save"
               onClick={() => void act(onSave, "Couldn't save.")}
             >
-              Save
+              <Icon name="bookmark" size={18} />
             </button>
           ) : null}
           {state === "hidden" ? (
@@ -184,20 +204,44 @@ export function JobCard({
           ) : !applied ? (
             <button
               type="button"
-              className="btn-small"
+              className="icon-btn"
               disabled={busy}
+              aria-label="Hide"
+              title="Hide"
               onClick={() => void act(onHide, "Couldn't hide.")}
             >
-              Hide
+              <Icon name="eyeOff" size={18} />
             </button>
           ) : null}
         </div>
-        {error && (
-          <p className="login-error" role="alert">
-            {error}
-          </p>
-        )}
       </div>
+
+      {job.llm_reason && (
+        <p className="job-reason">
+          <Icon name="sparkle" size={16} />
+          <span>
+            <strong>AI fit:</strong> {job.llm_reason}
+          </span>
+        </p>
+      )}
+      <Breakdown job={job} />
+
+      {!applied && state !== "hidden" && (
+        <div className="job-apply">
+          <ApplyButtons
+            job={job}
+            applied={applied}
+            entitlement={applyGate}
+            onApplied={onApplied}
+            onNotInterested={onHide}
+          />
+        </div>
+      )}
+      {error && (
+        <p className="login-error" role="alert">
+          {error}
+        </p>
+      )}
     </li>
   );
 }
