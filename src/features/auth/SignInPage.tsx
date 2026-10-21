@@ -37,6 +37,18 @@ function detailNumber(err: ApiError, key: string): number | null {
   return typeof v === "number" ? v : null;
 }
 
+/** Why a code request failed, stating plainly that no email went out. */
+function sendCodeError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 0)
+      return "Can't reach the server, so no code was sent. Check your connection and try again.";
+    if (err.status >= 500) {
+      return "The server hit an error, so no code was sent. Try again in a few minutes or continue with Google.";
+    }
+  }
+  return errorMessage(err, "Couldn't send a code. Try again.");
+}
+
 export default function SignInPage() {
   const { acceptSession, notice, clearNotice } = useAuth();
   const navigate = useNavigate();
@@ -73,12 +85,18 @@ export default function SignInPage() {
       setResendIn(RESEND_SECONDS);
     } catch (err) {
       if (err instanceof ApiError && err.code === "otp_cooldown") {
-        // A code was sent recently: go to the code step and wait out the cooldown.
-        setStep("code");
         setResendIn(detailNumber(err, "retry_after") ?? err.retryAfterSeconds ?? RESEND_SECONDS);
-        setInfo("We sent a code recently. Check your inbox, or wait to request a new one.");
+        if (step === "code") {
+          setInfo("We sent a code recently. Check your inbox, or wait to request a new one.");
+        } else {
+          // No code was sent from this page, so don't claim one was: an earlier
+          // request may have failed before its email went out.
+          setError(
+            "A code was already requested for this email in the last minute. Check your inbox and spam folder, or try again when the timer ends.",
+          );
+        }
       } else {
-        setError(errorMessage(err, "Couldn't send a code. Try again."));
+        setError(sendCodeError(err));
       }
     } finally {
       setBusy(false);
@@ -137,6 +155,7 @@ export default function SignInPage() {
     setError("");
     setInfo("");
     setCodeDead(false);
+    setResendIn(0);
   };
 
   return (
@@ -210,15 +229,28 @@ export default function SignInPage() {
                   <li>Can't get in at all? Ask your admin to check your account.</li>
                 </ul>
               )}
-              <button className="btn-primary btn-auth" type="submit" disabled={busy}>
+              <button
+                className="btn-primary btn-auth"
+                type="submit"
+                disabled={busy || resendIn > 0}
+              >
                 {busy ? (
                   "Sending code…"
+                ) : resendIn > 0 ? (
+                  `Email me a code in ${resendIn}s`
                 ) : (
                   <>
                     Email me a code <ArrowIcon />
                   </>
                 )}
               </button>
+              {resendIn > 0 && (
+                <div className="auth-row">
+                  <button type="button" className="link-button" onClick={() => setStep("code")}>
+                    I already have a code
+                  </button>
+                </div>
+              )}
             </form>
           </>
         ) : (

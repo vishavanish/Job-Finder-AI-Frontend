@@ -88,7 +88,8 @@ export function parseErrorBody(status: number, body: unknown): ErrorBody {
       return { code: "validation_error", message: validationMessage(detail), details: detail };
     }
   }
-  if (typeof body === "string" && body.trim() && body.length < 300) {
+  // A bare 5xx text body ("Internal Server Error") says less than our own message.
+  if (typeof body === "string" && body.trim() && body.length < 300 && status < 500) {
     return { code: fallback.code, message: body.trim() };
   }
   return fallback;
