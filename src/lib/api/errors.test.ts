@@ -40,6 +40,9 @@ describe("parseErrorBody", () => {
       code: "server_error",
       message: "The server hit an error. Try again in a minute.",
     });
+    expect(parseErrorBody(500, "Internal Server Error").message).toBe(
+      "The server hit an error. Try again in a minute.",
+    );
     expect(parseErrorBody(500, "<html>huge proxy page</html>".repeat(30)).code).toBe(
       "server_error",
     );
