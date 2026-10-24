@@ -17,7 +17,7 @@ import {
   masked,
   model,
   platformKey,
-  sourceAvailability,
+  searchAvailability,
   userScopes,
   type MockKey,
   type MockModel,
@@ -49,6 +49,7 @@ function catalog(user: User) {
         reason: a.reason,
         uses_own_key: scopes.has(m.key_scope),
         paused: m.paused,
+        pause_reason: m.paused ? (m.pause_reason ?? "breaker") : null,
       };
     }),
     preferences: keep(aiDb.prefs[user.id] ?? {}),
@@ -82,6 +83,7 @@ function adminModel(m: MockModel) {
       last_error_at: m.last_error ? NOW : null,
       last_error: m.last_error,
       paused: m.paused,
+      pause_reason: m.paused ? (m.pause_reason ?? "breaker") : null,
     },
     created_at: m.created_at,
     updated_at: m.updated_at,
@@ -92,7 +94,7 @@ function providerView(user: User) {
   return {
     free_only: Boolean(aiDb.freeOnly[user.id]),
     sources: aiDb.sources.map((s) => {
-      const a = sourceAvailability(user, s);
+      const a = searchAvailability(user, s);
       return {
         key: s.key,
         name: s.name,

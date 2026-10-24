@@ -19,7 +19,7 @@ import {
   uploadResume,
 } from "./profileApi";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024; // matches RESUME_MAX_BYTES (Vercel proxies ~4.5 MB bodies)
 const ACCEPT =
   ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -240,7 +240,7 @@ export function ResumeSection() {
       return;
     }
     if (file.size > MAX_BYTES) {
-      setLocalError("That file is over 5 MB. Export a smaller PDF and try again.");
+      setLocalError("That file is over 4 MB. Export a smaller PDF and try again.");
       return;
     }
     upload.mutate(file);
@@ -280,7 +280,7 @@ export function ResumeSection() {
           >
             choose a file
           </button>
-          . Up to 5 MB.
+          . Up to 4 MB.
         </p>
         <input
           ref={fileRef}

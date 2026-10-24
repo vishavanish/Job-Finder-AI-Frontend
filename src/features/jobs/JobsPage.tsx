@@ -3,19 +3,23 @@
  * scored jobs stream in (no duplicates — entries are upserted by id), then
  * filter, sort, save, hide and apply. Saved / Applied / Hidden lists come
  * from GET /jobs. Cancel stops the run (POST /pipeline/{id}/cancel).
+ * Leaving the page and coming back shows the last search again (GET
+ * /pipeline/runs/latest, or ?run=<id> from the activity tray) — QA1 §4.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useId, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useId, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Icon, type IconName } from "../../components/Icon";
 import { errorMessage } from "../../lib/api/errors";
 import { useEntitlement } from "../../lib/auth/access";
 import type { StreamedJob } from "../../lib/api/types";
+import { AiBusyBanner } from "../models/AiBusyBanner";
 import { getProviders } from "../models/modelsApi";
 import { listSearchProfiles, searchProfileKeys } from "../search-profile/searchProfileApi";
 import { JobCard, type JobUiState } from "./JobCard";
 import {
   cancelRun,
+  getLatestRun,
   jobKeys,
   listJobs,
   setJobState,
@@ -83,6 +87,17 @@ export default function JobsPage() {
   const [minScore, setMinScore] = useState(70);
   const [includeSeen, setIncludeSeen] = useState(false);
   const [started, setStarted] = useState<RunStarted | null>(null);
+  // Set when the run shown is an earlier one brought back, not one started on this visit.
+  const [restoredAt, setRestoredAt] = useState<string | null>(null);
+  const [params, setParams] = useSearchParams();
+  const runParam = params.get("run");
+  const latest = useQuery({
+    queryKey: ["pipeline", "latest"],
+    queryFn: getLatestRun,
+    enabled: !started && !runParam,
+    retry: false,
+    staleTime: 0,
+  });
   const [states, setStates] = useState<Record<string, JobUiState>>({});
   const [filters, setFilters] = useState({
     score: 0,
@@ -91,6 +106,16 @@ export default function JobsPage() {
     remote: false,
     sort: "score" as "score" | "newest",
   });
+
+  useEffect(() => {
+    if (runParam && runParam !== started?.run_id) {
+      setStarted({ run_id: runParam });
+      setRestoredAt("");
+    } else if (!started && !runParam && latest.data) {
+      setStarted(latest.data);
+      setRestoredAt(latest.data.created_at);
+    }
+  }, [runParam, started, latest.data]);
 
   const run = usePipelineRun(started?.run_id ?? null);
   const running = run.status === "running";
@@ -109,7 +134,9 @@ export default function JobsPage() {
       }),
     onSuccess: (r) => {
       setStates({});
+      setRestoredAt(null);
       setStarted(r);
+      if (runParam) setParams({}, { replace: true });
       setTab("live");
     },
   });
@@ -204,6 +231,7 @@ export default function JobsPage() {
           {run.jobs.length > 0 && <StatTile icon="sparkle" value={String(newCount)} label="New" />}
         </div>
       </div>
+      <AiBusyBanner task="score" what="scoring new jobs" />
 
       <section className="card run-panel" aria-labelledby={`${id}-run`}>
         <h3 id={`${id}-run`} className="sr-only">
@@ -334,6 +362,15 @@ export default function JobsPage() {
             {run.status === "failed" && `Search failed: ${run.meta.error || "try again"}.`}
           </p>
         )}
+        {restoredAt !== null && run.status !== "expired" && run.status !== "idle" && (
+          <p className="field-hint restored-run">{restoredLabel(restoredAt)}</p>
+        )}
+        {run.status === "expired" && (
+          <p className="login-notice" role="status">
+            Your last search has expired — results are kept for 6 hours. Jobs you saved are under
+            Saved; run a new search to see more.
+          </p>
+        )}
         {run.error && (
           <p className="login-error" role="alert">
             {run.error}
@@ -429,17 +466,22 @@ export default function JobsPage() {
             </div>
           )}
           <p className="sr-only" aria-live="polite">
-            {run.jobs.length ? `${run.jobs.length} jobs so far` : ""}
+            {run.jobs.length
+              ? `${run.jobs.length} job${run.jobs.length === 1 ? "" : "s"} so far`
+              : ""}
           </p>
           {run.status === "idle" && (
             <p className="empty-state">Run a search to see matching jobs here.</p>
           )}
-          {run.status !== "idle" && run.jobs.length === 0 && !running && (
-            <p className="empty-state">
-              No new jobs matched. Lower the minimum score, add titles to your profile, or turn on
-              more job sources.
-            </p>
-          )}
+          {run.status !== "idle" &&
+            run.status !== "expired" &&
+            run.jobs.length === 0 &&
+            !running && (
+              <p className="empty-state">
+                No new jobs matched. Lower the minimum score, add titles to your profile, or turn on
+                more job sources.
+              </p>
+            )}
           {running && run.jobs.length === 0 && (
             <p className="empty-state" role="status">
               Looking for jobs… the first ones usually appear within a minute.
@@ -581,4 +623,12 @@ export default function JobsPage() {
       )}
     </div>
   );
+}
+
+/** "Your last search, from 10:42." — shown when Jobs brings back an earlier search. */
+function restoredLabel(createdAt: string): string {
+  const when = createdAt ? new Date(createdAt) : null;
+  if (!when || Number.isNaN(when.getTime())) return "Showing your last search.";
+  const time = when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return `Showing your last search, started at ${time}.`;
 }

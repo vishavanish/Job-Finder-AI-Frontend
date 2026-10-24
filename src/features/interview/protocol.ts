@@ -5,7 +5,7 @@
  * 16 kHz mono PCM16 (≤ 100 ms). Server voice for Practice comes down as
  * byte 9 + uint32 LE sentence index + MP3 bytes.
  */
-import { API_ORIGIN } from "../../lib/env";
+import { API_ORIGIN, WS_ORIGIN } from "../../lib/env";
 
 export const CHANNEL = { interviewer: 0, user: 1, mixed: 2 } as const;
 export type ChannelName = keyof typeof CHANNEL;
@@ -108,6 +108,7 @@ export const FINAL_CLOSE: Record<number, string> = {
 /** ws(s):// URL for a stream path from the API ("/api/v1/voice/..."). */
 export function socketUrl(streamPath: string): string {
   const origin =
+    WS_ORIGIN ||
     API_ORIGIN ||
     (typeof window !== "undefined" && window.location
       ? window.location.origin

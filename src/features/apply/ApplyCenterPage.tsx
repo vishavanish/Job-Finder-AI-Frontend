@@ -9,6 +9,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge";
 import { errorMessage } from "../../lib/api/errors";
 import type { ApplyRun } from "../../lib/api/types";
+import { AiBusyBanner } from "../models/AiBusyBanner";
 import { AnswerBankPanel } from "./AnswerBankPanel";
 import { ApplySettingsPanel } from "./ApplySettingsPanel";
 import {
@@ -176,6 +177,7 @@ export default function ApplyCenterPage() {
           </p>
         </div>
       </div>
+      <AiBusyBanner task="resume_tailor" what="tailored resumes and cover letters" />
       <div className="tabs" role="tablist" aria-label="Apply Center">
         {TABS.map((t) => (
           <button

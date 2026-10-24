@@ -39,6 +39,8 @@ export interface MockModel {
   notes: string | null;
   failures: number;
   paused: boolean;
+  /** Why it is paused (backend ai_router.PAUSE_REASONS): rate_limit, broken or breaker. */
+  pause_reason?: "rate_limit" | "broken" | "breaker" | null;
   last_success_at: string | null;
   last_error: string | null;
   created_at: string;
@@ -123,6 +125,7 @@ function seedModels(): MockModel[] {
       priority: 30,
       failures: 3,
       paused: true,
+      pause_reason: "broken",
       last_error: "HTTP 402 Payment Required",
     }),
     model({
@@ -385,7 +388,11 @@ export function sourceAvailability(
   if (s.requires_key && s.key_scope) {
     const scopes = s.key_scope.split(",");
     if (!scopes.some((sc) => userScopes(user.id).has(sc) || platformKey(sc))) {
-      return { ok: false, reason: `needs a ${scopes.join(" or ")} API key` };
+      const label = scopes.map((sc) => SCOPE_LABELS[sc] ?? sc).join(" or ");
+      return {
+        ok: false,
+        reason: `needs ${/^[aeiou]/i.test(label) ? "an" : "a"} ${label} API key`,
+      };
     }
   }
   if (s.paused_until && new Date(s.paused_until) > new Date()) {
@@ -395,6 +402,32 @@ export function sourceAvailability(
     };
   }
   return { ok: true, reason: null };
+}
+
+const SCOPE_LABELS: Record<string, string> = {
+  apify: "Apify",
+  adzuna: "Adzuna",
+  jooble: "Jooble",
+  careerjet: "Careerjet",
+  serpapi: "SerpApi",
+  jsearch: "JSearch",
+  brightdata: "Bright Data",
+  themuse: "The Muse",
+};
+
+/** Like the backend's search_availability (QA1 §6): what a search from Jobs really runs. */
+export function searchAvailability(
+  user: User,
+  s: MockSource,
+): { ok: boolean; reason: string | null } {
+  const a = sourceAvailability(user, s);
+  if (a.ok && s.key === "naukri") {
+    return { ok: false, reason: "you paste these jobs in; searches don't fetch them" };
+  }
+  if (a.ok && s.key === "naukri_apify") {
+    return { ok: false, reason: "searches from Jobs don't use it yet" };
+  }
+  return a;
 }
 
 export const health = (s: MockSource) => ({

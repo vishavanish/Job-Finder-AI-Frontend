@@ -358,6 +358,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pipeline/runs/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Latest Pipeline Run
+         * @description The newest search you started on Jobs, while the server still holds
+         *     its results (6 h): run meta plus `created_at`, `keywords` and
+         *     `skipped_sources`. Load its jobs with GET /pipeline/{run_id}/jobs?offset=0.
+         *     404 when there is none. Job-alert runs are not included.
+         */
+        get: operations["get_latest_pipeline_run_api_v1_pipeline_runs_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pipeline/{run_id}": {
         parameters: {
             query?: never;
@@ -3756,6 +3779,11 @@ export interface components {
              * @default false
              */
             paused: boolean;
+            /**
+             * Pause Reason
+             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key/credits/model) or breaker (repeated failures)
+             */
+            pause_reason?: string | null;
         };
         /** ModelPreferencesIn */
         ModelPreferencesIn: {
@@ -4024,8 +4052,16 @@ export interface components {
              * @description Things the AI wrote that are not in your resume, so they were removed
              */
             dropped?: string[];
-            /** Error */
+            /**
+             * Error
+             * @description Short message for people when part of the pack failed
+             */
             error?: string | null;
+            /**
+             * Error Detail
+             * @description Which AI models were tried and why each failed
+             */
+            error_detail?: string | null;
             /**
              * Updated At
              * Format: date-time
@@ -5171,6 +5207,11 @@ export interface components {
             uses_own_key: boolean;
             /** Paused */
             paused: boolean;
+            /**
+             * Pause Reason
+             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key/credits/model) or breaker (repeated failures)
+             */
+            pause_reason?: string | null;
         };
         /** UserOut */
         UserOut: {
@@ -6149,6 +6190,37 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_latest_pipeline_run_api_v1_pipeline_runs_latest_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

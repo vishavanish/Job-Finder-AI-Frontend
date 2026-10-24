@@ -4,7 +4,9 @@
  * the server's. Auto / Fast apply start an apply run (levels, caps and the
  * risk notice are checked on click, by the backend); the card then shows the
  * run's live state with a link to the review screen. On a phone the disabled
- * buttons fold under "More ways to apply".
+ * buttons fold under "More ways to apply". Only an apply path that works gets
+ * the primary style, and "Mark as applied" is on the card itself, so a job
+ * opened from its title can still be recorded (QA1 §5).
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
@@ -12,7 +14,7 @@ import { Link } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge";
 import { ApiError, errorMessage } from "../../lib/api/errors";
 import type { ApplyOption, ApplyRun, StreamedJob } from "../../lib/api/types";
-import { applyKeys, startApplyRun } from "./applyApi";
+import { applyKeys, markApplied, startApplyRun } from "./applyApi";
 import { PrepDialog } from "./PrepDialog";
 import { useApplyRun, useRecentRuns } from "./useApplyRun";
 import "./apply.css";
@@ -80,6 +82,10 @@ export function ApplyButtons({
     },
   });
   const run = start.data ?? latest;
+  const mark = useMutation({
+    mutationFn: () => markApplied(job.id, "manual"),
+    onSuccess: () => onApplied("submitted"),
+  });
 
   const opts = job.apply_options;
   const option = (k: Kind): ApplyOption => {
@@ -109,7 +115,7 @@ export function ApplyButtons({
         key={k}
         type="button"
         className={
-          k === "auto" || (k === "manual" && !option("auto").available)
+          (k === "auto" && o.available) || (k === "manual" && !option("auto").available)
             ? "btn-apply"
             : "btn-secondary"
         }
@@ -126,7 +132,19 @@ export function ApplyButtons({
   const err = start.error;
   return (
     <div className="apply-buttons">
-      <div className="apply-row">{usable.map(button)}</div>
+      <div className="apply-row">
+        {usable.map(button)}
+        {!applied && (
+          <button
+            type="button"
+            className="link-button mark-applied"
+            disabled={mark.isPending}
+            onClick={() => mark.mutate()}
+          >
+            Mark as applied
+          </button>
+        )}
+      </div>
       {blocked.length > 0 && (
         <details className="apply-more">
           <summary>More ways to apply</summary>
@@ -141,6 +159,11 @@ export function ApplyButtons({
         </details>
       )}
       {run && <RunChip run={run} />}
+      {mark.isError && (
+        <p className="login-error" role="alert">
+          {errorMessage(mark.error, "Couldn't mark it as applied.")}
+        </p>
+      )}
       {err && (
         <p className="login-error" role="alert">
           {errorMessage(err, "Couldn't start applying.")}{" "}

@@ -52,10 +52,11 @@ function PackBody({
   const dropped = pack.dropped ?? [];
   return (
     <>
-      {pack.error && (
-        <p className="field-hint" role="status">
-          Part of this didn't work: {pack.error}
-        </p>
+      {pack.status === "ready" && pack.error && (
+        <div className="login-notice" role="status">
+          {pack.error}
+          <ErrorDetail detail={pack.error_detail} />
+        </div>
       )}
       {mode === "email" && pack.email_to && (
         <section className="prep-block">
@@ -273,9 +274,10 @@ export function PrepDialog({
         </p>
       )}
       {p?.status === "failed" && (
-        <p className="login-error" role="alert">
-          Couldn't prepare this: {p.error ?? "try again"}
-        </p>
+        <div className="login-error" role="alert">
+          {p.error ?? "Couldn't prepare this. Try again."}
+          <ErrorDetail detail={p.error_detail} />
+        </div>
       )}
       {p && p.status !== "pending" && <PackBody pack={p} mode={mode} jobTitle={job.title} />}
       {p && p.status !== "pending" && (
@@ -285,7 +287,7 @@ export function PrepDialog({
           disabled={start.isPending}
           onClick={() => start.mutate(true)}
         >
-          Regenerate
+          {p.error ? "Try again" : "Regenerate"}
         </button>
       )}
       {actionError && (
@@ -294,5 +296,16 @@ export function PrepDialog({
         </p>
       )}
     </Dialog>
+  );
+}
+
+/** The model-by-model reason, folded away: useful for an admin, noise for everyone else (QA1 §7). */
+function ErrorDetail({ detail }: { detail?: string | null }) {
+  if (!detail) return null;
+  return (
+    <details className="prep-error-detail">
+      <summary>Details</summary>
+      <p className="mono">{detail}</p>
+    </details>
   );
 }

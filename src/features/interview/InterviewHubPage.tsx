@@ -9,6 +9,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError, errorMessage } from "../../lib/api/errors";
 import type { InterviewType } from "../../lib/api/types";
 import { jobKeys, listJobs } from "../jobs/jobsApi";
+import { AiBusyBanner } from "../models/AiBusyBanner";
 import { InterviewNav, ProgressChart, ProviderLine } from "./parts";
 import {
   END_REASONS,
@@ -86,6 +87,7 @@ export default function InterviewHubPage() {
           </p>
         </div>
       </div>
+      <AiBusyBanner task="interview_chat" what="practice interviews" />
       <InterviewNav />
 
       <div className="iv-grid">

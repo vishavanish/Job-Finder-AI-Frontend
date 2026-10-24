@@ -3,6 +3,12 @@ const rawBase = (import.meta.env.VITE_API_BASE_URL ?? "").trim().replace(/\/+$/,
 /** Backend origin ("" = same origin as the app, i.e. the Vite dev proxy). */
 export const API_ORIGIN = rawBase;
 
+/**
+ * Origin for voice WebSockets. Production reaches the API through a Vercel rewrite, which
+ * can't carry WebSockets, so sockets go straight to the server. Empty = same as API_ORIGIN.
+ */
+export const WS_ORIGIN = (import.meta.env.VITE_WS_ORIGIN ?? "").trim().replace(/\/+$/, "");
+
 /** Every backend route lives under /api/v1. */
 export const API_PREFIX = `${rawBase}/api/v1`;
 

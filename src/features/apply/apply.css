@@ -334,3 +334,26 @@
     width: 100%;
   }
 }
+
+/* "Mark as applied" sits at the end of the apply row as a quiet link (QA1 §5). */
+.apply-row > .mark-applied {
+  align-self: center;
+  margin-left: auto;
+  font-size: var(--text-sm);
+}
+
+/* Technical reason a prep pack failed, folded under its short message (QA1 §7). */
+.prep-error-detail {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.prep-error-detail summary {
+  cursor: pointer;
+}
+
+.prep-error-detail p {
+  margin: var(--space-1) 0 0;
+  overflow-wrap: anywhere;
+  opacity: 0.85;
+}
