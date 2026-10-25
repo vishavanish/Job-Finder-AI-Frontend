@@ -48,6 +48,8 @@ export const getVoiceSession = (id: string) =>
   api.get<VoiceSessionDetail>(`/voice/sessions/${enc(id)}`);
 export const getVoiceFeedback = (id: string) =>
   api.get<VoiceFeedback>(`/voice/sessions/${enc(id)}/feedback`);
+export const retryVoiceFeedback = (id: string) =>
+  api.post<VoiceFeedback>(`/voice/sessions/${enc(id)}/feedback/retry`);
 export const getVoiceHistory = (mode: string, limit = 20, offset = 0) =>
   api.get<VoiceHistory>("/voice/history", { params: { mode: mode || undefined, limit, offset } });
 export const getVoiceProgress = () => api.get<VoiceProgress>("/voice/progress");

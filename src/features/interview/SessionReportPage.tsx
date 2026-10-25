@@ -3,7 +3,9 @@
  * per-answer and overall scores, STAR parts, filler words and pace,
  * strengths, improvements and model answers; Live Copilot shows the
  * debrief, weak topics, the questions to prepare and every card. Feedback is
- * polled every 3 s while it is being prepared (stops after 2 minutes).
+ * polled every 3 s while it is being prepared (stops after 2 minutes; the
+ * server keeps retrying busy AI models for longer, so "Check again" resumes
+ * it). Failed feedback has a Try again button.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -19,6 +21,7 @@ import {
   formatDuration,
   getVoiceFeedback,
   getVoiceSession,
+  retryVoiceFeedback,
   typeLabel,
   voiceKeys,
 } from "./voiceApi";
@@ -92,7 +95,8 @@ export default function SessionReportPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [confirm, setConfirm] = useState(false);
-  const [since] = useState(() => Date.now());
+  const [since, setSince] = useState(() => Date.now());
+  const [slow, setSlow] = useState(false);
   const [visible, setVisible] = useState(() => document.visibilityState !== "hidden");
   useEffect(() => {
     const on = () => setVisible(document.visibilityState !== "hidden");
@@ -108,6 +112,24 @@ export default function SessionReportPage() {
       q.state.data?.state === "pending" && visible && Date.now() - since < POLL_LIMIT_MS
         ? POLL_MS
         : false,
+  });
+  const pending = !feedback.data || feedback.data.state === "pending";
+  useEffect(() => {
+    if (!pending) return;
+    const t = window.setTimeout(() => setSlow(true), since + POLL_LIMIT_MS - Date.now());
+    return () => window.clearTimeout(t);
+  }, [pending, since]);
+  const pollAgain = () => {
+    setSlow(false);
+    setSince(Date.now());
+    void feedback.refetch();
+  };
+  const retry = useMutation({
+    mutationFn: () => retryVoiceFeedback(id),
+    onSuccess: (fb) => {
+      qc.setQueryData(voiceKeys.feedback(id), fb);
+      pollAgain();
+    },
   });
   useEffect(() => {
     if (feedback.data?.state === "ready")
@@ -175,16 +197,34 @@ export default function SessionReportPage() {
       </div>
       <InterviewNav />
 
-      {(!fb || fb.state === "pending") && (
-        <p className="card iv-pending" role="status">
-          <span className="spinner" aria-hidden="true" /> Your feedback is being prepared — this
-          usually takes under a minute.
-        </p>
-      )}
+      {(!fb || fb.state === "pending") &&
+        (slow ? (
+          <p className="card iv-pending" role="status">
+            This is taking longer than usual — the AI models are busy, so we keep trying for a few
+            more minutes.{" "}
+            <button type="button" className="link-button" onClick={pollAgain}>
+              Check again
+            </button>
+          </p>
+        ) : (
+          <p className="card iv-pending" role="status">
+            <span className="spinner" aria-hidden="true" /> Your feedback is being prepared — this
+            usually takes under a minute.
+          </p>
+        ))}
       {fb?.state === "failed" && (
         <p className="login-error" role="alert">
-          We couldn't prepare feedback for this session (no AI model was available). The transcript
-          is below.
+          We couldn't prepare feedback for this session (no AI model was available, even after
+          several tries). The transcript is below.{" "}
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => retry.mutate()}
+            disabled={retry.isPending}
+          >
+            {retry.isPending ? "Retrying…" : "Try again"}
+          </button>
+          {retry.error && <> {errorMessage(retry.error)}</>}
         </p>
       )}
 

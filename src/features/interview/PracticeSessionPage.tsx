@@ -168,7 +168,7 @@ export default function PracticeSessionPage() {
   const sendTyped = (e: FormEvent) => {
     e.preventDefault();
     const text = typed.trim();
-    if (!text) return;
+    if (!text || !canType) return;
     speaker.current?.stop();
     socket.sendJson({ type: "text", text });
     setTyped("");
@@ -176,6 +176,8 @@ export default function PracticeSessionPage() {
 
   const ended = state.phase === "ended" || socket.state === "closed";
   const asking = state.lines.at(-1)?.speaker === "interviewer" && !state.lines.at(-1)?.closing;
+  // The server ignores answers while paused, so the box waits for Resume (and keeps the text).
+  const canType = asking && state.phase !== "paused";
 
   return (
     <div className="iv-page">
@@ -300,16 +302,20 @@ export default function PracticeSessionPage() {
             )}
             <form className="iv-typed" onSubmit={sendTyped}>
               <label className="field">
-                <span>Or type your answer</span>
+                <span>
+                  {state.phase === "paused"
+                    ? "Resume to send a typed answer"
+                    : "Or type your answer"}
+                </span>
                 <textarea
                   rows={2}
                   value={typed}
                   onChange={(e) => setTyped(e.target.value)}
                   maxLength={4000}
-                  disabled={!asking}
+                  disabled={!canType}
                 />
               </label>
-              <button type="submit" className="btn-secondary" disabled={!asking || !typed.trim()}>
+              <button type="submit" className="btn-secondary" disabled={!canType || !typed.trim()}>
                 Send answer
               </button>
             </form>

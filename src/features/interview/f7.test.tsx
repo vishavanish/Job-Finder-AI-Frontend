@@ -9,7 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { entitlementsFor, mockDb } from "../../mocks/data";
-import { f7Db, mockCopilotSay, mockDropSocket } from "../../mocks/f7State";
+import { f7Db, mockCopilotSay, mockDropSocket, seedFor } from "../../mocks/f7State";
 import { renderApp, signIn } from "../../test/renderApp";
 
 const cap = vi.hoisted(() => ({
@@ -134,6 +134,45 @@ describe("Practice", () => {
       screen.getByRole("heading", { name: /Tell me about a project you led recently/ }),
     ).toBeInTheDocument();
     expect(recorder).not.toHaveBeenCalled();
+  });
+
+  it("keeps the typed answer box shut while paused", async () => {
+    renderApp("/interview");
+    const user = await signIn();
+    await user.click(await screen.findByRole("button", { name: "Start practice" }));
+    const start = await screen.findByRole("button", { name: "Start the interview" });
+    await waitFor(() => expect(start).toBeEnabled());
+    await user.click(start);
+    await user.type(await answerBox(), "Half an answer");
+
+    await user.click(screen.getByRole("button", { name: "Pause" }));
+    const box = await screen.findByLabelText("Resume to send a typed answer");
+    expect(box).toBeDisabled();
+    expect(box).toHaveValue("Half an answer"); // kept, not sent
+    expect(screen.getByRole("button", { name: "Send answer" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Resume" }));
+    expect(await answerBox()).toHaveValue("Half an answer");
+    expect(screen.getByRole("button", { name: "Send answer" })).toBeEnabled();
+  });
+
+  it("offers Try again when feedback failed", async () => {
+    seedFor(demoId());
+    const s = f7Db.sessions.get(`vs-${demoId()}-1`)!;
+    s.session.feedback_state = "failed";
+    renderApp(`/interview/sessions/${s.session.id}`);
+    const user = await signIn();
+    expect(await screen.findByText(/even after several tries/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByText(/this usually takes under a minute/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        "Good structure; add numbers to your results.",
+        {},
+        { timeout: 9000 },
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
   });
 
   it("explains a blocked mic and still takes typed answers", async () => {
