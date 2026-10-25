@@ -113,6 +113,10 @@ export interface StreamedJob {
   apply_url?: string | null;
   /** P4a: which apply buttons work for this job, and why not (from the backend). */
   apply_options?: ApplyOptions | null;
+  /** QA2: shown before the AI scored it; a later entry with the same id carries the score. */
+  scoring?: boolean;
+  /** QA2: the job scored too low (or couldn't be scored) — drop the entry with this id. */
+  removed?: boolean;
 }
 
 export interface MatchBreakdown {
@@ -139,6 +143,8 @@ export interface PipelineRunMeta {
   keywords_completed: number;
   error: string;
   created_at: string;
+  /** QA2: seconds per stage ("LinkedIn + Indeed", "Scoring"…), summed over the run's titles. */
+  timings?: Record<string, number>;
 }
 
 export interface PipelineRunJobsPage {

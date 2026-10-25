@@ -24,9 +24,15 @@ export interface PipelineRunState {
 
 export function upsertJobs(current: StreamedJob[], incoming: StreamedJob[]): StreamedJob[] {
   if (!incoming.length) return current;
-  const next = [...current];
+  let next = [...current];
   const index = new Map(next.map((j, i) => [j.id, i]));
+  const removed = new Set<string>();
   for (const job of incoming) {
+    if (job.removed) {
+      removed.add(job.id);
+      continue;
+    }
+    removed.delete(job.id);
     const at = index.get(job.id);
     if (at === undefined) {
       index.set(job.id, next.length);
@@ -35,7 +41,17 @@ export function upsertJobs(current: StreamedJob[], incoming: StreamedJob[]): Str
       next[at] = { ...next[at], ...job };
     }
   }
+  if (removed.size) next = next.filter((j) => !removed.has(j.id));
   return next;
+}
+
+/** "LinkedIn + Indeed 38 s · Scoring 12 s" — where a search spent its time (QA2 §1.4). */
+export function timingSummary(timings: Record<string, number> | undefined): string {
+  const parts = Object.entries(timings ?? {})
+    .filter(([, s]) => s >= 1)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, s]) => `${label} ${Math.round(s)} s`);
+  return parts.join(" · ");
 }
 
 export function usePipelineRun(runId: string | null): PipelineRunState {
@@ -90,7 +106,10 @@ export function usePipelineRun(runId: string | null): PipelineRunState {
                 : meta.status === "cancelled"
                   ? "cancelled"
                   : "failed",
-            detail: meta.status === "completed" ? "Search finished" : meta.error || meta.status,
+            detail:
+              meta.status === "completed"
+                ? ["Search finished", timingSummary(meta.timings)].filter(Boolean).join(" · ")
+                : meta.error || meta.status,
           });
           return;
         }

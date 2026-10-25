@@ -113,14 +113,22 @@ export function JobCard({
   const allSources = sources?.length ? sources : [job.source];
   const applied = state === "applied";
   const top = (job.llm_score ?? 0) >= 90;
+  const scoring = Boolean(job.scoring);
 
   return (
     <li
-      className={`job-card${state === "hidden" ? " is-hidden" : ""}${top ? " is-top" : ""}`}
+      className={`job-card${state === "hidden" ? " is-hidden" : ""}${top ? " is-top" : ""}${scoring ? " is-scoring" : ""}`}
+      aria-busy={scoring || undefined}
       aria-labelledby={`${id}-t`}
     >
       <div className="job-card-top">
-        <ScoreRing score={job.llm_score} size={52} />
+        {scoring ? (
+          <span className="score-ring is-empty is-scoring" role="img" aria-label="Scoring">
+            …
+          </span>
+        ) : (
+          <ScoreRing score={job.llm_score} size={52} />
+        )}
         <div className="job-body">
           <div className="job-head">
             <h3 id={`${id}-t`} className="job-title">
@@ -216,7 +224,13 @@ export function JobCard({
         </div>
       </div>
 
-      {job.llm_reason && (
+      {scoring && (
+        <p className="job-reason is-scoring" role="status">
+          <Icon name="sparkle" size={16} />
+          <span>Scoring against your resume…</span>
+        </p>
+      )}
+      {!scoring && job.llm_reason && (
         <p className="job-reason">
           <Icon name="sparkle" size={16} />
           <span>

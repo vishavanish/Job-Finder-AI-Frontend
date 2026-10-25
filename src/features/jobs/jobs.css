@@ -807,3 +807,27 @@
     margin-left: 0;
   }
 }
+
+/* QA2 §1: a job shown before the AI scored it. */
+.job-card.is-scoring .score-ring.is-scoring {
+  width: 52px;
+  height: 52px;
+  animation: score-pulse 1.4s ease-in-out infinite;
+}
+
+.job-reason.is-scoring {
+  background: var(--surface-sunken, var(--accent-soft));
+  font-style: italic;
+}
+
+@keyframes score-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .job-card.is-scoring .score-ring.is-scoring {
+    animation: none;
+  }
+}
