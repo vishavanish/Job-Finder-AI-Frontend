@@ -188,6 +188,9 @@ export default function AtsTargetsPage() {
             Type a job title to see which companies are hiring for it on their own career pages —
             Greenhouse, Lever, Workday and more.
           </p>
+          <p className="field-hint">
+            Job search already includes these jobs — use this page only to browse by company.
+          </p>
         </div>
         <button type="button" className="btn-secondary" onClick={() => setAdding(true)}>
           Add a company

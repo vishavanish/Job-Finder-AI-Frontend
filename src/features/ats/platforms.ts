@@ -19,6 +19,11 @@ export function platformName(key: string): string {
   return PLATFORMS.find((p) => p.key === key)?.name ?? key;
 }
 
+/** Jobs from the career-page index keep the platform name as their source ("Greenhouse"…) — QA3 §E. */
+export function isCompanySite(source: string): boolean {
+  return PLATFORMS.some((p) => p.name === source);
+}
+
 // "" = the server's default (postings from the last 90 days); "any" = every age (QA2 §4).
 export const POSTED_OPTIONS = [
   { value: "", label: "Last 90 days" },

@@ -11,6 +11,7 @@ import { ScoreRing } from "../../components/ScoreRing";
 import { errorMessage } from "../../lib/api/errors";
 import type { StreamedJob } from "../../lib/api/types";
 import { ApplyButtons } from "../apply/ApplyButtons";
+import { isCompanySite } from "../ats/platforms";
 
 export type JobUiState = "seen" | "saved" | "hidden" | "applied";
 
@@ -137,6 +138,14 @@ export function JobCard({
               </a>
             </h3>
             <div className="job-badges">
+              {isCompanySite(job.source) && (
+                <span
+                  className="badge tone-neutral"
+                  title="Straight from the company's career page"
+                >
+                  Company site · {job.source}
+                </span>
+              )}
               {job.early && <span className="badge tone-positive">Early</span>}
               {job.new_since_last_search && <span className="badge tone-active">New</span>}
               {state === "saved" && <span className="badge tone-neutral">Saved</span>}

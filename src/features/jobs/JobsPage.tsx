@@ -13,6 +13,7 @@ import { Icon, type IconName } from "../../components/Icon";
 import { errorMessage } from "../../lib/api/errors";
 import { useEntitlement } from "../../lib/auth/access";
 import type { StreamedJob } from "../../lib/api/types";
+import { isCompanySite } from "../ats/platforms";
 import { AiBusyBanner } from "../models/AiBusyBanner";
 import { getProviders } from "../models/modelsApi";
 import { listSearchProfiles, searchProfileKeys } from "../search-profile/searchProfileApi";
@@ -93,6 +94,7 @@ export default function JobsPage() {
     posted: 0,
     source: "",
     remote: false,
+    companySites: false,
     sort: "score" as "score" | "newest",
   });
 
@@ -178,6 +180,7 @@ export default function JobsPage() {
         return false;
       if (filters.source && j.source !== filters.source) return false;
       if (filters.remote && !isRemote(j)) return false;
+      if (filters.companySites && !isCompanySite(j.source)) return false;
       return true;
     });
     return list.sort((a, b) =>
@@ -306,7 +309,16 @@ export default function JobsPage() {
                 {runnable === undefined ? "" : `${runnable} job sources will run. `}
                 {providers.data?.free_only ? "Free tools only is on. " : ""}
                 <Link to="/providers">Job sources</Link> ·{" "}
-                <Link to="/search-profile">Edit profiles</Link>
+                <Link to="/search-profile">Edit profiles</Link> ·{" "}
+                <Link
+                  to={
+                    started?.keywords?.[0]
+                      ? `/ats-targets?q=${encodeURIComponent(started.keywords[0])}`
+                      : "/ats-targets"
+                  }
+                >
+                  Browse by company
+                </Link>
               </span>
             </div>
             {blocked && (
@@ -439,6 +451,14 @@ export default function JobsPage() {
                   onChange={(e) => setFilters({ ...filters, remote: e.target.checked })}
                 />
                 Remote only
+              </label>
+              <label className="check-inline">
+                <input
+                  type="checkbox"
+                  checked={filters.companySites}
+                  onChange={(e) => setFilters({ ...filters, companySites: e.target.checked })}
+                />
+                Only company career pages
               </label>
               <label className="field narrow">
                 <span>Sort by</span>
