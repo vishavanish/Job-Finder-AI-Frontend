@@ -4,7 +4,7 @@
  * pending version is polled until it is parsed or failed.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useId, useRef, useState, type DragEvent } from "react";
+import { useEffect, useId, useRef, useState, type DragEvent } from "react";
 import { ChipInput } from "../../components/ChipInput";
 import { errorMessage } from "../../lib/api/errors";
 import type { ExperienceItem, ParsedResume, ResumeOut } from "../../lib/api/types";
@@ -58,6 +58,8 @@ function ReviewForm({ resume, onDone }: { resume: ResumeOut; onDone: (saved: boo
     mutationFn: (p: ParsedResume) => saveReviewedResume(resume.id, p, resume.label),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: profileKeys.resumes });
+      // The server fills empty Applicant info from a reviewed master resume (QA2 §3).
+      void qc.invalidateQueries({ queryKey: profileKeys.profile });
       onDone(true);
     },
   });
@@ -205,6 +207,19 @@ export function ResumeSection() {
       q.state.data?.resumes.some((r) => r.parse_status === "pending") ? 3000 : false,
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: profileKeys.resumes });
+
+  // A parse that just finished may have filled empty Applicant info (QA2 §3): reload it.
+  const lastStatus = useRef<Map<string, string> | null>(null);
+  useEffect(() => {
+    if (!resumes.data) return;
+    const list = resumes.data.resumes;
+    const before = lastStatus.current;
+    lastStatus.current = new Map(list.map((r) => [r.id, r.parse_status]));
+    const justRead = list.some(
+      (r) => r.parse_status === "parsed" && before !== null && before.get(r.id) !== "parsed",
+    );
+    if (justRead) void qc.invalidateQueries({ queryKey: profileKeys.profile });
+  }, [resumes.data, qc]);
 
   const upload = useMutation({
     mutationFn: (file: File) => uploadResume(file),

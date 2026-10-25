@@ -49,6 +49,24 @@ function profileOut(userId: string, email: string): ProfileOut {
   return { ...p, eeo: f3Db.eeo[userId] ?? EMPTY_EEO } as ProfileOut;
 }
 
+/** Like the backend's profile_fill (QA2 §3): empty applicant fields from the parsed master resume. */
+function fillApplicantFromResume(userId: string, email: string) {
+  const current = profileOut(userId, email);
+  const info = { ...(current.applicant_info ?? {}) } as Record<string, unknown>;
+  const [first, ...rest] = SAMPLE_PARSED.name.split(" ");
+  const fromResume: Record<string, unknown> = {
+    first_name: first,
+    last_name: rest.join(" "),
+    phone: SAMPLE_PARSED.phone,
+    city: SAMPLE_PARSED.location.split(",")[0]?.trim(),
+    total_experience_years: SAMPLE_PARSED.total_experience_years,
+  };
+  for (const [k, v] of Object.entries(fromResume)) {
+    if (info[k] === undefined || info[k] === null || info[k] === "") info[k] = v;
+  }
+  f3Db.profiles[userId] = { ...current, applicant_info: info, updated_at: nowIso() } as ProfileOut;
+}
+
 function emptyPrefs(): PreferencesOut {
   return {
     titles: [],
@@ -208,6 +226,7 @@ export const f3Handlers = [
       if (r.parse_status === "pending" && --r.pendingPolls <= 0) {
         r.parse_status = "parsed";
         r.parsed = { ...SAMPLE_PARSED };
+        if (r.is_master) fillApplicantFromResume(auth.user.id, auth.user.email);
       }
     }
     return HttpResponse.json({
