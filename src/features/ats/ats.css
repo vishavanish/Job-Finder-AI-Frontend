@@ -333,6 +333,14 @@
   background: var(--accent-soft);
 }
 
+.ats-follow-form {
+  flex-wrap: wrap;
+}
+
+.ats-follow-form input {
+  flex: 1 1 220px;
+}
+
 .ats-follow-note {
   flex-basis: 100%;
   margin: 0;

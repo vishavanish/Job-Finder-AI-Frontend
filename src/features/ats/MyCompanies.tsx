@@ -53,7 +53,7 @@ function FollowByName() {
   });
   return (
     <form
-      className="ats-search"
+      className="ats-search ats-follow-form"
       onSubmit={(e) => {
         e.preventDefault();
         if (name.trim().length >= 2) add.mutate();
