@@ -357,3 +357,26 @@
   overflow-wrap: anywhere;
   opacity: 0.85;
 }
+
+/* Live parts of a prep pack (QA2 §2). */
+.prep-progress p {
+  margin: 0;
+}
+
+.prep-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.prep-steps .is-done {
+  color: var(--status-positive-fg);
+}
+
+.prep-steps .is-failed {
+  color: var(--status-negative-fg);
+}

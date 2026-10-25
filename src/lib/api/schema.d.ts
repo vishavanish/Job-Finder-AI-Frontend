@@ -978,6 +978,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/system/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * System Health
+         * @description Every health check with its detail: database, Redis queues, AI setup,
+         *     alerts scheduler. The public GET /health returns only the overall status.
+         */
+        get: operations["system_health_api_v1_admin_system_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit": {
         parameters: {
             query?: never;
@@ -2269,7 +2290,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description Public liveness: only the overall status (503 when unhealthy). The
+         *     per-check detail (database, queues, AI setup, scheduler) is for admins at
+         *     GET /api/v1/admin/system/health — it described the setup to anyone (QA1).
+         */
         get: operations["health_health_get"];
         put?: never;
         post?: never;
@@ -3781,7 +3807,7 @@ export interface components {
             paused: boolean;
             /**
              * Pause Reason
-             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key/credits/model) or breaker (repeated failures)
+             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)
              */
             pause_reason?: string | null;
         };
@@ -4062,6 +4088,18 @@ export interface components {
              * @description Which AI models were tried and why each failed
              */
             error_detail?: string | null;
+            /**
+             * Steps
+             * @description Per part (resume, cover_letter): running, done, failed or skipped
+             */
+            steps?: {
+                [key: string]: string;
+            };
+            /**
+             * Typical Seconds
+             * @description How long packs usually take (median of the last 20)
+             */
+            typical_seconds?: number | null;
             /**
              * Updated At
              * Format: date-time
@@ -5209,7 +5247,7 @@ export interface components {
             paused: boolean;
             /**
              * Pause Reason
-             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key/credits/model) or breaker (repeated failures)
+             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)
              */
             pause_reason?: string | null;
         };
@@ -7390,6 +7428,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    system_health_api_v1_admin_system_health_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -262,11 +262,16 @@ export function PrepDialog({
       )}
 
       {(start.isPending || p?.status === "pending") && (
-        <p className="prep-progress" role="status" aria-live="polite">
-          Tailoring your resume
-          {mode === "manual" ? " and writing a cover letter" : " and the email"}… this takes 10–40
-          seconds.
-        </p>
+        <div className="prep-progress" role="status" aria-live="polite">
+          <p>
+            Tailoring your resume
+            {mode === "manual" ? " and writing a cover letter" : " and the email"}…{" "}
+            {p?.typical_seconds
+              ? `this usually takes about ${p.typical_seconds} seconds.`
+              : "this takes 10–40 seconds."}
+          </p>
+          <PrepSteps steps={p?.steps} mode={mode} />
+        </div>
       )}
       {start.isError && (
         <p className="login-error" role="alert">
@@ -307,5 +312,35 @@ function ErrorDetail({ detail }: { detail?: string | null }) {
       <summary>Details</summary>
       <p className="mono">{detail}</p>
     </details>
+  );
+}
+
+const STEP_MARK: Record<string, string> = {
+  running: "…",
+  done: "✓",
+  failed: "✗",
+};
+
+/** Which part of the pack is ready while the rest is still being written (QA2 §2). */
+function PrepSteps({ steps, mode }: { steps?: Record<string, string>; mode: "manual" | "email" }) {
+  const labels: Record<string, string> = {
+    resume: "Tailored resume",
+    cover_letter: mode === "manual" ? "Cover letter" : "Email text",
+  };
+  const shown = Object.entries(steps ?? {}).filter(
+    ([part, state]) => labels[part] && STEP_MARK[state],
+  );
+  if (!shown.length) return null;
+  return (
+    <ul className="prep-steps">
+      {shown.map(([part, state]) => (
+        <li key={part} className={`is-${state}`}>
+          <span aria-hidden="true">{STEP_MARK[state]}</span> {labels[part]}
+          <span className="sr-only">
+            {state === "running" ? " — in progress" : state === "done" ? " — ready" : " — failed"}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

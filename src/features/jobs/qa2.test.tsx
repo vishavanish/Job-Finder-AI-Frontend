@@ -75,3 +75,50 @@ describe("Jobs page while scoring", () => {
     }
   });
 });
+
+describe("Prep dialog steps (§2)", () => {
+  it("shows which part is ready and how long packs usually take", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      renderApp("/jobs");
+      const user = await signIn();
+      await user.click(await screen.findByRole("button", { name: "Run search" }));
+      for (let i = 0; i < 6; i += 1) await vi.advanceTimersByTimeAsync(2100);
+      await screen.findByText(/Search finished/);
+      server.use(
+        http.get(`${API}/apply/prep/:id`, ({ params }) =>
+          HttpResponse.json({
+            id: String(params.id),
+            job_id: "x",
+            status: "pending",
+            dropped: [],
+            steps: { resume: "done", cover_letter: "running" },
+            typical_seconds: 25,
+            updated_at: "2026-10-25T10:00:00Z",
+          }),
+        ),
+      );
+      const card = screen
+        .getByRole("link", { name: "LLM Application Developer" })
+        .closest("li.job-card") as HTMLElement;
+      await user.click(within(card).getByRole("button", { name: "Apply manually" }));
+      const dialog = await screen.findByRole("dialog");
+      await vi.advanceTimersByTimeAsync(2100);
+      expect(
+        await within(dialog).findByText(/this usually takes about 25 seconds/),
+      ).toBeInTheDocument();
+      expect(
+        within(dialog)
+          .getByText(/Tailored resume/)
+          .closest("li"),
+      ).toHaveClass("is-done");
+      expect(
+        within(dialog)
+          .getByText(/Cover letter/)
+          .closest("li"),
+      ).toHaveClass("is-running");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

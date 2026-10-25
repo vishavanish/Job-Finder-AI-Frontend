@@ -3305,6 +3305,54 @@
         }
       }
     },
+    "/api/v1/admin/system/health": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "System Health",
+        "description": "Every health check with its detail: database, Redis queues, AI setup,\nalerts scheduler. The public GET /health returns only the overall status.",
+        "operationId": "system_health_api_v1_admin_system_health_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/audit": {
       "get": {
         "tags": [
@@ -8957,6 +9005,7 @@
           "meta"
         ],
         "summary": "Health",
+        "description": "Public liveness: only the overall status (503 when unhealthy). The\nper-check detail (database, queues, AI setup, scheduler) is for admins at\nGET /api/v1/admin/system/health \u2014 it described the setup to anyone (QA1).",
         "operationId": "health_health_get",
         "responses": {
           "200": {
@@ -12924,7 +12973,7 @@
               }
             ],
             "title": "Pause Reason",
-            "description": "Why it is paused: rate_limit (back shortly), broken (an admin must fix its key/credits/model) or breaker (repeated failures)"
+            "description": "Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)"
           }
         },
         "type": "object",
@@ -13701,6 +13750,26 @@
             ],
             "title": "Error Detail",
             "description": "Which AI models were tried and why each failed"
+          },
+          "steps": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Steps",
+            "description": "Per part (resume, cover_letter): running, done, failed or skipped"
+          },
+          "typical_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typical Seconds",
+            "description": "How long packs usually take (median of the last 20)"
           },
           "updated_at": {
             "type": "string",
@@ -16534,7 +16603,7 @@
               }
             ],
             "title": "Pause Reason",
-            "description": "Why it is paused: rate_limit (back shortly), broken (an admin must fix its key/credits/model) or breaker (repeated failures)"
+            "description": "Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)"
           }
         },
         "type": "object",
