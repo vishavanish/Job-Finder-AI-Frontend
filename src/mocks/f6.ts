@@ -21,6 +21,7 @@ import {
   search,
 } from "./f6State";
 import { API, authenticate, newId, readJson, requireRole } from "./handlers";
+import { isFollowed } from "./qa4";
 
 const fail = (status: number, code: string, message: string) =>
   HttpResponse.json({ detail: { code, message } }, { status });
@@ -128,7 +129,11 @@ export const f6Handlers = [
       });
       topup_task_id = id;
     }
-    return HttpResponse.json({ ...result, topup_task_id });
+    const groups = result.groups.map((g) => ({
+      ...g,
+      followed: isFollowed(auth.user.id, g.company_id),
+    }));
+    return HttpResponse.json({ ...result, groups, topup_task_id });
   }),
 
   // The live top-up task (other task ids fall through to the generic /tasks mock).

@@ -315,6 +315,7 @@ export function search(userId: string, a: SearchArgs) {
         locations: [...new Set(jobs.map((j) => j.location))],
         newest_posted_at: sorted[0]?.posted_at ?? null,
         last_refreshed_at: c.last_ok_at ?? null,
+        followed: false,
       };
     })
     .sort(

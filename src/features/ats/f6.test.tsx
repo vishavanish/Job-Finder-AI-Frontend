@@ -19,10 +19,10 @@ function company(name: string): HTMLElement {
 
 describe("ATS targets search", () => {
   it("groups companies, states the scope, hides applied jobs and loads more", async () => {
-    renderApp("/ats-targets");
+    renderApp("/ats-targets?tab=browse");
     const user = await signIn();
     expect(
-      await screen.findByRole("heading", { name: "ATS targets", level: 2 }),
+      await screen.findByRole("heading", { name: "Target companies", level: 2 }),
     ).toBeInTheDocument();
     expect(await screen.findByText(/Searching/)).toHaveTextContent(
       /29 companies.*open jobs on 13 career-page platforms/,
@@ -107,7 +107,7 @@ describe("ATS job details", () => {
 
 describe("Adding companies", () => {
   it("adds a company by its careers link and says when it's already there", async () => {
-    renderApp("/ats-targets");
+    renderApp("/ats-targets?tab=browse");
     const user = await signIn();
     await user.click(await screen.findByRole("button", { name: "Add a company" }));
     const dialog = await screen.findByRole("dialog", { name: "Add a company" });
@@ -136,7 +136,7 @@ describe("Adding companies", () => {
         { platform: "custom", slug: "intranet", custom_endpoint_url: "https://x.example" },
       ]),
     );
-    renderApp("/ats-targets");
+    renderApp("/ats-targets?tab=browse");
     const user = await signIn();
     const card = await screen.findByRole("region", { name: "Your saved companies" });
     expect(within(card).getByText(/You saved 2 companies/)).toBeInTheDocument();
@@ -171,7 +171,7 @@ describe("Admin ATS registry", () => {
     renderApp("/");
     await signIn();
     const nav = await screen.findByRole("navigation", { name: "Main" });
-    expect(within(nav).getByRole("link", { name: "ATS targets" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Target companies" })).toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: "ATS registry" })).not.toBeInTheDocument();
   });
 });

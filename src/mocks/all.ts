@@ -5,6 +5,7 @@ import { f4Handlers } from "./f4";
 import { f5Handlers } from "./f5";
 import { f6Handlers } from "./f6";
 import { f7Handlers } from "./f7";
+import { qa4Handlers } from "./qa4";
 
 /**
  * Every MSW handler. Specific routes first so /admin/users/:id/usage wins over broader patterns and
@@ -13,6 +14,7 @@ import { f7Handlers } from "./f7";
 export const allHandlers = [
   ...aiHandlers,
   ...f7Handlers,
+  ...qa4Handlers,
   ...f6Handlers,
   ...f5Handlers,
   ...f4Handlers,

@@ -286,3 +286,79 @@
   cursor: help;
   text-decoration: underline dotted;
 }
+
+/* Target companies (QA4): tabs, follow buttons, new roles, alert settings. */
+
+.ats-tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.ats-tabs .tab {
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ats-tabs .tab.is-active {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ats-company-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.ats-follow {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ats-follow .is-following {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+
+.ats-follow-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.ats-company-name .badge,
+.ats-job-title .badge {
+  margin-left: var(--space-2);
+  vertical-align: middle;
+}
+
+.ats-new-box {
+  margin-bottom: var(--space-4);
+}
+
+.ats-alerts {
+  margin-top: var(--space-4);
+}
+
+.ats-alerts summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.ats-alerts-form {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}

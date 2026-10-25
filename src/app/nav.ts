@@ -29,7 +29,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/", label: "Dashboard", icon: "layers", end: true },
       { to: "/jobs", label: "Jobs", icon: "play", feature: "job_search" },
-      { to: "/ats-targets", label: "ATS targets", icon: "building", feature: "ats_discovery" },
+      { to: "/ats-targets", label: "Target companies", icon: "building", feature: "ats_discovery" },
       { to: "/apply", label: "Apply Center", icon: "check", badge: "applyWaiting" },
       { to: "/alerts", label: "Job alerts", icon: "activity", feature: "job_alerts" },
       { to: "/tracker", label: "Tracker", icon: "inbox", badge: "trackerReview" },

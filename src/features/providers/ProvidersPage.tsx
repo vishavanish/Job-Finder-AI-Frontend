@@ -40,7 +40,7 @@ const GROUPS: { title: string; note?: string; keys: string[] }[] = [
   { title: "Naukri", keys: ["naukri", "naukri_apify"] },
   {
     title: "Company career pages",
-    note: "Jobs from the shared registry of company career pages, matched to your search titles. Browse it by title in ATS targets.",
+    note: "Jobs from the shared registry of company career pages, matched to your search titles. Follow companies or browse them by title in Target companies.",
     keys: ["company_ats"],
   },
   {

@@ -10,6 +10,7 @@ import { resetF4Mock } from "../mocks/f4State";
 import { resetF5Mock } from "../mocks/f5State";
 import { resetF6Mock } from "../mocks/f6State";
 import { resetF7Mock } from "../mocks/f7State";
+import { resetQa4Mock } from "../mocks/qa4";
 import { setAccessToken } from "../lib/auth/session";
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
@@ -25,6 +26,7 @@ afterEach(() => {
   resetF5Mock();
   resetF6Mock();
   resetF7Mock();
+  resetQa4Mock();
   setAccessToken(null);
   window.localStorage.clear();
   window.sessionStorage.clear();

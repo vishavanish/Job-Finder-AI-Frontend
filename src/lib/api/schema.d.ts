@@ -2040,6 +2040,148 @@ export interface paths {
         patch: operations["admin_edit_platform_api_v1_admin_ats_platforms__platform__patch"];
         trace?: never;
     };
+    "/api/v1/ats/following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Following */
+        get: operations["following_api_v1_ats_following_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/companies/{company_id}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Follow */
+        put: operations["follow_api_v1_ats_companies__company_id__follow_put"];
+        post?: never;
+        /** Unfollow */
+        delete: operations["unfollow_api_v1_ats_companies__company_id__follow_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/{follow_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Follow */
+        delete: operations["remove_follow_api_v1_ats_following__follow_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/by-name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Follow By Name
+         * @description Follows a company by name. A name we already know is followed at once; otherwise its career page
+         *     is looked up in the background (status "searching", then "following" or "not_found").
+         */
+        post: operations["follow_by_name_api_v1_ats_following_by_name_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** New Roles */
+        get: operations["new_roles_api_v1_ats_following_new_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seen */
+        post: operations["seen_api_v1_ats_following_seen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Suggestions */
+        get: operations["suggestions_api_v1_ats_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Follow Settings */
+        get: operations["get_follow_settings_api_v1_ats_following_settings_get"];
+        /** Put Follow Settings */
+        put: operations["put_follow_settings_api_v1_ats_following_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/voice/providers": {
         parameters: {
             query?: never;
@@ -3046,6 +3188,11 @@ export interface components {
             newest_posted_at?: string | null;
             /** Last Refreshed At */
             last_refreshed_at?: string | null;
+            /**
+             * Followed
+             * @default false
+             */
+            followed: boolean;
         };
         /**
          * AtsCompanyIn
@@ -3066,6 +3213,11 @@ export interface components {
             company: components["schemas"]["AtsCompanyOut"];
             /** Jobs */
             jobs: components["schemas"]["AtsJobOut"][];
+            /**
+             * Followed
+             * @default false
+             */
+            followed: boolean;
         };
         /** AtsCompanyOut */
         AtsCompanyOut: {
@@ -3559,6 +3711,94 @@ export interface components {
             /** Value */
             value: unknown;
         };
+        /** FollowByNameIn */
+        FollowByNameIn: {
+            /** Name */
+            name: string;
+        };
+        /** FollowByNameOut */
+        FollowByNameOut: {
+            /** Status */
+            status: string;
+            follow?: components["schemas"]["FollowedCompany"] | null;
+            /** Task Id */
+            task_id?: string | null;
+        };
+        /** FollowSettingsIn */
+        FollowSettingsIn: {
+            /** Alert Mode */
+            alert_mode?: string | null;
+            /** Titles */
+            titles?: string[] | null;
+            /** Places */
+            places?: string[] | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
+        /** FollowSettingsOut */
+        FollowSettingsOut: {
+            /** Alert Mode */
+            alert_mode: string;
+            /** Titles */
+            titles: string[];
+            /** Places */
+            places: string[];
+            /** Timezone */
+            timezone: string;
+            /** Default Titles */
+            default_titles: string[];
+            /** Default Places */
+            default_places: string[];
+        };
+        /** FollowedCompany */
+        FollowedCompany: {
+            /** Id */
+            id: string;
+            /** Status */
+            status: string;
+            /** Name */
+            name: string;
+            /** Company Id */
+            company_id?: string | null;
+            /** Platform */
+            platform?: string | null;
+            /** Platform Name */
+            platform_name?: string | null;
+            /** Careers Url */
+            careers_url?: string | null;
+            /**
+             * Open Jobs
+             * @default 0
+             */
+            open_jobs: number;
+            /**
+             * Open Matching
+             * @default 0
+             */
+            open_matching: number;
+            /**
+             * New Count
+             * @default 0
+             */
+            new_count: number;
+            /** Latest Posted At */
+            latest_posted_at?: string | null;
+            /** Last Refreshed At */
+            last_refreshed_at?: string | null;
+            /**
+             * Followed At
+             * Format: date-time
+             */
+            followed_at: string;
+        };
+        /** FollowingOut */
+        FollowingOut: {
+            /** Companies */
+            companies: components["schemas"]["FollowedCompany"][];
+            /** Limit */
+            limit: number;
+            settings: components["schemas"]["FollowSettingsOut"];
+        };
         /** GmailAccountList */
         GmailAccountList: {
             /** Accounts */
@@ -3873,6 +4113,41 @@ export interface components {
             reply?: string | null;
             /** Error */
             error?: string | null;
+        };
+        /** NewRole */
+        NewRole: {
+            /** Id */
+            id: string;
+            /** Job Id */
+            job_id: string;
+            /** Title */
+            title: string;
+            /** Location */
+            location: string;
+            /** Remote */
+            remote: boolean;
+            /** Url */
+            url: string;
+            /** Company Id */
+            company_id: string;
+            /** Company */
+            company: string;
+            /** Platform */
+            platform: string;
+            /** Posted At */
+            posted_at?: string | null;
+            /**
+             * Found At
+             * Format: date-time
+             */
+            found_at: string;
+            /** Seen */
+            seen: boolean;
+        };
+        /** NewRolesOut */
+        NewRolesOut: {
+            /** Roles */
+            roles: components["schemas"]["NewRole"][];
         };
         /** OtpRequest */
         OtpRequest: {
@@ -4744,6 +5019,11 @@ export interface components {
              */
             resume_id?: string | null;
         };
+        /** SeenIn */
+        SeenIn: {
+            /** Company Id */
+            company_id?: string | null;
+        };
         /** SessionCreateIn */
         SessionCreateIn: {
             /**
@@ -4947,6 +5227,21 @@ export interface components {
             /** Expires In */
             expires_in: number;
         };
+        /** SuggestedCompany */
+        SuggestedCompany: {
+            /** Company Id */
+            company_id: string;
+            /** Name */
+            name: string;
+            /** Platform */
+            platform: string;
+            /** Platform Name */
+            platform_name: string;
+            /** Open Matching */
+            open_matching: number;
+            /** Reason */
+            reason: string;
+        };
         /** Suggestion */
         Suggestion: {
             /** Application Id */
@@ -4957,6 +5252,11 @@ export interface components {
             title: string;
             /** Company */
             company: string;
+        };
+        /** SuggestionsOut */
+        SuggestionsOut: {
+            /** Companies */
+            companies: components["schemas"]["SuggestedCompany"][];
         };
         /** TaskDefaults */
         TaskDefaults: {
@@ -10003,6 +10303,333 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AtsPlatformOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    following_api_v1_ats_following_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follow_api_v1_ats_companies__company_id__follow_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowedCompany"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unfollow_api_v1_ats_companies__company_id__follow_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_follow_api_v1_ats_following__follow_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                follow_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follow_by_name_api_v1_ats_following_by_name_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowByNameIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowByNameOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    new_roles_api_v1_ats_following_new_get: {
+        parameters: {
+            query?: {
+                company_id?: string | null;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewRolesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    seen_api_v1_ats_following_seen_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suggestions_api_v1_ats_suggestions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_follow_settings_api_v1_ats_following_settings_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_follow_settings_api_v1_ats_following_settings_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowSettingsOut"];
                 };
             };
             /** @description Validation Error */

@@ -39,7 +39,7 @@ describe("app shell", () => {
       "Job alerts",
       "Keywords and skills",
       "Profile and resume",
-      "ATS targets",
+      "Target companies",
       "Job sources",
     ]) {
       expect(within(nav).getByRole("link", { name })).toBeInTheDocument();

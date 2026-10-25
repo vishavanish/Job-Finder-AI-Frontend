@@ -42,7 +42,12 @@ describe("company career-page jobs in Job search", () => {
             offset === 0
               ? [
                   job("gh", { source: "Greenhouse", title: "Backend Engineer", company: "Acme" }),
-                  job("li", { source: "LinkedIn", title: "Python Developer", company: "Hooli" }),
+                  job("li", {
+                    source: "LinkedIn",
+                    title: "Python Developer",
+                    company: "Hooli",
+                    followed: true,
+                  }),
                 ]
               : [];
           return HttpResponse.json({
@@ -60,7 +65,10 @@ describe("company career-page jobs in Job search", () => {
         "li.job-card",
       ) as HTMLElement;
       expect(within(card).getByText("Company site · Greenhouse")).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Python Developer" })).toBeInTheDocument();
+      const hooli = screen
+        .getByRole("link", { name: "Python Developer" })
+        .closest("li.job-card") as HTMLElement;
+      expect(within(hooli).getByText("★ Company you follow")).toBeInTheDocument(); // QA4
 
       await user.click(screen.getByRole("checkbox", { name: "Only company career pages" }));
       expect(screen.getByRole("link", { name: "Backend Engineer" })).toBeInTheDocument();

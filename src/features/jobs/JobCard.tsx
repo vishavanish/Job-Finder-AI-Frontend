@@ -138,6 +138,14 @@ export function JobCard({
               </a>
             </h3>
             <div className="job-badges">
+              {job.followed && (
+                <span
+                  className="badge tone-active"
+                  title="A company you follow in Target companies"
+                >
+                  ★ Company you follow
+                </span>
+              )}
               {isCompanySite(job.source) && (
                 <span
                   className="badge tone-neutral"

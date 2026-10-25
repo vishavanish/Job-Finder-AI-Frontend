@@ -117,6 +117,8 @@ export interface StreamedJob {
   scoring?: boolean;
   /** QA2: the job scored too low (or couldn't be scored) — drop the entry with this id. */
   removed?: boolean;
+  /** QA4: the job's company is one the user follows (Target companies). */
+  followed?: boolean;
 }
 
 export interface MatchBreakdown {
@@ -202,6 +204,16 @@ export type AtsRegistryStats = Schemas["AtsRegistryStats"];
 export type AtsHealth = Schemas["AtsHealth"];
 export type AtsPlatform = Schemas["AtsPlatformOut"];
 export type AtsTracked = Schemas["AtsTracked"];
+// QA4: Target companies
+export type FollowedCompany = Schemas["FollowedCompany"];
+export type FollowingOut = Schemas["FollowingOut"];
+export type FollowSettings = Schemas["FollowSettingsOut"];
+export type FollowSettingsIn = Schemas["FollowSettingsIn"];
+export type FollowByNameOut = Schemas["FollowByNameOut"];
+export type NewRole = Schemas["NewRole"];
+export type NewRolesOut = Schemas["NewRolesOut"];
+export type SuggestedCompany = Schemas["SuggestedCompany"];
+export type SuggestionsOut = Schemas["SuggestionsOut"];
 
 // ---- P7: voice interview prep (Practice + Live Copilot) and the story bank ----
 export type VoiceProviders = Schemas["VoiceProvidersOut"];
