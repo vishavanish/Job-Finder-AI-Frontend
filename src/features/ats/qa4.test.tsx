@@ -132,3 +132,51 @@ describe("Target companies", () => {
     });
   });
 });
+
+describe("Dashboard card", () => {
+  it("lists followed companies with new roles and hides when you follow none", async () => {
+    renderApp("/");
+    await signIn();
+    expect(await screen.findByRole("heading", { name: "Dashboard", level: 2 })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "New at your companies" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("links each company with new roles to Target companies", async () => {
+    const company = f6Db.companies.find((c) => c.name === "Nimbus AI")!;
+    qa4Db.follows.u_demo = [
+      {
+        id: "f1",
+        company_id: company.id,
+        name: company.name,
+        status: "following",
+        followed_at: "2026-10-25T10:00:00Z",
+      },
+    ];
+    qa4Db.newRoles.u_demo = [1, 2].map((i) => ({
+      id: `h${i}`,
+      job_id: `j${i}`,
+      title: `Data Engineer ${i}`,
+      location: "Bengaluru",
+      remote: false,
+      url: `https://jobs.example/nimbus/${i}`,
+      company_id: company.id,
+      company: company.name,
+      platform: company.platform,
+      posted_at: "2026-10-25T08:00:00Z",
+      found_at: "2026-10-25T09:00:00Z",
+      seen: false,
+    }));
+    renderApp("/");
+    await signIn();
+    const card = (await screen.findByRole("heading", { name: "New at your companies" })).closest(
+      "section",
+    ) as HTMLElement;
+    expect(within(card).getByText("2 new roles at companies you follow")).toBeInTheDocument();
+    expect(within(card).getByRole("link", { name: "Nimbus AI: 2 new roles" })).toHaveAttribute(
+      "href",
+      "/ats-targets?tab=mine",
+    );
+  });
+});

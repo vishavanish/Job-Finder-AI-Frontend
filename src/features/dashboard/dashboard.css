@@ -362,3 +362,15 @@
 .dashboard-actions a {
   text-decoration: none;
 }
+
+/* ---- New at your companies (QA4) ---- */
+
+.dash-targets {
+  margin-top: var(--space-4);
+}
+
+.dash-targets .kit-card-head:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}

@@ -15,6 +15,7 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { errorMessage } from "../../lib/api/errors";
 import type { ApplicationLogEntry } from "../../lib/api/types";
 import { applyKeys, listRuns } from "../apply/applyApi";
+import { NewAtCompaniesCard } from "../ats/NewAtCompaniesCard";
 import { CLOSED_STATUSES, formatDate, sourceLabel } from "../tracker/stages";
 import { getStats, listApplications, listGmailAccounts, trackerKeys } from "../tracker/trackerApi";
 import "../tracker/tracker.css";
@@ -351,6 +352,8 @@ export default function DashboardPage() {
           </section>
         </>
       )}
+
+      <NewAtCompaniesCard />
 
       <section className="dashboard-actions" aria-label="Quick actions">
         {applied === 0 && (
