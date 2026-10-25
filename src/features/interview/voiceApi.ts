@@ -1,4 +1,5 @@
 /** Voice interview prep calls (backend P7): providers, settings, sessions, feedback, history, story bank. */
+import type { IconName } from "../../components/Icon";
 import { api } from "../../lib/api/client";
 import type {
   Story,
@@ -96,6 +97,19 @@ export const INTERVIEW_TYPES: {
     hint: "Questions about your own experience.",
   },
 ];
+
+/** Icon per interview type (Practice) or "copilot". */
+export const TYPE_ICONS: Record<string, IconName> = {
+  behavioral: "message",
+  technical: "code",
+  system_design: "network",
+  role_specific: "briefcase",
+  rapid_fire: "zap",
+  resume_walkthrough: "fileText",
+  copilot: "sparkle",
+};
+
+export const typeIcon = (t: string): IconName => TYPE_ICONS[t] ?? "mic";
 
 export const typeLabel = (t: string) =>
   INTERVIEW_TYPES.find((x) => x.value === t)?.label ?? t.replace(/_/g, " ");

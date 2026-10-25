@@ -1,5 +1,5 @@
 /**
- * Story bank (F7 plan §1.8): the STAR stories that ground model answers in
+ * Story bank (F7 plan §1.8; restyled in F7.1): the STAR stories that ground model answers in
  * Practice and Live Copilot suggestions. "Draft from my resume" queues an AI
  * task (shown in the activity tray); drafts are used only after approval.
  */
@@ -9,6 +9,8 @@ import { useActivity } from "../../app/activity";
 import { ChipInput } from "../../components/ChipInput";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Dialog } from "../../components/Dialog";
+import { Icon } from "../../components/Icon";
+import { EmptyState, IconTile, PageHeader, StatChip } from "../../components/PageKit";
 import { errorMessage } from "../../lib/api/errors";
 import type { Story, StoryIn } from "../../lib/api/types";
 import { InterviewNav } from "./parts";
@@ -159,39 +161,55 @@ export default function StoryBankPage() {
   const approved = list.filter((s) => s.approved);
 
   const row = (s: Story) => (
-    <li key={s.id} className="card iv-story">
+    <li key={s.id} className={`card kit-card iv-story${s.approved ? "" : " is-draft"}`}>
       <div className="iv-story-head">
-        <h4>{s.title}</h4>
-        {s.origin === "ai" && <span className="badge">AI draft</span>}
-        {(s.skills ?? []).map((k) => (
-          <span key={k} className="chip">
-            {k}
-          </span>
-        ))}
+        <IconTile
+          icon={s.approved ? "book" : "sparkle"}
+          tone={s.approved ? "accent" : "attention"}
+        />
+        <div className="iv-story-title">
+          <h4>{s.title}</h4>
+          <div className="iv-story-tags">
+            {s.origin === "ai" && <span className="badge tone-attention">AI draft</span>}
+            {(s.skills ?? []).map((k) => (
+              <span key={k} className="chip">
+                {k}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
       <dl className="iv-star-list">
         {PARTS.filter(([k]) => s[k]).map(([k, label]) => (
           <div key={k}>
-            <dt>{label}</dt>
+            <dt>
+              <span className="iv-star-letter" aria-hidden="true">
+                {label[0]}
+              </span>
+              {label}
+            </dt>
             <dd>{s[k]}</dd>
           </div>
         ))}
       </dl>
-      <div className="row-actions">
+      <div className="iv-story-actions">
         {!s.approved && (
           <button
             type="button"
-            className="btn-small"
+            className="btn-run iv-icon-btn"
             onClick={() => approve.mutate(s.id)}
             disabled={approve.isPending}
           >
+            <Icon name="check" size={14} />
             Use this story
           </button>
         )}
-        <button type="button" className="btn-small" onClick={() => setEditing(s)}>
+        <button type="button" className="btn-secondary iv-icon-btn" onClick={() => setEditing(s)}>
+          <Icon name="pencil" size={14} />
           {s.approved ? "Edit" : "Review"}
         </button>
-        <button type="button" className="btn-small" onClick={() => setRemoving(s)}>
+        <button type="button" className="btn-secondary iv-icon-btn" onClick={() => setRemoving(s)}>
+          <Icon name="trash" size={14} />
           Delete
         </button>
       </div>
@@ -200,63 +218,76 @@ export default function StoryBankPage() {
 
   return (
     <div className="iv-page">
-      <div className="page-header">
-        <div>
-          <h2>Story bank</h2>
-          <p>
-            Your real STAR stories. Model answers and copilot suggestions use only these and your
-            resume.
-          </p>
-        </div>
-        <div className="row-actions">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => draft.mutate()}
-            disabled={draft.isPending || Boolean(taskId)}
-          >
-            {taskId ? "Drafting…" : "Draft from my resume"}
-          </button>
-          <button type="button" className="btn-run" onClick={() => setEditing("new")}>
-            Add a story
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Interview prep"
+        title="Story bank"
+        sub="Your real STAR stories. Model answers and copilot suggestions use only these and your resume."
+      >
+        {list.length > 0 && (
+          <StatChip dot="positive">
+            <strong className="num">{approved.length}</strong> in use
+          </StatChip>
+        )}
+        <button
+          type="button"
+          className="btn-secondary iv-icon-btn"
+          onClick={() => draft.mutate()}
+          disabled={draft.isPending || Boolean(taskId)}
+        >
+          <Icon name="sparkle" size={14} />
+          {taskId ? "Drafting…" : "Draft from my resume"}
+        </button>
+        <button type="button" className="btn-run iv-icon-btn" onClick={() => setEditing("new")}>
+          <Icon name="pencil" size={14} />
+          Add a story
+        </button>
+      </PageHeader>
       <InterviewNav />
       {draft.error && (
-        <p className="login-error" role="alert">
+        <p className="kit-banner bad" role="alert">
           {errorMessage(draft.error)}
         </p>
       )}
       {taskId && (
-        <p className="iv-notice" role="status">
-          Drafting stories from your resume — they'll appear below for you to review.
+        <p className="kit-banner" role="status">
+          <span className="spinner" aria-hidden="true" />
+          Drafting stories from your resume — they&apos;ll appear below for you to review.
         </p>
       )}
       {stories.isLoading ? (
-        <p className="field-hint" role="status">
-          Loading stories…
-        </p>
+        <div className="iv-skeleton" role="status" aria-label="Loading stories">
+          <span />
+          <span />
+          <span />
+        </div>
       ) : stories.error ? (
-        <p className="login-error" role="alert">
+        <p className="kit-banner bad" role="alert">
           {errorMessage(stories.error)}
         </p>
       ) : list.length === 0 ? (
-        <div className="empty-state">
-          <p>No stories yet. Add one, or draft a few from your resume and review them.</p>
-        </div>
+        <EmptyState icon="book" title="No stories yet.">
+          <p>Add one, or draft a few from your resume and review them.</p>
+        </EmptyState>
       ) : (
         <>
           {drafts.length > 0 && (
-            <section aria-labelledby="drafts-title">
-              <h3 id="drafts-title">Needs your review ({drafts.length})</h3>
-              <p className="field-hint">Drafts aren't used until you approve them.</p>
-              <ul className="iv-stories">{drafts.map(row)}</ul>
+            <section className="iv-story-section" aria-labelledby="drafts-title">
+              <div className="iv-section-head">
+                <h3 id="drafts-title" className="iv-section-title">
+                  Needs your review ({drafts.length})
+                </h3>
+                <p className="field-hint">Drafts aren&apos;t used until you approve them.</p>
+              </div>
+              <ul className="iv-stories kit-rise">{drafts.map(row)}</ul>
             </section>
           )}
-          <section aria-labelledby="stories-title">
-            <h3 id="stories-title">In use ({approved.length})</h3>
-            <ul className="iv-stories">{approved.map(row)}</ul>
+          <section className="iv-story-section" aria-labelledby="stories-title">
+            <div className="iv-section-head">
+              <h3 id="stories-title" className="iv-section-title">
+                In use ({approved.length})
+              </h3>
+            </div>
+            <ul className="iv-stories kit-rise">{approved.map(row)}</ul>
           </section>
         </>
       )}

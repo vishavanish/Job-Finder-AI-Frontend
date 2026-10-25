@@ -8,10 +8,9 @@
  * with stat chips, funnel card beside a "Needs you" + weekly velocity column,
  * and an active pipeline table underneath. Only real numbers are shown.
  */
-import { useId, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Icon, type IconName } from "../../components/Icon";
+import { ActionRow, CardHead, PageHeader, StatChip } from "../../components/PageKit";
 import { StatusBadge } from "../../components/StatusBadge";
 import { errorMessage } from "../../lib/api/errors";
 import type { ApplicationLogEntry } from "../../lib/api/types";
@@ -77,58 +76,6 @@ function lastSevenDays(rows: ApplicationLogEntry[]) {
   });
 }
 
-function CardHead({
-  icon,
-  tone,
-  id,
-  title,
-  sub,
-  children,
-}: {
-  icon: IconName;
-  tone: "accent" | "attention";
-  id: string;
-  title: string;
-  sub: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="dash-card-head">
-      <span className={`dash-icon dash-icon--${tone}`} aria-hidden="true">
-        <Icon name={icon} size={16} />
-      </span>
-      <div className="dash-card-title">
-        <h3 id={id}>{title}</h3>
-        <p>{sub}</p>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function ActionRow({ to, n, title, sub }: { to: string; n: number; title: string; sub: string }) {
-  const subId = useId();
-  return (
-    <Link
-      to={to}
-      className={"dash-action" + (n > 0 ? " is-hot" : "")}
-      aria-label={title}
-      aria-describedby={subId}
-    >
-      <span className="dash-action-count num" aria-hidden="true">
-        {n}
-      </span>
-      <span className="dash-action-text">
-        <span className="dash-action-title">{title}</span>
-        <span className="dash-action-sub" id={subId}>
-          {sub}
-        </span>
-      </span>
-      <Icon name="arrowRight" size={16} />
-    </Link>
-  );
-}
-
 export default function DashboardPage() {
   const stats = useQuery({ queryKey: trackerKeys.stats, queryFn: getStats });
   const recent = useQuery({
@@ -163,30 +110,25 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      <div className="page-header dash-header">
-        <div>
-          <span className="dash-eyebrow">
-            <span className="dash-dot" aria-hidden="true" />
-            Your job search
-          </span>
-          <h2>Dashboard</h2>
-          <p>Where your applications stand and what needs you.</p>
-        </div>
+      <PageHeader
+        eyebrow="Your job search"
+        title="Dashboard"
+        sub="Where your applications stand and what needs you."
+      >
         {s && applied > 0 && (
-          <div className="dash-chips">
-            <span className="dash-chip">
-              <span className="dash-dot dash-dot--positive" aria-hidden="true" />
+          <>
+            <StatChip dot="positive">
               <strong className="num">{pipeline.length}</strong> active
-            </span>
-            <span className="dash-chip">
+            </StatChip>
+            <StatChip>
               <strong className="num">{pct(heard, applied)}%</strong> response rate
-            </span>
+            </StatChip>
             <Link to="/jobs" className="btn-run dash-new">
               Find jobs
             </Link>
-          </div>
+          </>
         )}
-      </div>
+      </PageHeader>
 
       {stats.isError ? (
         <p className="login-error" role="alert">
@@ -201,7 +143,7 @@ export default function DashboardPage() {
           <div className="skeleton-row" />
         </div>
       ) : applied === 0 ? (
-        <div className="card dash-card dashboard-empty">
+        <div className="card kit-card dashboard-empty">
           <h3>No applications yet</h3>
           <p>
             Start with a search: <Link to="/jobs">find jobs</Link> that match your profile, then
@@ -211,7 +153,7 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="dash-grid">
-            <section className="card dash-card dash-funnel" aria-labelledby="funnel-h">
+            <section className="card kit-card dash-funnel" aria-labelledby="funnel-h">
               <CardHead
                 icon="layers"
                 tone="accent"
@@ -257,7 +199,7 @@ export default function DashboardPage() {
 
               <div className="dash-card-foot">
                 <span className="funnel-rejected">
-                  <span className="dash-dot dash-dot--negative" aria-hidden="true" />
+                  <span className="kit-dot kit-dot--negative" aria-hidden="true" />
                   <Link to="/tracker?status=rejected">
                     {plural(rejected, "rejection", "rejections")}
                   </Link>
@@ -270,7 +212,7 @@ export default function DashboardPage() {
             </section>
 
             <div className="dash-side">
-              <section className="card dash-card" aria-labelledby="needs-h">
+              <section className="card kit-card" aria-labelledby="needs-h">
                 <CardHead
                   icon="alert"
                   tone="attention"
@@ -302,7 +244,7 @@ export default function DashboardPage() {
                 </div>
               </section>
 
-              <section className="card dash-card" aria-labelledby="week-h">
+              <section className="card kit-card" aria-labelledby="week-h">
                 <CardHead
                   icon="activity"
                   tone="accent"
@@ -343,7 +285,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <section className="card dash-card dash-pipeline" aria-labelledby="pipeline-h">
+          <section className="card kit-card dash-pipeline" aria-labelledby="pipeline-h">
             <CardHead
               icon="inbox"
               tone="accent"

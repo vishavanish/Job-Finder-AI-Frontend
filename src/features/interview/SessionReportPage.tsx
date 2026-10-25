@@ -1,19 +1,21 @@
 /**
- * A session's report (spec §6.10 report, §7.1 after Stop): Practice shows
- * per-answer and overall scores, STAR parts, filler words and pace,
- * strengths, improvements and model answers; Live Copilot shows the
- * debrief, weak topics, the questions to prepare and every card. Feedback is
- * polled every 3 s while it is being prepared (stops after 2 minutes; the
- * server keeps retrying busy AI models for longer, so "Check again" resumes
- * it). Failed feedback has a Try again button.
+ * A session's report (spec §6.10 report, §7.1 after Stop; restyled in
+ * F7.1): Practice shows the overall score, delivery tiles, per-answer scores,
+ * STAR steps, strengths, improvements and model answers; Live Copilot shows
+ * the debrief, weak topics, the questions to prepare and every card.
+ * Feedback is polled every 3 s while it is being prepared (stops after 2
+ * minutes; the server keeps retrying busy AI models for longer, so "Check
+ * again" resumes it). Failed feedback has a Try again button.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { Icon, type IconName } from "../../components/Icon";
+import { CardHead, IconTile, PageHeader, StatChip } from "../../components/PageKit";
 import { errorMessage } from "../../lib/api/errors";
 import type { AnswerFeedback } from "../../lib/api/types";
-import { InterviewNav, ScoreBars } from "./parts";
+import { InterviewNav, ScoreBars, ScoreDial, ScorePill } from "./parts";
 import {
   END_REASONS,
   createVoiceSession,
@@ -22,6 +24,7 @@ import {
   getVoiceFeedback,
   getVoiceSession,
   retryVoiceFeedback,
+  typeIcon,
   typeLabel,
   voiceKeys,
 } from "./voiceApi";
@@ -31,58 +34,103 @@ const POLL_MS = 3000;
 const POLL_LIMIT_MS = 120_000;
 const STAR = ["situation", "task", "action", "result"] as const;
 
+function average(scores: Record<string, unknown>): number | null {
+  const v = Object.values(scores).filter((x): x is number => typeof x === "number");
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+}
+
+function MetricTile({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+  return (
+    <div className="iv-metric">
+      <Icon name={icon} size={16} />
+      <span className="iv-metric-value num">{value}</span>
+      <span className="iv-metric-label">{label}</span>
+    </div>
+  );
+}
+
 function AnswerCard({ a, index }: { a: AnswerFeedback; index: number }) {
   const m = a.metrics as { wpm?: number | null; filler_count?: number; long_pauses?: number };
+  const avg = average(a.scores);
   return (
-    <li className="card iv-answer">
-      <h4>
-        {index + 1}. {a.question}
-      </h4>
+    <li className="card kit-card iv-answer">
+      <div className="iv-answer-head">
+        <span className="iv-answer-n num" aria-hidden="true">
+          {index + 1}
+        </span>
+        <h4>
+          <span className="sr-only">{index + 1}. </span>
+          {a.question}
+        </h4>
+        {avg != null && <ScorePill score={avg} />}
+      </div>
       <p className="iv-your-answer">
         <span className="iv-who">Your answer</span> {a.answer || <em>(no answer)</em>}
       </p>
-      <ScoreBars scores={a.scores} />
-      {Object.keys(a.star).length > 0 && (
-        <p className="iv-star" aria-label="STAR parts">
-          {STAR.map((k) => (
-            <span key={k} className={`badge ${a.star[k] ? "tone-positive" : "tone-muted"}`}>
-              {a.star[k] ? "✓" : "–"} {k}
-            </span>
-          ))}
-        </p>
-      )}
-      {(m.wpm || m.filler_count) && (
-        <p className="field-hint">
-          {m.wpm ? `${m.wpm} words per minute` : ""}
-          {m.filler_count
-            ? ` · ${m.filler_count} filler word${m.filler_count === 1 ? "" : "s"}`
-            : ""}
-          {m.long_pauses ? ` · ${m.long_pauses} long pause${m.long_pauses === 1 ? "" : "s"}` : ""}
-        </p>
-      )}
-      {a.strengths.length > 0 && (
+      <div className="iv-answer-body">
+        <ScoreBars scores={a.scores} />
         <div>
-          <h5>Strengths</h5>
-          <ul>
-            {a.strengths.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
+          {Object.keys(a.star).length > 0 && (
+            <ol className="iv-star" aria-label="STAR parts">
+              {STAR.map((k) => (
+                <li key={k} className={a.star[k] ? "is-on" : ""}>
+                  <span className="iv-star-dot" aria-hidden="true">
+                    {a.star[k] ? <Icon name="check" size={12} /> : k[0]!.toUpperCase()}
+                  </span>
+                  <span>
+                    {k}
+                    <span className="sr-only">{a.star[k] ? " covered" : " missing"}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+          {(m.wpm || m.filler_count) && (
+            <p className="field-hint">
+              {m.wpm ? `${m.wpm} words per minute` : ""}
+              {m.filler_count
+                ? ` · ${m.filler_count} filler word${m.filler_count === 1 ? "" : "s"}`
+                : ""}
+              {m.long_pauses
+                ? ` · ${m.long_pauses} long pause${m.long_pauses === 1 ? "" : "s"}`
+                : ""}
+            </p>
+          )}
         </div>
-      )}
-      {a.improvements.length > 0 && (
-        <div>
-          <h5>Improve</h5>
-          <ul>
-            {a.improvements.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
+      </div>
+      {(a.strengths.length > 0 || a.improvements.length > 0) && (
+        <div className="iv-two">
+          {a.strengths.length > 0 && (
+            <div className="iv-list iv-list--good">
+              <h5>
+                <Icon name="check" size={14} /> Strengths
+              </h5>
+              <ul>
+                {a.strengths.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {a.improvements.length > 0 && (
+            <div className="iv-list iv-list--fix">
+              <h5>
+                <Icon name="target" size={14} /> Improve
+              </h5>
+              <ul>
+                {a.improvements.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
       {a.model_answer && (
         <details className="iv-model">
-          <summary>Model answer (from your resume and stories)</summary>
+          <summary>
+            <Icon name="sparkle" size={14} /> Model answer (from your resume and stories)
+          </summary>
           <p className="iv-pre">{a.model_answer}</p>
         </details>
       )}
@@ -152,15 +200,17 @@ export default function SessionReportPage() {
 
   if (detail.isLoading)
     return (
-      <p className="field-hint" role="status">
-        Loading the session…
-      </p>
+      <div className="iv-skeleton" role="status" aria-label="Loading the session">
+        <span />
+        <span />
+        <span />
+      </div>
     );
   if (detail.error || !detail.data) {
     return (
       <div className="iv-page">
         <InterviewNav />
-        <p className="login-error" role="alert">
+        <p className="kit-banner bad" role="alert">
           {errorMessage(detail.error, "This session doesn't exist (it may have been deleted).")}
         </p>
         <Link to="/interview/history">Back to history</Link>
@@ -175,47 +225,62 @@ export default function SessionReportPage() {
     []) as string[];
   const delivery = fb?.delivery as
     { wpm?: number; filler_count?: number; long_pauses?: number } | undefined;
+  const itype = String(s.config.interview_type ?? "");
 
   return (
     <div className="iv-page">
-      <div className="page-header">
-        <div>
-          <h2>
-            {copilot
-              ? "Live Copilot session"
-              : `${typeLabel(String(s.config.interview_type ?? ""))} practice`}
-          </h2>
-          <p>
-            {new Date(s.created_at).toLocaleString()} · {formatDuration(s.duration_s)} ·{" "}
-            {END_REASONS[s.end_reason ?? ""] ?? s.state}
+      <PageHeader
+        eyebrow={copilot ? "Copilot debrief" : "Practice report"}
+        title={copilot ? "Live Copilot session" : `${typeLabel(itype)} practice`}
+        sub={
+          <>
+            {new Date(s.created_at).toLocaleString()}
             {s.job_title ? ` · ${s.job_title}, ${s.company}` : s.role ? ` · ${s.role}` : ""}
-          </p>
-        </div>
-        <button type="button" className="btn-secondary" onClick={() => setConfirm(true)}>
+          </>
+        }
+      >
+        <StatChip icon="clock">
+          <strong className="num">{formatDuration(s.duration_s)}</strong>
+        </StatChip>
+        <StatChip dot={s.end_reason === "disconnected" ? "negative" : "positive"}>
+          {END_REASONS[s.end_reason ?? ""] ?? s.state}
+        </StatChip>
+        <button
+          type="button"
+          className="btn-secondary iv-icon-btn"
+          onClick={() => setConfirm(true)}
+        >
+          <Icon name="trash" size={14} />
           Delete session
         </button>
-      </div>
+      </PageHeader>
       <InterviewNav />
 
       {(!fb || fb.state === "pending") &&
         (slow ? (
-          <p className="card iv-pending" role="status">
-            This is taking longer than usual — the AI models are busy, so we keep trying for a few
-            more minutes.{" "}
+          <p className="kit-banner warn iv-pending" role="status">
+            <Icon name="clock" size={16} />
+            <span>
+              This is taking longer than usual — the AI models are busy, so we keep trying for a few
+              more minutes.
+            </span>{" "}
             <button type="button" className="link-button" onClick={pollAgain}>
               Check again
             </button>
           </p>
         ) : (
-          <p className="card iv-pending" role="status">
-            <span className="spinner" aria-hidden="true" /> Your feedback is being prepared — this
-            usually takes under a minute.
+          <p className="kit-banner iv-pending" role="status">
+            <span className="spinner" aria-hidden="true" />
+            <span>Your feedback is being prepared — this usually takes under a minute.</span>
           </p>
         ))}
       {fb?.state === "failed" && (
-        <p className="login-error" role="alert">
-          We couldn't prepare feedback for this session (no AI model was available, even after
-          several tries). The transcript is below.{" "}
+        <p className="kit-banner bad" role="alert">
+          <Icon name="alert" size={16} />
+          <span>
+            We couldn&apos;t prepare feedback for this session (no AI model was available, even
+            after several tries). The transcript is below.
+          </span>{" "}
           <button
             type="button"
             className="link-button"
@@ -229,72 +294,157 @@ export default function SessionReportPage() {
       )}
 
       {fb?.state === "ready" && (
-        <>
-          <section className="card iv-summary" aria-labelledby="summary-title">
-            <h3 id="summary-title">{copilot ? "Debrief" : "Overall"}</h3>
-            {!copilot && fb.overall_score != null && (
-              <p className="iv-overall">
-                <strong className="num">{fb.overall_score.toFixed(1)}</strong>/5
-              </p>
-            )}
-            {fb.summary && <p>{fb.summary}</p>}
-            {!copilot && <ScoreBars scores={fb.scores ?? {}} />}
-            {delivery?.wpm != null && (
-              <p className="field-hint">
-                Pace {delivery.wpm} words per minute · {delivery.filler_count ?? 0} filler words ·{" "}
-                {delivery.long_pauses ?? 0} long pauses
-              </p>
-            )}
-            {weakTopics.length > 0 && <p>Weak topics: {weakTopics.join(", ")}</p>}
-            {(fb.improvements ?? []).length > 0 && (
-              <>
-                <h4>What to improve</h4>
-                <ul>
-                  {(fb.improvements ?? []).map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {weak.length > 0 && (
-              <div className="iv-weak">
-                <h4>{copilot ? "Questions to prepare" : "Weak questions"}</h4>
-                <ul>
-                  {weak.map((q) => (
-                    <li key={q}>{q}</li>
-                  ))}
-                </ul>
-                <button
-                  type="button"
-                  className="btn-run"
-                  onClick={() => drill.mutate(weak)}
-                  disabled={drill.isPending}
-                >
-                  Practice these questions
-                </button>
-                {drill.error && <p className="login-error">{errorMessage(drill.error)}</p>}
+        <div className="iv-report kit-rise">
+          <section className="card kit-card iv-hero" aria-labelledby="summary-title">
+            <div className="iv-hero-main">
+              {!copilot && fb.overall_score != null ? (
+                <ScoreDial score={fb.overall_score} size={120} label="Overall score" />
+              ) : (
+                <IconTile icon={copilot ? "sparkle" : typeIcon(itype)} size="lg" />
+              )}
+              <div className="iv-hero-text">
+                <h3 id="summary-title">{copilot ? "Debrief" : "Overall"}</h3>
+                {!copilot && fb.overall_score != null && (
+                  <p className="iv-overall">
+                    <strong className="num">{fb.overall_score.toFixed(1)}</strong>/5
+                  </p>
+                )}
+                {fb.summary && <p className="iv-summary-text">{fb.summary}</p>}
+                {weakTopics.length > 0 && (
+                  <p className="iv-topics">Weak topics: {weakTopics.join(", ")}</p>
+                )}
+              </div>
+            </div>
+            {!copilot && (
+              <div className="iv-metrics">
+                <MetricTile
+                  icon="activity"
+                  label="words per minute"
+                  value={delivery?.wpm != null ? String(delivery.wpm) : "–"}
+                />
+                <MetricTile
+                  icon="message"
+                  label="filler words"
+                  value={String(delivery?.filler_count ?? 0)}
+                />
+                <MetricTile
+                  icon="pause"
+                  label="long pauses"
+                  value={String(delivery?.long_pauses ?? 0)}
+                />
+                <MetricTile icon="clock" label="length" value={formatDuration(s.duration_s)} />
               </div>
             )}
           </section>
 
+          {!copilot && Object.keys(fb.scores ?? {}).length > 0 && (
+            <section className="card kit-card" aria-labelledby="scores-title">
+              <CardHead
+                icon="chart"
+                id="scores-title"
+                title="Scores"
+                sub="Across every answer, out of 5"
+              />
+              <ScoreBars scores={fb.scores ?? {}} />
+            </section>
+          )}
+
+          {((fb.strengths ?? []).length > 0 || (fb.improvements ?? []).length > 0) && (
+            <div className="iv-two">
+              {(fb.strengths ?? []).length > 0 && (
+                <section className="card kit-card" aria-labelledby="strengths-title">
+                  <CardHead
+                    icon="star"
+                    tone="positive"
+                    id="strengths-title"
+                    title="What went well"
+                  />
+                  <ul className="iv-bullets iv-bullets--good">
+                    {(fb.strengths ?? []).map((x) => (
+                      <li key={x}>{x}</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              {(fb.improvements ?? []).length > 0 && (
+                <section className="card kit-card" aria-labelledby="improve-title">
+                  <CardHead
+                    icon="target"
+                    tone="attention"
+                    id="improve-title"
+                    title="What to improve"
+                  />
+                  <ul className="iv-bullets iv-bullets--fix">
+                    {(fb.improvements ?? []).map((x) => (
+                      <li key={x}>{x}</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
+          )}
+
+          {weak.length > 0 && (
+            <section className="card kit-card iv-weak" aria-labelledby="weak-title">
+              <CardHead
+                icon="target"
+                tone="attention"
+                id="weak-title"
+                title={copilot ? "Questions to prepare" : "Weak questions"}
+                sub="Practice them again with the AI interviewer"
+              />
+              <ol className="iv-weak-list">
+                {weak.map((q, i) => (
+                  <li key={q}>
+                    <span className="iv-weak-n num" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <span>{q}</span>
+                  </li>
+                ))}
+              </ol>
+              <button
+                type="button"
+                className="btn-run iv-icon-btn"
+                onClick={() => drill.mutate(weak)}
+                disabled={drill.isPending}
+              >
+                <Icon name="mic" size={15} />
+                Practice these questions
+              </button>
+              {drill.error && <p className="login-error">{errorMessage(drill.error)}</p>}
+            </section>
+          )}
+
           {copilot ? (
             <section aria-labelledby="cards-title">
-              <h3 id="cards-title">Questions and suggestions</h3>
+              <h3 id="cards-title" className="iv-section-title">
+                Questions and suggestions
+              </h3>
               <ol className="iv-answers">
                 {(fb.answers ?? []).map((a, i) => (
-                  <li key={`${a.question}-${i}`} className="card iv-answer">
-                    <h4>{a.question}</h4>
-                    <p className="iv-pre">{a.answer || <em>(no suggestion shown)</em>}</p>
-                    {Boolean((a.metrics as { not_sure?: boolean }).not_sure) && (
-                      <span className="badge tone-attention">not sure</span>
-                    )}
+                  <li key={`${a.question}-${i}`} className="card kit-card iv-answer">
+                    <div className="iv-answer-head">
+                      <span className="iv-answer-n num" aria-hidden="true">
+                        {i + 1}
+                      </span>
+                      <h4>{a.question}</h4>
+                      {Boolean((a.metrics as { not_sure?: boolean }).not_sure) && (
+                        <span className="badge tone-attention">not sure</span>
+                      )}
+                    </div>
+                    <p className="iv-pre iv-suggestion">
+                      {a.answer || <em>(no suggestion shown)</em>}
+                    </p>
                   </li>
                 ))}
               </ol>
             </section>
           ) : (
             <section aria-labelledby="answers-title">
-              <h3 id="answers-title">Answer by answer</h3>
+              <h3 id="answers-title" className="iv-section-title">
+                Answer by answer
+              </h3>
               <ol className="iv-answers">
                 {(fb.answers ?? []).map((a, i) => (
                   <AnswerCard key={a.turn_id ?? i} a={a} index={i} />
@@ -302,14 +452,16 @@ export default function SessionReportPage() {
               </ol>
             </section>
           )}
-        </>
+        </div>
       )}
 
-      <details className="card iv-transcript">
-        <summary>Full transcript</summary>
+      <details className="card kit-card iv-transcript">
+        <summary>
+          <Icon name="fileText" size={15} /> Full transcript
+        </summary>
         <ol>
           {detail.data.turns.map((t) => (
-            <li key={t.id}>
+            <li key={t.id} className={`iv-tline iv-tline-${t.speaker}`}>
               <span className="iv-who">
                 {t.speaker === "assistant"
                   ? "Suggestion"

@@ -1,20 +1,42 @@
 /** Small pieces shared by the Interview prep screens. */
+import { useQuery } from "@tanstack/react-query";
 import { NavLink, useLocation } from "react-router-dom";
+import { Icon, type IconName } from "../../components/Icon";
 import type { ProgressArea, VoiceProviders } from "../../lib/api/types";
 import { useEntitlement } from "../../lib/auth/access";
+import { getVoiceHistory, listStories, voiceKeys } from "./voiceApi";
 
-/** Tabs: Practice · Live Copilot · History · Story bank. */
+/** Tabs: Practice · Live Copilot · History · Story bank, as Jobs-style pills with counts. */
 export function InterviewNav() {
   const copilot = useEntitlement("live_copilot");
   const { pathname } = useLocation();
+  const history = useQuery({
+    queryKey: [...voiceKeys.all, "history-count"],
+    queryFn: () => getVoiceHistory("", 1),
+    staleTime: 30_000,
+  });
+  const stories = useQuery({
+    queryKey: voiceKeys.stories,
+    queryFn: listStories,
+    staleTime: 30_000,
+  });
+  const drafts = (stories.data?.stories ?? []).filter((s) => !s.approved).length;
   // A practice session and any report belong to the Practice tab.
   const practice =
     pathname === "/interview" || /^\/interview\/(practice|sessions)\//.test(pathname);
-  const tabs = [
-    { to: "/interview", label: "Practice", end: true },
-    { to: "/interview/copilot", label: "Live Copilot", off: !copilot.allowed },
-    { to: "/interview/history", label: "History" },
-    { to: "/interview/stories", label: "Story bank" },
+  const tabs: {
+    to: string;
+    label: string;
+    icon: IconName;
+    end?: boolean;
+    off?: boolean;
+    count?: number;
+    hot?: boolean;
+  }[] = [
+    { to: "/interview", label: "Practice", icon: "mic", end: true },
+    { to: "/interview/copilot", label: "Live Copilot", icon: "sparkle", off: !copilot.allowed },
+    { to: "/interview/history", label: "History", icon: "history", count: history.data?.total },
+    { to: "/interview/stories", label: "Story bank", icon: "book", count: drafts, hot: drafts > 0 },
   ];
   return (
     <nav className="iv-tabs" aria-label="Interview prep">
@@ -27,8 +49,20 @@ export function InterviewNav() {
             `iv-tab${(t.to === "/interview" ? practice : isActive) ? " active" : ""}`
           }
         >
+          <Icon name={t.icon} size={15} />
           {t.label}
-          {t.off && <span className="iv-tab-off"> · off</span>}
+          {t.off && (
+            <span className="iv-tab-off">
+              <Icon name="lock" size={12} />
+              <span className="sr-only"> off</span>
+            </span>
+          )}
+          {t.count ? (
+            <span className={`iv-tab-count num${t.hot ? " is-hot" : ""}`}>
+              {t.count}
+              {t.hot && <span className="sr-only"> to review</span>}
+            </span>
+          ) : null}
         </NavLink>
       ))}
     </nav>
@@ -40,6 +74,7 @@ export function LevelMeter({ label, level }: { label: string; level: number }) {
   const pct = Math.round(Math.max(0, Math.min(1, level)) * 100);
   return (
     <div className="iv-meter">
+      <Icon name="mic" size={14} />
       <span className="iv-meter-label">{label}</span>
       <div
         className="iv-meter-track"
@@ -67,19 +102,83 @@ export function ProviderLine({
   const seconds = (providers.expected_first_word_ms / 1000).toFixed(1);
   const free = providers.stt?.tier !== "paid" && providers.tts.tier !== "paid";
   if (!providers.ready) {
-    return <p className="iv-provider warn">{providers.reason ?? "Voice isn't set up yet."}</p>;
+    return (
+      <p className="iv-provider warn">
+        <span className="kit-dot kit-dot--negative" aria-hidden="true" />
+        {providers.reason ?? "Voice isn't set up yet."}
+      </p>
+    );
   }
   return (
     <p className="iv-provider">
-      {free ? "Free mode" : "Voice"}: {providers.stt?.name ?? "no speech-to-text"}
-      {copilot ? "" : ` · ${providers.tts.name}`} · {copilot ? "answers appear" : "replies"} in
-      about {seconds} s
-      {copilot && !providers.streaming_stt && " (add a Deepgram key for under 1 s)"}.
+      <span className="kit-dot kit-dot--positive" aria-hidden="true" />
+      <span>
+        {free ? "Free mode" : "Voice"}: {providers.stt?.name ?? "no speech-to-text"}
+        {copilot ? "" : ` · ${providers.tts.name}`} · {copilot ? "answers appear" : "replies"} in
+        about {seconds} s
+        {copilot && !providers.streaming_stt && " (add a Deepgram key for under 1 s)"}.
+      </span>
     </p>
   );
 }
 
-/** Scores per skill area as plain SVG bars with the latest-sessions trend (no chart library). */
+function band(score: number): "high" | "mid" | "low" {
+  if (score >= 4) return "high";
+  if (score >= 3) return "mid";
+  return "low";
+}
+
+/** A 1–5 score as a ring with the number inside. */
+export function ScoreDial({
+  score,
+  size = 88,
+  label = "Average score",
+}: {
+  score: number;
+  size?: number;
+  label?: string;
+}) {
+  const r = 40;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(5, score));
+  return (
+    <span
+      className={`iv-dial band-${band(v)}`}
+      role="img"
+      aria-label={`${label} ${v.toFixed(1)} out of 5`}
+      style={{ width: size, height: size }}
+    >
+      <svg viewBox="0 0 96 96" aria-hidden="true">
+        <defs>
+          <linearGradient id="iv-dial-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--accent)" />
+            <stop offset="100%" stopColor="#5b5bd6" />
+          </linearGradient>
+        </defs>
+        <circle className="iv-dial-track" cx="48" cy="48" r={r} />
+        <circle
+          className="iv-dial-value"
+          cx="48"
+          cy="48"
+          r={r}
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - v / 5)}
+        />
+      </svg>
+      <span className="iv-dial-number">
+        <strong className="num">{v.toFixed(1)}</strong>
+        <small>/5</small>
+      </span>
+    </span>
+  );
+}
+
+/** A score pill coloured by band; the number carries the meaning. */
+export function ScorePill({ score }: { score: number }) {
+  return <span className={`iv-score-pill band-${band(score)} num`}>{score.toFixed(1)}/5</span>;
+}
+
+/** Scores per skill area as gradient bars with the latest-sessions trend (no chart library). */
 export function ProgressChart({ areas }: { areas: ProgressArea[] }) {
   if (!areas.length)
     return <p className="field-hint">Finish a practice session to see your progress here.</p>;
@@ -99,7 +198,7 @@ export function ProgressChart({ areas }: { areas: ProgressArea[] }) {
             <span className="iv-progress-bar" aria-hidden="true">
               <span style={{ width: `${(a.average / 5) * 100}%` }} />
             </span>
-            <span className="num">{a.average.toFixed(1)}/5</span>
+            <span className="num iv-progress-num">{a.average.toFixed(1)}/5</span>
             <svg
               className="iv-spark"
               viewBox="0 0 100 32"

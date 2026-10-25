@@ -24,9 +24,19 @@ export function RequireRole({ roles, children }: { roles: readonly Role[]; child
 }
 
 /** Wraps a page that needs a feature: shows the reason instead of a form that will fail. */
-export function RequireFeature({ feature, children }: { feature: string; children: ReactNode }) {
+export function RequireFeature({
+  feature,
+  children,
+  fallback,
+}: {
+  feature: string;
+  children: ReactNode;
+  /** A page of its own for the locked state (gets the reason). */
+  fallback?: (reason: string) => ReactNode;
+}) {
   const { allowed, reason } = useEntitlement(feature);
   if (allowed) return children;
+  if (fallback) return fallback(reason);
   return (
     <div className="access-denied" role="alert">
       <h2>{capitalize(featureLabel(feature))} isn't available</h2>

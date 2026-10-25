@@ -88,7 +88,9 @@ describe("Practice", () => {
     expect(await screen.findByText(/Free mode: Whisper Large v3 Turbo/)).toBeInTheDocument();
     // Seeded progress and recent sessions.
     expect(await screen.findByText("leadership")).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText("Length"), "3");
+    await user.click(
+      within(screen.getByRole("radiogroup", { name: "Length" })).getByRole("radio", { name: "3" }),
+    );
     await user.type(screen.getByLabelText("Role"), "Backend Engineer");
     await user.click(screen.getByRole("radio", { name: /Technical Q&A/ }));
     await user.click(screen.getByRole("button", { name: "Start practice" }));

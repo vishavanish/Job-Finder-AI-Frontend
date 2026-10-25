@@ -22,6 +22,7 @@ import AdminVoicePage from "../features/admin/AdminVoicePage";
 import InterviewHubPage from "../features/interview/InterviewHubPage";
 import PracticeSessionPage from "../features/interview/PracticeSessionPage";
 import SessionReportPage from "../features/interview/SessionReportPage";
+import { CopilotLocked } from "../features/interview/CopilotLocked";
 import CopilotPage from "../features/interview/CopilotPage";
 import HistoryPage from "../features/interview/HistoryPage";
 import StoryBankPage from "../features/interview/StoryBankPage";
@@ -118,7 +119,10 @@ export function AppRoutes() {
         <Route
           path="interview/copilot"
           element={
-            <RequireFeature feature="live_copilot">
+            <RequireFeature
+              feature="live_copilot"
+              fallback={(reason) => <CopilotLocked reason={reason} />}
+            >
               <CopilotPage />
             </RequireFeature>
           }
