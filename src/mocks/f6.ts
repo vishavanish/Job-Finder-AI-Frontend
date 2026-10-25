@@ -80,7 +80,7 @@ function parseUrl(raw: string): { platform: string; slug: string } | Response {
   return fail(
     422,
     "ats_unsupported",
-    "We can't read jobs from that page yet. Supported: Greenhouse, Lever, Workday, Recruitee, Ashby, SmartRecruiters, Workable, Personio, Breezy, Teamtailor, Rippling, Gem and Homerun links.",
+    "We can't read jobs from that page yet. Supported: Greenhouse, Lever, Workday, Recruitee, Ashby, SmartRecruiters, Workable, Personio, Breezy, Teamtailor, Rippling and Gem links.",
   );
 }
 

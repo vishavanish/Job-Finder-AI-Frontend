@@ -21,6 +21,12 @@ export function AtsJobRow({ job, onDetails }: { job: AtsJob; onDetails: (job: At
         </button>
         <span className="ats-job-meta">
           {job.location || "Location not given"}
+          {(job.more_locations?.length ?? 0) > 0 && (
+            <span className="ats-more-places" title={job.more_locations!.join(" · ")}>
+              {" "}
+              +{job.more_locations!.length} location{job.more_locations!.length === 1 ? "" : "s"}
+            </span>
+          )}
           {job.remote && <span className="ats-tag">Remote</span>}
           {posted && <> · {posted}</>}
           {job.applied && <span className="ats-tag is-applied">Applied</span>}

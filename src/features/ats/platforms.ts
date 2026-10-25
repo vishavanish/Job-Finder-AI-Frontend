@@ -13,15 +13,16 @@ export const PLATFORMS: { key: string; name: string }[] = [
   { key: "teamtailor", name: "Teamtailor" },
   { key: "rippling", name: "Rippling" },
   { key: "gem", name: "Gem" },
-  { key: "homerun", name: "Homerun" },
 ];
 
 export function platformName(key: string): string {
   return PLATFORMS.find((p) => p.key === key)?.name ?? key;
 }
 
+// "" = the server's default (postings from the last 90 days); "any" = every age (QA2 §4).
 export const POSTED_OPTIONS = [
-  { value: "", label: "Any time" },
+  { value: "", label: "Last 90 days" },
+  { value: "any", label: "Any time" },
   { value: "1", label: "Last 24 hours" },
   { value: "3", label: "Last 3 days" },
   { value: "7", label: "Last 7 days" },
@@ -29,7 +30,7 @@ export const POSTED_OPTIONS = [
   { value: "30", label: "Last 30 days" },
 ];
 
-/** "3 days ago", "today" — for posted dates. */
+/** "3 days ago" up to a month, then a date ("12 Jun 2026") — one style everywhere (QA2 §4). */
 export function ago(iso: string | null | undefined): string {
   if (!iso) return "";
   const t = new Date(iso).getTime();
@@ -38,7 +39,7 @@ export function ago(iso: string | null | undefined): string {
   if (hours < 1) return "just now";
   if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
   const days = Math.floor(hours / 24);
-  if (days < 60) return `${days} day${days === 1 ? "" : "s"} ago`;
+  if (days <= 30) return `${days} day${days === 1 ? "" : "s"} ago`;
   return new Date(t).toLocaleDateString(undefined, { dateStyle: "medium" });
 }
 

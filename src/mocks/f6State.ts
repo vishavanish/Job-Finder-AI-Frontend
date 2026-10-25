@@ -167,6 +167,7 @@ export function jobsFor(company: AtsCompany, seed: number, titles: string[]): Mo
       posted_at: iso((((seed * 7 + j * 5) % 40) + 0.5) * DAY),
       first_seen_at: iso((((seed * 7 + j * 5) % 40) + 0.5) * DAY),
       applied: false,
+      more_locations: [],
       closed: false,
     };
   });

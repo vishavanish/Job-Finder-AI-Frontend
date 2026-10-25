@@ -3126,6 +3126,11 @@ export interface components {
              * @default false
              */
             applied: boolean;
+            /**
+             * More Locations
+             * @default []
+             */
+            more_locations: string[];
             /** Company Id */
             company_id: string;
             /** Company */
@@ -3160,6 +3165,11 @@ export interface components {
              * @default false
              */
             applied: boolean;
+            /**
+             * More Locations
+             * @default []
+             */
+            more_locations: string[];
         };
         /** AtsPlatformOut */
         AtsPlatformOut: {
@@ -9575,9 +9585,12 @@ export interface operations {
             query: {
                 q: string;
                 platform?: string[] | null;
-                location?: string | null;
+                /** @description One or more places (or comma-separated); a job in any of them matches */
+                location?: string[] | null;
                 remote?: boolean | null;
                 posted_within_days?: number | null;
+                /** @description Include postings older than ATS_MAX_POSTING_AGE_DAYS */
+                any_age?: boolean;
                 hide_applied?: boolean;
                 page?: number;
             };

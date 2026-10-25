@@ -279,3 +279,10 @@
     padding-bottom: var(--space-3);
   }
 }
+
+/* "+2 locations": the same role posted for other places (QA2 §4). */
+.ats-more-places {
+  color: var(--text-muted);
+  cursor: help;
+  text-decoration: underline dotted;
+}

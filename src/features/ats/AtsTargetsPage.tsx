@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ApiError, errorMessage } from "../../lib/api/errors";
 import type { AtsCompanyGroup, AtsJob, AtsRegistryStats } from "../../lib/api/types";
+import { getPreferences, profileKeys } from "../profile/profileApi";
 import { listSearchProfiles, searchProfileKeys } from "../search-profile/searchProfileApi";
 import { AddCompanyDialog, LegacyTargetsCard } from "./AddCompanyDialog";
 import { atsKeys, getAtsStats, searchAts, type AtsFilters } from "./atsApi";
@@ -78,15 +79,25 @@ export default function AtsTargetsPage() {
 
   useEffect(() => setDraft(q), [q]);
 
+  // QA2 §4: with no location chosen, search the places from Profile (+ Remote);
+  // "any" in the URL means every location.
+  const prefs = useQuery({ queryKey: profileKeys.preferences, queryFn: getPreferences });
+  const myPlaces = useMemo(() => {
+    const places = (prefs.data?.locations ?? []).map((p) => p.trim()).filter(Boolean);
+    return places.length ? [...new Set([...places, "Remote"])].join(", ") : "";
+  }, [prefs.data]);
+  const locationParam = params.get("location");
+  const usingMyPlaces = locationParam === null && Boolean(myPlaces);
+
   const filters: AtsFilters = useMemo(
     () => ({
       platform: params.getAll("platform"),
-      location: params.get("location") ?? "",
+      location: locationParam === null ? myPlaces : locationParam === "any" ? "" : locationParam,
       remote: params.get("remote") === "1",
       posted: params.get("posted") ?? "",
       hideApplied: params.get("applied") !== "show",
     }),
-    [params],
+    [params, locationParam, myPlaces],
   );
 
   const update = (fn: (next: URLSearchParams) => void) =>
@@ -123,7 +134,8 @@ export default function AtsTargetsPage() {
     initialPageParam: 1,
     getNextPageParam: (last) =>
       last.page * last.page_size < last.total_companies ? last.page + 1 : undefined,
-    enabled: q.length >= 2,
+    // Wait for Profile's places so the first search already uses them.
+    enabled: q.length >= 2 && !prefs.isLoading,
     staleTime: SEARCH_CACHE_MS,
   });
 
@@ -151,6 +163,7 @@ export default function AtsTargetsPage() {
   const clearFilters = () =>
     update((next) => {
       for (const k of FILTER_KEYS) next.delete(k);
+      next.set("location", "any"); // cleared means every location, not Profile's places
     });
 
   const togglePlatform = (key: string) =>
@@ -173,7 +186,7 @@ export default function AtsTargetsPage() {
           <h2>ATS targets</h2>
           <p>
             Type a job title to see which companies are hiring for it on their own career pages —
-            Greenhouse, Lever, Workday and ten more.
+            Greenhouse, Lever, Workday and more.
           </p>
         </div>
         <button type="button" className="btn-secondary" onClick={() => setAdding(true)}>
@@ -231,34 +244,51 @@ export default function AtsTargetsPage() {
           <div className="ats-filters">
             <fieldset className="ats-platforms">
               <legend>Platform</legend>
-              {PLATFORMS.map((p) => (
-                <label key={p.key} className="check-inline">
-                  <input
-                    type="checkbox"
-                    checked={filters.platform.includes(p.key)}
-                    onChange={() => togglePlatform(p.key)}
-                  />
-                  {p.name}
-                </label>
-              ))}
+              {PLATFORMS.filter((p) => !registry?.by_platform || p.key in registry.by_platform).map(
+                (p) => (
+                  <label key={p.key} className="check-inline">
+                    <input
+                      type="checkbox"
+                      checked={filters.platform.includes(p.key)}
+                      onChange={() => togglePlatform(p.key)}
+                    />
+                    {p.name}
+                  </label>
+                ),
+              )}
             </fieldset>
             <label className="field">
               <span>Location</span>
               <input
                 key={filters.location}
                 defaultValue={filters.location}
-                placeholder="e.g. Bengaluru"
-                onBlur={(e) =>
-                  update((n) =>
-                    e.target.value.trim()
-                      ? n.set("location", e.target.value.trim())
-                      : n.delete("location"),
-                  )
-                }
+                placeholder="Any location — e.g. Bengaluru, Remote"
+                aria-describedby="ats-location-hint"
+                onBlur={(e) => {
+                  const value = e.target.value.trim();
+                  if (value === filters.location) return;
+                  update((n) => n.set("location", value || "any"));
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") (e.target as HTMLInputElement).blur();
                 }}
               />
+              <span className="field-hint" id="ats-location-hint">
+                {usingMyPlaces ? (
+                  <>
+                    Your places from Profile.{" "}
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => update((n) => n.set("location", "any"))}
+                    >
+                      Any location
+                    </button>
+                  </>
+                ) : (
+                  "Separate places with commas."
+                )}
+              </span>
             </label>
             <label className="field">
               <span>Posted</span>

@@ -7093,15 +7093,19 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "maxLength": 80
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
+              "description": "One or more places (or comma-separated); a job in any of them matches",
               "title": "Location"
-            }
+            },
+            "description": "One or more places (or comma-separated); a job in any of them matches"
           },
           {
             "name": "remote",
@@ -7136,6 +7140,18 @@
               ],
               "title": "Posted Within Days"
             }
+          },
+          {
+            "name": "any_age",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include postings older than ATS_MAX_POSTING_AGE_DAYS",
+              "default": false,
+              "title": "Any Age"
+            },
+            "description": "Include postings older than ATS_MAX_POSTING_AGE_DAYS"
           },
           {
             "name": "hide_applied",
@@ -11252,6 +11268,14 @@
             "title": "Applied",
             "default": false
           },
+          "more_locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "More Locations",
+            "default": []
+          },
           "company_id": {
             "type": "string",
             "title": "Company Id"
@@ -11349,6 +11373,14 @@
             "type": "boolean",
             "title": "Applied",
             "default": false
+          },
+          "more_locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "More Locations",
+            "default": []
           }
         },
         "type": "object",
