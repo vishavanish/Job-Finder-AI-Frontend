@@ -238,3 +238,14 @@
   text-decoration: none;
   cursor: default;
 }
+
+/* A bad address, right under the field it is about (QA2 §5). */
+.field-error {
+  margin: var(--space-1) 0 0;
+  color: var(--status-negative-fg);
+  font-size: var(--text-sm);
+}
+
+.auth-input:has(input[aria-invalid="true"]) {
+  border-color: var(--status-negative-border);
+}

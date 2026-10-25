@@ -28,6 +28,7 @@ import {
   type JobListState,
   type RunStarted,
 } from "./jobsApi";
+import { skillGaps } from "./skillGaps";
 import { usePipelineRun } from "./usePipelineRun";
 import "./jobs.css";
 
@@ -47,18 +48,6 @@ const POSTED_FILTERS = [
 
 function isRemote(job: StreamedJob): boolean {
   return /remote/i.test(job.location);
-}
-
-/** The skills found jobs ask for that the profile lacks, most asked first. */
-function skillGaps(jobs: StreamedJob[]): { skill: string; n: number }[] {
-  const counts = new Map<string, number>();
-  for (const j of jobs) {
-    for (const s of j.match?.missing_required ?? []) counts.set(s, (counts.get(s) ?? 0) + 1);
-  }
-  return [...counts]
-    .map(([skill, n]) => ({ skill, n }))
-    .sort((a, b) => b.n - a.n || a.skill.localeCompare(b.skill))
-    .slice(0, 8);
 }
 
 function StatTile({ icon, value, label }: { icon: IconName; value: string; label: string }) {
