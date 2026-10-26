@@ -10431,6 +10431,19 @@
             "title": "Email Digest",
             "default": true
           },
+          "email_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email To",
+            "description": "Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)"
+          },
           "enabled": {
             "type": "boolean",
             "title": "Enabled",
@@ -10457,6 +10470,14 @@
           "max_alerts": {
             "type": "integer",
             "title": "Max Alerts"
+          },
+          "email_options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Email Options",
+            "description": "Addresses a digest can go to: the sign-in email first, then connected Gmail accounts"
           }
         },
         "type": "object",
@@ -10505,6 +10526,19 @@
             "title": "Email Digest",
             "default": true
           },
+          "email_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email To",
+            "description": "Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)"
+          },
           "enabled": {
             "type": "boolean",
             "title": "Enabled",
@@ -10513,6 +10547,11 @@
           "id": {
             "type": "string",
             "title": "Id"
+          },
+          "sends_to": {
+            "type": "string",
+            "title": "Sends To",
+            "description": "The address the next digest goes to"
           },
           "last_run_at": {
             "anyOf": [
@@ -10551,6 +10590,7 @@
           "name",
           "search_profile_id",
           "id",
+          "sends_to",
           "created_at"
         ],
         "title": "AlertOut"

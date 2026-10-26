@@ -285,6 +285,21 @@ describe("Job alerts", () => {
     expect(await screen.findByRole("link", { name: "Senior Python Engineer" })).toBeInTheDocument();
   });
 
+  it("sends the digest to a connected Gmail address", async () => {
+    renderApp("/alerts");
+    const user = await signIn();
+    await user.click(await screen.findByRole("button", { name: "New alert" }));
+    const sendTo = screen.getByLabelText("Send to");
+    expect(
+      within(sendTo)
+        .getAllByRole("option")
+        .map((o) => o.textContent),
+    ).toEqual(["demo@jobfinder.test (sign-in)", "demo.jobs@gmail.com", "old.inbox@gmail.com"]);
+    await user.selectOptions(sendTo, "demo.jobs@gmail.com");
+    await user.click(screen.getByRole("button", { name: "Create alert" }));
+    expect(await screen.findByText(/emailed to demo\.jobs@gmail\.com/)).toBeInTheDocument();
+  });
+
   it("stops at the alert limit", async () => {
     renderApp("/alerts");
     const user = await signIn();

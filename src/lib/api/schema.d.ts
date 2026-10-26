@@ -2722,6 +2722,11 @@ export interface components {
              */
             email_digest: boolean;
             /**
+             * Email To
+             * @description Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)
+             */
+            email_to?: string | null;
+            /**
              * Enabled
              * @default true
              */
@@ -2733,6 +2738,11 @@ export interface components {
             alerts: components["schemas"]["AlertOut"][];
             /** Max Alerts */
             max_alerts: number;
+            /**
+             * Email Options
+             * @description Addresses a digest can go to: the sign-in email first, then connected Gmail accounts
+             */
+            email_options?: string[];
         };
         /** AlertOut */
         AlertOut: {
@@ -2759,12 +2769,22 @@ export interface components {
              */
             email_digest: boolean;
             /**
+             * Email To
+             * @description Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)
+             */
+            email_to?: string | null;
+            /**
              * Enabled
              * @default true
              */
             enabled: boolean;
             /** Id */
             id: string;
+            /**
+             * Sends To
+             * @description The address the next digest goes to
+             */
+            sends_to: string;
             /** Last Run At */
             last_run_at?: string | null;
             /**

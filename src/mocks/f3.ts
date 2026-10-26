@@ -28,6 +28,7 @@ import {
   userJobs,
   type MockResume,
 } from "./f3State";
+import { f5Db } from "./f5State";
 import { API, authenticate, newId, readJson } from "./handlers";
 
 const MAX_ALERTS = 3;
@@ -36,6 +37,35 @@ const notFound = (code: string, message: string) =>
 const unprocessable = (code: string, message: string) =>
   HttpResponse.json({ detail: { code, message } }, { status: 422 });
 const nowIso = () => new Date().toISOString();
+
+/** Sign-in email first, then the user's connected Gmail accounts (like the backend). */
+function alertEmailOptions(userId: string, loginEmail: string): string[] {
+  const out = [loginEmail.toLowerCase()];
+  for (const a of f5Db.accounts) {
+    const address = a.gmail_address.toLowerCase();
+    if (a.user_id === userId && !out.includes(address)) out.push(address);
+  }
+  return out;
+}
+
+/** null = the sign-in email, a string = a connected Gmail, false = not allowed. */
+function checkAlertEmail(
+  userId: string,
+  loginEmail: string,
+  value: string | null | undefined,
+): string | null | false {
+  const v = value?.trim().toLowerCase();
+  if (!v) return null;
+  const options = alertEmailOptions(userId, loginEmail);
+  if (!options.includes(v)) return false;
+  return v === options[0] ? null : v;
+}
+
+const EMAIL_NOT_ALLOWED = () =>
+  unprocessable(
+    "alert_email_not_allowed",
+    "Send alerts to your sign-in email or a Gmail account you connected in Tracker.",
+  );
 
 function profileOut(userId: string, email: string): ProfileOut {
   const p =
@@ -489,7 +519,12 @@ export const f3Handlers = [
   http.get(`${API}/alerts`, ({ request }) => {
     const auth = authenticate(request);
     if ("response" in auth) return auth.response;
-    return HttpResponse.json({ alerts: f3Db.alerts[auth.user.id] ?? [], max_alerts: MAX_ALERTS });
+    const options = alertEmailOptions(auth.user.id, auth.user.email);
+    const alerts = (f3Db.alerts[auth.user.id] ?? []).map((a) => ({
+      ...a,
+      sends_to: a.email_to && options.includes(a.email_to) ? a.email_to : options[0],
+    }));
+    return HttpResponse.json({ alerts, max_alerts: MAX_ALERTS, email_options: options });
   }),
 
   http.post(`${API}/alerts/:id/run-now`, ({ request, params }) => {
@@ -570,6 +605,8 @@ export const f3Handlers = [
     if (!searchProfiles(auth.user.id).some((p) => p.id === body.search_profile_id)) {
       return unprocessable("search_profile_not_found", "Pick one of your saved search profiles.");
     }
+    const emailTo = checkAlertEmail(auth.user.id, auth.user.email, body.email_to);
+    if (emailTo === false) return EMAIL_NOT_ALLOWED();
     const alert: AlertOut = {
       id: newId("al"),
       name: body.name ?? "Alert",
@@ -578,6 +615,8 @@ export const f3Handlers = [
       timezone: body.timezone ?? "Asia/Kolkata",
       min_score: body.min_score ?? 75,
       email_digest: body.email_digest ?? true,
+      email_to: emailTo,
+      sends_to: emailTo ?? auth.user.email.toLowerCase(),
       enabled: body.enabled ?? true,
       last_run_at: null,
       next_run_at: null,
@@ -593,7 +632,13 @@ export const f3Handlers = [
     if ("response" in auth) return auth.response;
     const alert = (f3Db.alerts[auth.user.id] ?? []).find((a) => a.id === params.id);
     if (!alert) return notFound("alert_not_found", "No alert with this id.");
-    Object.assign(alert, await readJson<AlertIn>(request));
+    const body = await readJson<AlertIn>(request);
+    const emailTo = checkAlertEmail(auth.user.id, auth.user.email, body.email_to);
+    if (emailTo === false) return EMAIL_NOT_ALLOWED();
+    Object.assign(alert, body, {
+      email_to: emailTo,
+      sends_to: emailTo ?? auth.user.email.toLowerCase(),
+    });
     alert.next_run_at = alert.enabled ? nextRun(alert.hour_local ?? 9) : null;
     return HttpResponse.json(alert);
   }),
