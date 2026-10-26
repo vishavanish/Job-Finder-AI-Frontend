@@ -11242,14 +11242,16 @@
                 "enum": [
                   "greenhouse",
                   "lever",
-                  "linkedin"
+                  "linkedin",
+                  "generic"
                 ]
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Adapter"
+            "title": "Adapter",
+            "description": "generic = the AI form reader (beta; turn it on in Apply settings)"
           },
           "manual": {
             "$ref": "#/components/schemas/ApplyOption"
@@ -11424,6 +11426,18 @@
             ],
             "title": "Paused",
             "description": "Your own off switch; pausing cancels active runs"
+          },
+          "allow_generic": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allow Generic",
+            "description": "Use the AI form reader (beta) on other career sites; turning it off cancels its active runs"
           }
         },
         "type": "object",
@@ -11444,6 +11458,22 @@
             "type": "string",
             "title": "Risk Notice",
             "default": "Auto apply fills and submits applications on company career sites (Greenhouse, Lever) for you, only after you review and approve each one. Some sites limit automated applications, answers can still be wrong, and a submitted application can't be taken back. You stay responsible for every application sent in your name. LinkedIn applications are never submitted by the app."
+          },
+          "allow_generic": {
+            "type": "boolean",
+            "title": "Allow Generic",
+            "default": false
+          },
+          "generic_notice": {
+            "type": "string",
+            "title": "Generic Notice",
+            "default": "The AI form reader (beta) fills application forms on other career sites (Ashby, SmartRecruiters, Workable and more). It is less reliable than the Greenhouse and Lever support: it can misread a question or a page. It never signs in or creates accounts, every application waits for your review, and pages it can't handle are handed back to you. It may use a paid image-reading AI model for hard pages, within a per-application limit."
+          },
+          "generic_submit_enabled": {
+            "type": "boolean",
+            "title": "Generic Submit Enabled",
+            "description": "False = the AI form reader is in test mode: runs are prepared for review but never submitted",
+            "default": false
           },
           "risk_accepted_at": {
             "anyOf": [
@@ -15010,9 +15040,11 @@
             "type": "string",
             "enum": [
               "confirmation",
-              "stopped"
+              "stopped",
+              "step"
             ],
-            "title": "Kind"
+            "title": "Kind",
+            "description": "step = one page of a form the AI form reader read (confirmation_text says which)"
           },
           "confirmation_text": {
             "anyOf": [
@@ -15733,6 +15765,28 @@
             "type": "integer",
             "title": "Proofs",
             "default": 0
+          },
+          "steps": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Steps",
+            "description": "AI form reader: the form pages read ({page, url, keys, files})"
+          },
+          "vision": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vision",
+            "description": "AI form reader: screenshot-fallback use ({steps, cost_usd, map_calls, log})"
           },
           "approved_at": {
             "anyOf": [

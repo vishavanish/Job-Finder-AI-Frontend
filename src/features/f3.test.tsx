@@ -108,7 +108,9 @@ describe("Jobs", () => {
       expect(within(site).getByRole("button", { name: "Apply manually" })).toBeEnabled();
       expect(within(site).getByRole("button", { name: "Auto apply" })).toBeDisabled();
       expect(
-        within(site).getByText(/Auto apply works on Greenhouse and Lever job pages only/),
+        within(site).getByText(
+          /Auto apply works on Greenhouse, Lever and the career sites the AI form reader knows/,
+        ),
       ).toBeInTheDocument();
       const linkedin = card("Senior Python Engineer"); // LinkedIn Easy Apply
       expect(within(linkedin).getByRole("button", { name: "Fast apply" })).toBeEnabled();

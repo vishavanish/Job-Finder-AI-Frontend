@@ -3063,8 +3063,11 @@ export interface components {
          * @description The four apply buttons for one job (P4 plan §2).
          */
         ApplyOptions: {
-            /** Adapter */
-            adapter?: ("greenhouse" | "lever" | "linkedin") | null;
+            /**
+             * Adapter
+             * @description generic = the AI form reader (beta; turn it on in Apply settings)
+             */
+            adapter?: ("greenhouse" | "lever" | "linkedin" | "generic") | null;
             manual: components["schemas"]["ApplyOption"];
             fast: components["schemas"]["ApplyOption"];
             auto: components["schemas"]["ApplyOption"];
@@ -3130,6 +3133,11 @@ export interface components {
              * @description Your own off switch; pausing cancels active runs
              */
             paused?: boolean | null;
+            /**
+             * Allow Generic
+             * @description Use the AI form reader (beta) on other career sites; turning it off cancels its active runs
+             */
+            allow_generic?: boolean | null;
         };
         /** ApplySettingsOut */
         ApplySettingsOut: {
@@ -3145,6 +3153,22 @@ export interface components {
              * @default Auto apply fills and submits applications on company career sites (Greenhouse, Lever) for you, only after you review and approve each one. Some sites limit automated applications, answers can still be wrong, and a submitted application can't be taken back. You stay responsible for every application sent in your name. LinkedIn applications are never submitted by the app.
              */
             risk_notice: string;
+            /**
+             * Allow Generic
+             * @default false
+             */
+            allow_generic: boolean;
+            /**
+             * Generic Notice
+             * @default The AI form reader (beta) fills application forms on other career sites (Ashby, SmartRecruiters, Workable and more). It is less reliable than the Greenhouse and Lever support: it can misread a question or a page. It never signs in or creates accounts, every application waits for your review, and pages it can't handle are handed back to you. It may use a paid image-reading AI model for hard pages, within a per-application limit.
+             */
+            generic_notice: string;
+            /**
+             * Generic Submit Enabled
+             * @description False = the AI form reader is in test mode: runs are prepared for review but never submitted
+             * @default false
+             */
+            generic_submit_enabled: boolean;
             /** Risk Accepted At */
             risk_accepted_at?: string | null;
             /** Hours Start */
@@ -4463,9 +4487,10 @@ export interface components {
             id: string;
             /**
              * Kind
+             * @description step = one page of a form the AI form reader read (confirmation_text says which)
              * @enum {string}
              */
-            kind: "confirmation" | "stopped";
+            kind: "confirmation" | "stopped" | "step";
             /** Confirmation Text */
             confirmation_text?: string | null;
             /** Page Url */
@@ -4730,6 +4755,20 @@ export interface components {
              * @default 0
              */
             proofs: number;
+            /**
+             * Steps
+             * @description AI form reader: the form pages read ({page, url, keys, files})
+             */
+            steps?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Vision
+             * @description AI form reader: screenshot-fallback use ({steps, cost_usd, map_calls, log})
+             */
+            vision?: {
+                [key: string]: unknown;
+            } | null;
             /** Approved At */
             approved_at?: string | null;
             /** Submitted At */
