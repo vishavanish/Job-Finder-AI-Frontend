@@ -204,3 +204,52 @@ describe("Apply settings: AI form reader card", () => {
     expect(screen.getByRole("switch", { name: /Use the AI form reader/ })).toBeChecked();
   });
 });
+
+describe("A site that blocks the server (QA5)", () => {
+  it("says why and offers no answers to copy when the form never loaded", async () => {
+    const now = new Date().toISOString();
+    f4Db.runs.set("run_blocked", {
+      id: "run_blocked",
+      user_id: "u_demo",
+      polls: 0,
+      job_id: "job_sia",
+      title: "Senior Backend Engineer (Python)",
+      company: "Sia",
+      mode: "auto",
+      level: 2,
+      adapter: "generic",
+      apply_url: "https://jobs.smartrecruiters.com/Sia/744000157093395",
+      state: "needs_user",
+      message:
+        "SmartRecruiters blocked the app's browser — it treats our server as a bot. Apply on the job page in " +
+        "your own browser. Auto apply on SmartRecruiters is paused for 24 h.",
+      fields: [],
+      files: {},
+      resume_id: null,
+      pack_id: null,
+      application_id: null,
+      proofs: 0,
+      steps: [],
+      vision: null,
+      approved_at: null,
+      submitted_at: null,
+      created_at: now,
+      updated_at: now,
+    });
+    renderApp("/apply/runs/run_blocked");
+    await signIn();
+    expect(
+      await screen.findByText(/SmartRecruiters blocked the app's browser/),
+    ).toBeInTheDocument();
+    const handoff = screen.getByText("Over to you.").closest("p")!;
+    expect(handoff).toHaveTextContent(
+      "finish the application yourself, then tell us what happened.",
+    );
+    expect(handoff).not.toHaveTextContent("answers are below");
+    expect(screen.queryByRole("button", { name: "Copy all answers" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open job page" })).toHaveAttribute(
+      "href",
+      "https://jobs.smartrecruiters.com/Sia/744000157093395",
+    );
+  });
+});

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import { entitlementsFor, mockDb } from "../../mocks/data";
+import { f4Db } from "../../mocks/f4State";
 import { renderApp, signIn } from "../../test/renderApp";
 
 const ADMIN = "admin@jobfinder.test";
@@ -147,5 +148,39 @@ describe("admin users", () => {
     await signIn(ADMIN);
     const row = (await screen.findByRole("rowheader", { name: "Live Copilot" })).closest("tr")!;
     expect(row).toHaveTextContent("Off");
+  });
+
+  it("lists platforms paused for Auto apply and clears one", async () => {
+    f4Db.blocks = [
+      {
+        platform: "smartrecruiters",
+        name: "SmartRecruiters",
+        until: Date.now() / 1000 + 24 * 3600,
+        hours: 24,
+        at: Date.now() / 1000,
+        run_id: "run_1",
+      },
+    ];
+    renderApp("/admin/features");
+    const user = await signIn(ADMIN);
+    const card = (await screen.findByRole("heading", { name: "Auto apply paused on" })).closest(
+      "section",
+    )!;
+    const row = within(card).getByRole("rowheader", { name: "SmartRecruiters" }).closest("tr")!;
+    expect(row).toHaveTextContent("24 h");
+    await user.click(within(row).getByRole("button", { name: "Clear pause on SmartRecruiters" }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Auto apply paused on" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(f4Db.blocks).toEqual([]);
+  });
+
+  it("shows no pause list when nothing is paused", async () => {
+    renderApp("/admin/features");
+    await signIn(ADMIN);
+    await screen.findByRole("rowheader", { name: "Live Copilot" });
+    expect(screen.queryByRole("heading", { name: "Auto apply paused on" })).not.toBeInTheDocument();
   });
 });
