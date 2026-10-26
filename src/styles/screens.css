@@ -421,9 +421,11 @@
 
 .switch {
   position: relative;
+  display: inline-block; /* a <label>: inline would collapse it to 0×0 inside table cells */
   flex-shrink: 0;
   width: 40px;
   height: 22px;
+  vertical-align: middle;
 }
 
 .switch input {

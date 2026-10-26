@@ -181,7 +181,7 @@ function GenericCard({
         <input
           type="checkbox"
           role="switch"
-          className="switch"
+          className="input-switch"
           checked={s.allow_generic}
           disabled={busy || s.level < 2}
           onChange={(e) => onToggle(e.target.checked)}
@@ -342,7 +342,7 @@ export function ApplySettingsPanel() {
             <input
               type="checkbox"
               role="switch"
-              className="switch"
+              className="input-switch"
               checked={s.paused}
               disabled={save.isPending}
               onChange={(e) => save.mutate({ paused: e.target.checked })}
