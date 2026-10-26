@@ -120,7 +120,7 @@ export default function AdminAtsPage() {
         <div>
           <h2>ATS registry</h2>
           <p>
-            The shared list of company career pages behind ATS targets and the “Company career
+            The shared list of company career pages behind Target companies and the “Company career
             pages” job source. Companies are checked every 6–24 hours.
           </p>
         </div>

@@ -40,7 +40,7 @@ function maxLevel(userId: string): number {
 }
 
 function runOut(run: MockRun): ApplyRun {
-  const { user_id: _u, polls: _p, ...out } = run;
+  const { user_id: _u, polls: _p, stage: _s, ...out } = run;
   return out;
 }
 
@@ -84,6 +84,20 @@ export const f4Handlers = [
     if (body.hours_start != null) s.hours_start = body.hours_start;
     if (body.hours_end != null) s.hours_end = body.hours_end;
     if (body.timezone) s.timezone = body.timezone;
+    if (body.allow_generic != null) {
+      s.allow_generic = body.allow_generic;
+      if (!body.allow_generic) {
+        for (const r of f4Db.runs.values()) {
+          if (r.user_id === auth.user.id && r.adapter === "generic" && ACTIVE.includes(r.state)) {
+            Object.assign(r, {
+              state: "cancelled",
+              message: "You turned off the AI form reader.",
+              updated_at: nowIso(),
+            });
+          }
+        }
+      }
+    }
     if (s.hours_start >= s.hours_end)
       return fail(422, "bad_hours", "Apply hours must start before they end.");
     if (body.paused != null) {
@@ -139,6 +153,17 @@ export const f4Handlers = [
         );
       if (s.level < 2)
         return fail(409, "level_off", "Turn on level 2 (review & submit) in Apply settings first.");
+      if (opts.adapter === "generic" && !s.allow_generic)
+        return fail(
+          409,
+          "generic_off",
+          "This job uses the AI form reader (beta). Turn it on in Apply settings first.",
+        );
+      const genericToday = [...f4Db.runs.values()].filter(
+        (r) => r.user_id === auth.user.id && r.adapter === "generic" && r.state === "submitted",
+      ).length;
+      if (opts.adapter === "generic" && genericToday >= 5)
+        return fail(429, "generic_cap", "AI form reader limit reached for today (5/day).");
     } else if (!opts?.fast.available) {
       return fail(
         409,
@@ -170,6 +195,8 @@ export const f4Handlers = [
       pack_id: null,
       application_id: null,
       proofs: 0,
+      steps: [],
+      vision: null,
       approved_at: null,
       submitted_at: null,
       created_at: now,
@@ -229,6 +256,16 @@ export const f4Handlers = [
       });
     }
     const missing = fields.filter((f) => f.needs_input);
+    if (!missing.length && run.adapter === "generic" && run.stage === 1) {
+      // A multi-page form stopped at a question: the worker reads the rest now.
+      Object.assign(run, {
+        state: "queued",
+        message: "Your answers are saved — reading the next page of the form.",
+        polls: 1,
+        updated_at: nowIso(),
+      });
+      return HttpResponse.json(runOut(run));
+    }
     Object.assign(run, {
       state: missing.length ? "awaiting_input" : "awaiting_review",
       message: missing.length
@@ -246,6 +283,12 @@ export const f4Handlers = [
     if (!run) return fail(404, "run_not_found", "No apply run with this id.");
     if (run.state !== "awaiting_review")
       return fail(409, "run_not_ready", "This run is not waiting for your review.");
+    if (run.adapter === "generic" && !f4Db.genericSubmit)
+      return fail(
+        409,
+        "generic_test_mode",
+        "The AI form reader is in test mode — submit this application yourself on the job page, then mark it done.",
+      );
     for (const f of run.fields ?? []) if (f.source === "ai") f.approved = true;
     Object.assign(run, {
       state: "submitting",
@@ -296,6 +339,28 @@ export const f4Handlers = [
     const run = ownRun(auth.user.id, String(params.id));
     if (!run) return fail(404, "run_not_found", "No apply run with this id.");
     if (!run.proofs) return HttpResponse.json([]);
+    if (run.adapter === "generic") {
+      const pages = (run.steps ?? []).map((st, i) => ({
+        id: `proof_${run.id}_p${i + 1}`,
+        kind: "step",
+        confirmation_text: `Page ${(st as { page: number }).page}`,
+        page_url: (st as { url: string }).url,
+        created_at: run.updated_at,
+      }));
+      const end =
+        run.state === "submitted"
+          ? [
+              {
+                id: `proof_${run.id}`,
+                kind: "confirmation",
+                confirmation_text: "Thank you for applying.",
+                page_url: run.apply_url,
+                created_at: run.updated_at,
+              },
+            ]
+          : [];
+      return HttpResponse.json([...pages, ...end]);
+    }
     return HttpResponse.json([
       {
         id: `proof_${run.id}`,

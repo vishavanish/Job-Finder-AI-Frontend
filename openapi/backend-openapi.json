@@ -1192,6 +1192,54 @@
         }
       }
     },
+    "/api/v1/pipeline/runs/latest": {
+      "get": {
+        "tags": [
+          "pipeline"
+        ],
+        "summary": "Get Latest Pipeline Run",
+        "description": "The newest search you started on Jobs, while the server still holds\nits results (6 h): run meta plus `created_at`, `keywords` and\n`skipped_sources`. Load its jobs with GET /pipeline/{run_id}/jobs?offset=0.\n404 when there is none. Job-alert runs are not included.",
+        "operationId": "get_latest_pipeline_run_api_v1_pipeline_runs_latest_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pipeline/{run_id}": {
       "get": {
         "tags": [
@@ -3241,6 +3289,54 @@
                   "additionalProperties": true,
                   "title": "Response Set Flag Api V1 Admin Flags  Key  Put"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/system/health": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "System Health",
+        "description": "Every health check with its detail: database, Redis queues, AI setup,\nalerts scheduler. The public GET /health returns only the overall status.",
+        "operationId": "system_health_api_v1_admin_system_health_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -6997,15 +7093,19 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "maxLength": 80
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
+              "description": "One or more places (or comma-separated); a job in any of them matches",
               "title": "Location"
-            }
+            },
+            "description": "One or more places (or comma-separated); a job in any of them matches"
           },
           {
             "name": "remote",
@@ -7040,6 +7140,18 @@
               ],
               "title": "Posted Within Days"
             }
+          },
+          {
+            "name": "any_age",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include postings older than ATS_MAX_POSTING_AGE_DAYS",
+              "default": false,
+              "title": "Any Age"
+            },
+            "description": "Include postings older than ATS_MAX_POSTING_AGE_DAYS"
           },
           {
             "name": "hide_applied",
@@ -7830,6 +7942,562 @@
         }
       }
     },
+    "/api/v1/ats/following": {
+      "get": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Following",
+        "operationId": "following_api_v1_ats_following_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowingOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ats/companies/{company_id}/follow": {
+      "put": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Follow",
+        "operationId": "follow_api_v1_ats_companies__company_id__follow_put",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowedCompany"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Unfollow",
+        "operationId": "unfollow_api_v1_ats_companies__company_id__follow_delete",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ats/following/{follow_id}": {
+      "delete": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Remove Follow",
+        "operationId": "remove_follow_api_v1_ats_following__follow_id__delete",
+        "parameters": [
+          {
+            "name": "follow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Follow Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ats/following/by-name": {
+      "post": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Follow By Name",
+        "description": "Follows a company by name. A name we already know is followed at once; otherwise its career page\nis looked up in the background (status \"searching\", then \"following\" or \"not_found\").",
+        "operationId": "follow_by_name_api_v1_ats_following_by_name_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowByNameIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowByNameOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ats/following/new": {
+      "get": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "New Roles",
+        "operationId": "new_roles_api_v1_ats_following_new_get",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewRolesOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ats/following/seen": {
+      "post": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Seen",
+        "operationId": "seen_api_v1_ats_following_seen_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeenIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ats/suggestions": {
+      "get": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Suggestions",
+        "operationId": "suggestions_api_v1_ats_suggestions_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ats/following/settings": {
+      "get": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Get Follow Settings",
+        "operationId": "get_follow_settings_api_v1_ats_following_settings_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowSettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ats"
+        ],
+        "summary": "Put Follow Settings",
+        "operationId": "put_follow_settings_api_v1_ats_following_settings_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowSettingsIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowSettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/voice/providers": {
       "get": {
         "tags": [
@@ -8304,6 +8972,64 @@
         ],
         "responses": {
           "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceFeedbackOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/sessions/{session_id}/feedback/retry": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Retry Feedback",
+        "operationId": "retry_feedback_api_v1_voice_sessions__session_id__feedback_retry_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
             "description": "Successful Response",
             "content": {
               "application/json": {
@@ -8909,6 +9635,7 @@
           "meta"
         ],
         "summary": "Health",
+        "description": "Public liveness: only the overall status (503 when unhealthy). The\nper-check detail (database, queues, AI setup, scheduler) is for admins at\nGET /api/v1/admin/system/health \u2014 it described the setup to anyone (QA1).",
         "operationId": "health_health_get",
         "responses": {
           "200": {
@@ -9704,6 +10431,19 @@
             "title": "Email Digest",
             "default": true
           },
+          "email_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email To",
+            "description": "Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)"
+          },
           "enabled": {
             "type": "boolean",
             "title": "Enabled",
@@ -9730,6 +10470,14 @@
           "max_alerts": {
             "type": "integer",
             "title": "Max Alerts"
+          },
+          "email_options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Email Options",
+            "description": "Addresses a digest can go to: the sign-in email first, then connected Gmail accounts"
           }
         },
         "type": "object",
@@ -9778,6 +10526,19 @@
             "title": "Email Digest",
             "default": true
           },
+          "email_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email To",
+            "description": "Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)"
+          },
           "enabled": {
             "type": "boolean",
             "title": "Enabled",
@@ -9786,6 +10547,11 @@
           "id": {
             "type": "string",
             "title": "Id"
+          },
+          "sends_to": {
+            "type": "string",
+            "title": "Sends To",
+            "description": "The address the next digest goes to"
           },
           "last_run_at": {
             "anyOf": [
@@ -9824,6 +10590,7 @@
           "name",
           "search_profile_id",
           "id",
+          "sends_to",
           "created_at"
         ],
         "title": "AlertOut"
@@ -10515,14 +11282,16 @@
                 "enum": [
                   "greenhouse",
                   "lever",
-                  "linkedin"
+                  "linkedin",
+                  "generic"
                 ]
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Adapter"
+            "title": "Adapter",
+            "description": "generic = the AI form reader (beta; turn it on in Apply settings)"
           },
           "manual": {
             "$ref": "#/components/schemas/ApplyOption"
@@ -10697,6 +11466,18 @@
             ],
             "title": "Paused",
             "description": "Your own off switch; pausing cancels active runs"
+          },
+          "allow_generic": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allow Generic",
+            "description": "Use the AI form reader (beta) on other career sites; turning it off cancels its active runs"
           }
         },
         "type": "object",
@@ -10717,6 +11498,22 @@
             "type": "string",
             "title": "Risk Notice",
             "default": "Auto apply fills and submits applications on company career sites (Greenhouse, Lever) for you, only after you review and approve each one. Some sites limit automated applications, answers can still be wrong, and a submitted application can't be taken back. You stay responsible for every application sent in your name. LinkedIn applications are never submitted by the app."
+          },
+          "allow_generic": {
+            "type": "boolean",
+            "title": "Allow Generic",
+            "default": false
+          },
+          "generic_notice": {
+            "type": "string",
+            "title": "Generic Notice",
+            "default": "The AI form reader (beta) fills application forms on other career sites (Ashby, SmartRecruiters, Workable and more). It is less reliable than the Greenhouse and Lever support: it can misread a question or a page. It never signs in or creates accounts, every application waits for your review, and pages it can't handle are handed back to you. It may use a paid image-reading AI model for hard pages, within a per-application limit."
+          },
+          "generic_submit_enabled": {
+            "type": "boolean",
+            "title": "Generic Submit Enabled",
+            "description": "False = the AI form reader is in test mode: runs are prepared for review but never submitted",
+            "default": false
           },
           "risk_accepted_at": {
             "anyOf": [
@@ -10837,6 +11634,11 @@
               }
             ],
             "title": "Last Refreshed At"
+          },
+          "followed": {
+            "type": "boolean",
+            "title": "Followed",
+            "default": false
           }
         },
         "type": "object",
@@ -10919,6 +11721,11 @@
             },
             "type": "array",
             "title": "Jobs"
+          },
+          "followed": {
+            "type": "boolean",
+            "title": "Followed",
+            "default": false
           }
         },
         "type": "object",
@@ -11155,6 +11962,14 @@
             "title": "Applied",
             "default": false
           },
+          "more_locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "More Locations",
+            "default": []
+          },
           "company_id": {
             "type": "string",
             "title": "Company Id"
@@ -11252,6 +12067,14 @@
             "type": "boolean",
             "title": "Applied",
             "default": false
+          },
+          "more_locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "More Locations",
+            "default": []
           }
         },
         "type": "object",
@@ -12252,6 +13075,301 @@
         ],
         "title": "FlagUpdate"
       },
+      "FollowByNameIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "FollowByNameIn"
+      },
+      "FollowByNameOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "follow": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FollowedCompany"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "FollowByNameOut"
+      },
+      "FollowSettingsIn": {
+        "properties": {
+          "alert_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alert Mode"
+          },
+          "titles": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Titles"
+          },
+          "places": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Places"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "type": "object",
+        "title": "FollowSettingsIn"
+      },
+      "FollowSettingsOut": {
+        "properties": {
+          "alert_mode": {
+            "type": "string",
+            "title": "Alert Mode"
+          },
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Titles"
+          },
+          "places": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Places"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "default_titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Default Titles"
+          },
+          "default_places": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Default Places"
+          }
+        },
+        "type": "object",
+        "required": [
+          "alert_mode",
+          "titles",
+          "places",
+          "timezone",
+          "default_titles",
+          "default_places"
+        ],
+        "title": "FollowSettingsOut"
+      },
+      "FollowedCompany": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "platform_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform Name"
+          },
+          "careers_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Careers Url"
+          },
+          "open_jobs": {
+            "type": "integer",
+            "title": "Open Jobs",
+            "default": 0
+          },
+          "open_matching": {
+            "type": "integer",
+            "title": "Open Matching",
+            "default": 0
+          },
+          "new_count": {
+            "type": "integer",
+            "title": "New Count",
+            "default": 0
+          },
+          "latest_posted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Posted At"
+          },
+          "last_refreshed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Refreshed At"
+          },
+          "followed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Followed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "name",
+          "followed_at"
+        ],
+        "title": "FollowedCompany"
+      },
+      "FollowingOut": {
+        "properties": {
+          "companies": {
+            "items": {
+              "$ref": "#/components/schemas/FollowedCompany"
+            },
+            "type": "array",
+            "title": "Companies"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/FollowSettingsOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "companies",
+          "limit",
+          "settings"
+        ],
+        "title": "FollowingOut"
+      },
       "GmailAccountList": {
         "properties": {
           "accounts": {
@@ -12865,6 +13983,18 @@
             "title": "Paused",
             "description": "Circuit breaker open: skipped until the cooldown ends",
             "default": false
+          },
+          "pause_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pause Reason",
+            "description": "Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)"
           }
         },
         "type": "object",
@@ -12955,6 +14085,98 @@
           "latency_ms"
         ],
         "title": "ModelTestResult"
+      },
+      "NewRole": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "remote": {
+            "type": "boolean",
+            "title": "Remote"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "company": {
+            "type": "string",
+            "title": "Company"
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform"
+          },
+          "posted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted At"
+          },
+          "found_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Found At"
+          },
+          "seen": {
+            "type": "boolean",
+            "title": "Seen"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "job_id",
+          "title",
+          "location",
+          "remote",
+          "url",
+          "company_id",
+          "company",
+          "platform",
+          "found_at",
+          "seen"
+        ],
+        "title": "NewRole"
+      },
+      "NewRolesOut": {
+        "properties": {
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/NewRole"
+            },
+            "type": "array",
+            "title": "Roles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roles"
+        ],
+        "title": "NewRolesOut"
       },
       "OtpRequest": {
         "properties": {
@@ -13627,7 +14849,40 @@
                 "type": "null"
               }
             ],
-            "title": "Error"
+            "title": "Error",
+            "description": "Short message for people when part of the pack failed"
+          },
+          "error_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Detail",
+            "description": "Which AI models were tried and why each failed"
+          },
+          "steps": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Steps",
+            "description": "Per part (resume, cover_letter): running, done, failed or skipped"
+          },
+          "typical_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typical Seconds",
+            "description": "How long packs usually take (median of the last 20)"
           },
           "updated_at": {
             "type": "string",
@@ -13825,9 +15080,11 @@
             "type": "string",
             "enum": [
               "confirmation",
-              "stopped"
+              "stopped",
+              "step"
             ],
-            "title": "Kind"
+            "title": "Kind",
+            "description": "step = one page of a form the AI form reader read (confirmation_text says which)"
           },
           "confirmation_text": {
             "anyOf": [
@@ -14549,6 +15806,28 @@
             "title": "Proofs",
             "default": 0
           },
+          "steps": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Steps",
+            "description": "AI form reader: the form pages read ({page, url, keys, files})"
+          },
+          "vision": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vision",
+            "description": "AI form reader: screenshot-fallback use ({steps, cost_usd, map_calls, log})"
+          },
           "approved_at": {
             "anyOf": [
               {
@@ -15140,6 +16419,23 @@
         "type": "object",
         "title": "SeedFromResumeIn"
       },
+      "SeenIn": {
+        "properties": {
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
+          }
+        },
+        "type": "object",
+        "title": "SeenIn"
+      },
       "SessionCreateIn": {
         "properties": {
           "mode": {
@@ -15634,6 +16930,44 @@
         ],
         "title": "StreamTokenOut"
       },
+      "SuggestedCompany": {
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform"
+          },
+          "platform_name": {
+            "type": "string",
+            "title": "Platform Name"
+          },
+          "open_matching": {
+            "type": "integer",
+            "title": "Open Matching"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company_id",
+          "name",
+          "platform",
+          "platform_name",
+          "open_matching",
+          "reason"
+        ],
+        "title": "SuggestedCompany"
+      },
       "Suggestion": {
         "properties": {
           "application_id": {
@@ -15661,6 +16995,22 @@
           "company"
         ],
         "title": "Suggestion"
+      },
+      "SuggestionsOut": {
+        "properties": {
+          "companies": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestedCompany"
+            },
+            "type": "array",
+            "title": "Companies"
+          }
+        },
+        "type": "object",
+        "required": [
+          "companies"
+        ],
+        "title": "SuggestionsOut"
       },
       "TaskDefaults": {
         "properties": {
@@ -16450,6 +17800,18 @@
           "paused": {
             "type": "boolean",
             "title": "Paused"
+          },
+          "pause_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pause Reason",
+            "description": "Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)"
           }
         },
         "type": "object",

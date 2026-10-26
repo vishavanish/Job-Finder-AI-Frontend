@@ -1,6 +1,7 @@
 /**
  * Job alerts (backend P3.2): a search profile that runs once a day at the
- * user's local hour and emails new matches above a minimum score. Shows the
+ * user's local hour and emails new matches above a minimum score, to the
+ * sign-in email or a connected Gmail account. Shows the
  * next run, run history and each run's new jobs; "Run now" counts against
  * the daily job_alerts quota.
  */
@@ -47,10 +48,13 @@ function when(iso: string | null | undefined): string {
 function AlertForm({
   initial,
   profiles,
+  emailOptions,
   onDone,
 }: {
   initial: AlertOut | null;
   profiles: { id: string; name: string }[];
+  /** Sign-in email first, then connected Gmail accounts. */
+  emailOptions: string[];
   onDone: () => void;
 }) {
   const qc = useQueryClient();
@@ -63,6 +67,7 @@ function AlertForm({
           timezone: initial.timezone,
           min_score: initial.min_score,
           email_digest: initial.email_digest,
+          email_to: initial.email_to ?? null,
           enabled: initial.enabled,
         }
       : {
@@ -72,9 +77,13 @@ function AlertForm({
           timezone: BROWSER_TZ,
           min_score: 75,
           email_digest: true,
+          email_to: null,
           enabled: true,
         },
   );
+  const login = emailOptions[0] ?? "";
+  // A Gmail that was disconnected since shows as the sign-in email, which is where it goes now.
+  const sendTo = a.email_to && emailOptions.includes(a.email_to) ? a.email_to : login;
   const save = useMutation({
     mutationFn: () => (initial ? updateAlert(initial.id, a) : createAlert(a)),
     onSuccess: () => {
@@ -158,6 +167,28 @@ function AlertForm({
         />
         Email me the new matches
       </label>
+      {a.email_digest && login && (
+        <div className="form-grid">
+          <label className="field">
+            <span>Send to</span>
+            <select
+              value={sendTo}
+              onChange={(e) => set({ email_to: e.target.value === login ? null : e.target.value })}
+            >
+              {emailOptions.map((address, i) => (
+                <option key={address} value={address}>
+                  {i === 0 ? `${address} (sign-in)` : address}
+                </option>
+              ))}
+            </select>
+            {emailOptions.length === 1 && (
+              <span className="field-hint">
+                To use another Gmail address, <Link to="/tracker">connect it in Tracker</Link>.
+              </span>
+            )}
+          </label>
+        </div>
+      )}
       <label className="check-inline">
         <input
           type="checkbox"
@@ -303,7 +334,7 @@ function AlertRow({
         {!alert.enabled && <span className="badge tone-muted">Off</span>}
         <p className="source-desc">
           {profileName} · every day at {hourLabel(alert.hour_local)} ({alert.timezone}) · score{" "}
-          {alert.min_score}+{alert.email_digest ? " · emailed" : ""}
+          {alert.min_score}+{alert.email_digest ? ` · emailed to ${alert.sends_to}` : ""}
         </p>
         <p className="source-desc">
           {alert.enabled ? `Next run ${when(alert.next_run_at)}` : "Won't run while it's off"}
@@ -408,6 +439,7 @@ export default function AlertsPage() {
         <AlertForm
           initial={editing === "new" ? null : editing}
           profiles={profileList}
+          emailOptions={alerts.data?.email_options ?? []}
           onDone={() => setEditing(null)}
         />
       )}

@@ -120,6 +120,9 @@ export interface MockRun {
   /** How many jobs each poll releases, to imitate streaming. */
   delivered: number;
   status: "running" | "completed" | "cancelled";
+  /** Who started it and what was skipped, for GET /pipeline/runs/latest (QA1 §4). */
+  userId?: string;
+  skipped?: string[];
 }
 
 export interface MockTask {

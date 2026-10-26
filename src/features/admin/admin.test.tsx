@@ -40,7 +40,7 @@ describe("guards", () => {
       }),
     ).toBeInTheDocument();
     const link = within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", {
-      name: /ATS targets/,
+      name: /Target companies/,
     });
     expect(link).toHaveTextContent("Off");
   });

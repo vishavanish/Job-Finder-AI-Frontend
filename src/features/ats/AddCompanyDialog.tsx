@@ -77,8 +77,8 @@ export function AddCompanyDialog({ onClose }: { onClose: () => void }) {
         </label>
         <p className="field-hint">
           Works with Greenhouse, Lever, Workday, Recruitee, Ashby, SmartRecruiters, Workable,
-          Personio, Breezy, Teamtailor, Rippling, Gem and Homerun links. Companies you add are
-          shared with everyone — only their public job list is stored.
+          Personio, Breezy, Teamtailor, Rippling and Gem links. Companies you add are shared with
+          everyone — only their public job list is stored.
         </p>
       </form>
       <div aria-live="polite">

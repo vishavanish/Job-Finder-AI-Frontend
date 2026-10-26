@@ -167,6 +167,7 @@ export function jobsFor(company: AtsCompany, seed: number, titles: string[]): Mo
       posted_at: iso((((seed * 7 + j * 5) % 40) + 0.5) * DAY),
       first_seen_at: iso((((seed * 7 + j * 5) % 40) + 0.5) * DAY),
       applied: false,
+      more_locations: [],
       closed: false,
     };
   });
@@ -314,6 +315,7 @@ export function search(userId: string, a: SearchArgs) {
         locations: [...new Set(jobs.map((j) => j.location))],
         newest_posted_at: sorted[0]?.posted_at ?? null,
         last_refreshed_at: c.last_ok_at ?? null,
+        followed: false,
       };
     })
     .sort(

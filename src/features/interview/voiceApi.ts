@@ -1,4 +1,5 @@
 /** Voice interview prep calls (backend P7): providers, settings, sessions, feedback, history, story bank. */
+import type { IconName } from "../../components/Icon";
 import { api } from "../../lib/api/client";
 import type {
   Story,
@@ -48,6 +49,8 @@ export const getVoiceSession = (id: string) =>
   api.get<VoiceSessionDetail>(`/voice/sessions/${enc(id)}`);
 export const getVoiceFeedback = (id: string) =>
   api.get<VoiceFeedback>(`/voice/sessions/${enc(id)}/feedback`);
+export const retryVoiceFeedback = (id: string) =>
+  api.post<VoiceFeedback>(`/voice/sessions/${enc(id)}/feedback/retry`);
 export const getVoiceHistory = (mode: string, limit = 20, offset = 0) =>
   api.get<VoiceHistory>("/voice/history", { params: { mode: mode || undefined, limit, offset } });
 export const getVoiceProgress = () => api.get<VoiceProgress>("/voice/progress");
@@ -94,6 +97,19 @@ export const INTERVIEW_TYPES: {
     hint: "Questions about your own experience.",
   },
 ];
+
+/** Icon per interview type (Practice) or "copilot". */
+export const TYPE_ICONS: Record<string, IconName> = {
+  behavioral: "message",
+  technical: "code",
+  system_design: "network",
+  role_specific: "briefcase",
+  rapid_fire: "zap",
+  resume_walkthrough: "fileText",
+  copilot: "sparkle",
+};
+
+export const typeIcon = (t: string): IconName => TYPE_ICONS[t] ?? "mic";
 
 export const typeLabel = (t: string) =>
   INTERVIEW_TYPES.find((x) => x.value === t)?.label ?? t.replace(/_/g, " ");

@@ -1,4 +1,4 @@
-/** Apply Center calls (backend P4a / P4b): apply runs, prep packs, answer bank, apply settings. */
+/** Apply Center calls (backend P4a / P4b / P4c): apply runs, prep packs, answer bank, apply settings. */
 import { api } from "../../lib/api/client";
 import type {
   ApplicationLogEntry,
@@ -33,6 +33,27 @@ export const HISTORY_STATES: readonly ApplyRunState[] = [
 
 export const isRunMoving = (state: ApplyRunState | undefined) =>
   state !== undefined && (ACTIVE_STATES as readonly string[]).includes(state);
+
+/** One page of a form the AI form reader walked (backend P4c `steps`). */
+export interface RunStep {
+  page: number;
+  url: string;
+  keys: string[];
+  files: Record<string, string>;
+}
+
+/** What the screenshot fallback did on a run (backend P4c `vision`); the log never holds answers. */
+export interface RunVision {
+  steps: number;
+  cost_usd: number;
+  map_calls: number;
+  log: { action?: string; mark?: string; key?: string; refused?: string; stop?: string }[];
+}
+
+export const runSteps = (run: ApplyRun): RunStep[] => (run.steps ?? []) as unknown as RunStep[];
+export const runVision = (run: ApplyRun): RunVision | null =>
+  (run.vision as unknown as RunVision | null | undefined) ?? null;
+export const isGeneric = (adapter: string | null | undefined) => adapter === "generic";
 
 export const applyKeys = {
   all: ["apply"] as const,

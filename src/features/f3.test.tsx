@@ -108,7 +108,9 @@ describe("Jobs", () => {
       expect(within(site).getByRole("button", { name: "Apply manually" })).toBeEnabled();
       expect(within(site).getByRole("button", { name: "Auto apply" })).toBeDisabled();
       expect(
-        within(site).getByText(/Auto apply works on Greenhouse and Lever job pages only/),
+        within(site).getByText(
+          /Auto apply works on Greenhouse, Lever and the career sites the AI form reader knows/,
+        ),
       ).toBeInTheDocument();
       const linkedin = card("Senior Python Engineer"); // LinkedIn Easy Apply
       expect(within(linkedin).getByRole("button", { name: "Fast apply" })).toBeEnabled();
@@ -281,6 +283,21 @@ describe("Job alerts", () => {
     expect(await screen.findByText(/Started\. New matches appear below/)).toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: "Show jobs" }));
     expect(await screen.findByRole("link", { name: "Senior Python Engineer" })).toBeInTheDocument();
+  });
+
+  it("sends the digest to a connected Gmail address", async () => {
+    renderApp("/alerts");
+    const user = await signIn();
+    await user.click(await screen.findByRole("button", { name: "New alert" }));
+    const sendTo = screen.getByLabelText("Send to");
+    expect(
+      within(sendTo)
+        .getAllByRole("option")
+        .map((o) => o.textContent),
+    ).toEqual(["demo@jobfinder.test (sign-in)", "demo.jobs@gmail.com", "old.inbox@gmail.com"]);
+    await user.selectOptions(sendTo, "demo.jobs@gmail.com");
+    await user.click(screen.getByRole("button", { name: "Create alert" }));
+    expect(await screen.findByText(/emailed to demo\.jobs@gmail\.com/)).toBeInTheDocument();
   });
 
   it("stops at the alert limit", async () => {

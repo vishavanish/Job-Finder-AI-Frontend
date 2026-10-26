@@ -21,6 +21,7 @@ import {
   search,
 } from "./f6State";
 import { API, authenticate, newId, readJson, requireRole } from "./handlers";
+import { isFollowed } from "./qa4";
 
 const fail = (status: number, code: string, message: string) =>
   HttpResponse.json({ detail: { code, message } }, { status });
@@ -80,7 +81,7 @@ function parseUrl(raw: string): { platform: string; slug: string } | Response {
   return fail(
     422,
     "ats_unsupported",
-    "We can't read jobs from that page yet. Supported: Greenhouse, Lever, Workday, Recruitee, Ashby, SmartRecruiters, Workable, Personio, Breezy, Teamtailor, Rippling, Gem and Homerun links.",
+    "We can't read jobs from that page yet. Supported: Greenhouse, Lever, Workday, Recruitee, Ashby, SmartRecruiters, Workable, Personio, Breezy, Teamtailor, Rippling and Gem links.",
   );
 }
 
@@ -128,7 +129,11 @@ export const f6Handlers = [
       });
       topup_task_id = id;
     }
-    return HttpResponse.json({ ...result, topup_task_id });
+    const groups = result.groups.map((g) => ({
+      ...g,
+      followed: isFollowed(auth.user.id, g.company_id),
+    }));
+    return HttpResponse.json({ ...result, groups, topup_task_id });
   }),
 
   // The live top-up task (other task ids fall through to the generic /tasks mock).

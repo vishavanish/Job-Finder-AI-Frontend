@@ -7,8 +7,18 @@
  * computer's own voice is never sent as the answer.
  */
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useReducer, useRef, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { Icon } from "../../components/Icon";
+import { IconTile, PageHeader, StatChip } from "../../components/PageKit";
 import { CaptureError, startCapture, type Capture } from "./audio/capture";
 import { SendQueue } from "./audio/sendQueue";
 import { InterviewNav, LevelMeter } from "./parts";
@@ -168,7 +178,7 @@ export default function PracticeSessionPage() {
   const sendTyped = (e: FormEvent) => {
     e.preventDefault();
     const text = typed.trim();
-    if (!text) return;
+    if (!text || !canType) return;
     speaker.current?.stop();
     socket.sendJson({ type: "text", text });
     setTyped("");
@@ -176,165 +186,250 @@ export default function PracticeSessionPage() {
 
   const ended = state.phase === "ended" || socket.state === "closed";
   const asking = state.lines.at(-1)?.speaker === "interviewer" && !state.lines.at(-1)?.closing;
+  // The server ignores answers while paused, so the box waits for Resume (and keeps the text).
+  const canType = asking && state.phase !== "paused";
+
+  // Session clock: runs from the first question until the end.
+  const [elapsed, setElapsed] = useState(0);
+  const running = state.lines.length > 0 && !ended;
+  useEffect(() => {
+    if (!running) return;
+    const t0 = Date.now() - elapsed * 1000;
+    const t = window.setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 1000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resume from the current value only
+  }, [running]);
+  const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
+  const phase = socket.state === "reconnecting" ? "reconnecting" : ended ? "ended" : state.phase;
+  // Closed without session.ended: rejected or the connection was given up.
+  const failed = ended && !state.ended;
+  const steps = Math.min(state.of, 12);
+  const current = Math.max(1, state.questionNo);
 
   return (
     <div className="iv-page">
-      <div className="page-header">
-        <div>
-          <h2>Practice interview</h2>
-          <p>
-            {state.of
-              ? `Question ${Math.max(1, state.questionNo)} of ${state.of}`
-              : "Getting ready"}
+      <PageHeader
+        eyebrow="Practice session"
+        title="Practice interview"
+        sub={
+          <>
+            {state.of ? `Question ${current} of ${state.of}` : "Getting ready"}
             {state.sttName ? ` · ${state.sttName}` : ""}
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      >
+        <StatChip icon="clock">
+          <strong className="num">{clock}</strong>
+        </StatChip>
+      </PageHeader>
       <InterviewNav />
 
-      <div className="card iv-session">
-        <div className="iv-status-row">
-          <span className={`iv-status iv-status-${state.phase}`} role="status" aria-live="polite">
+      <div className="iv-session">
+        <section className="card kit-card iv-stage" aria-label="Interviewer">
+          <div
+            className={`iv-orb iv-orb--${phase}`}
+            style={{ "--lvl": capture.current ? level : 0 } as CSSProperties}
+            aria-hidden="true"
+          >
+            <span className="iv-orb-ring" />
+            <span className="iv-orb-ring iv-orb-ring--2" />
+            <span className="iv-orb-core">
+              <Icon name={phase === "listening" ? "mic" : "sparkle"} size={28} />
+            </span>
+          </div>
+          <span className={`iv-status iv-status-${phase}`} role="status" aria-live="polite">
             <span className="iv-dot" aria-hidden="true" />
-            {socket.state === "reconnecting" ? "Reconnecting…" : PHASE_TEXT[state.phase]}
+            {PHASE_TEXT[phase]}
           </span>
+          {steps > 0 && (
+            <ol className="iv-stepper" aria-label={`Question ${current} of ${state.of}`}>
+              {Array.from({ length: steps }, (_, n) => (
+                <li key={n} className={n + 1 < current ? "done" : n + 1 === current ? "now" : ""} />
+              ))}
+            </ol>
+          )}
           <LevelMeter label="Mic" level={capture.current ? level : 0} />
-        </div>
-        {micError && (
-          <p className="iv-notice" role="alert">
-            {micError} You can type your answers below.
-          </p>
-        )}
-        {!state.sttAvailable && (
-          <p className="iv-notice">Speech-to-text isn't available right now — type your answers.</p>
-        )}
-        {state.notice && <p className="iv-notice">{state.notice}</p>}
-        {state.costCapped && (
-          <p className="iv-notice">
-            This session reached its cost limit; free AI models only from now on.
-          </p>
-        )}
-        {state.error && (
-          <p className="iv-notice warn" role="alert">
-            {state.error.message}{" "}
-            <button
-              type="button"
-              className="link-button"
-              onClick={() => dispatch({ type: "clearError" })}
-            >
-              Dismiss
-            </button>
-          </p>
-        )}
 
-        <ol className="iv-captions" aria-live="polite" aria-label="Captions">
-          {state.lines.map((l) => (
-            <li key={l.id} className={`iv-line iv-line-${l.speaker}`}>
-              <span className="iv-who">
-                {l.speaker === "interviewer"
-                  ? l.followup
-                    ? "Interviewer · follow-up"
-                    : "Interviewer"
-                  : "You"}
-              </span>
-              <span>{l.text}</span>
-              {l.interrupted && <span className="badge"> interrupted</span>}
-            </li>
-          ))}
-          {state.draft && (
-            <li className="iv-line iv-line-interviewer iv-line-live">
-              <span className="iv-who">Interviewer</span>
-              <span>{state.draft.sentences.join(" ")}</span>
-            </li>
-          )}
-          {state.answerDraft.length > 0 && (
-            <li className="iv-line iv-line-user iv-line-live">
-              <span className="iv-who">You</span>
-              <span>{state.answerDraft.join(" ")}</span>
-            </li>
-          )}
-        </ol>
-
-        {!ended && (
-          <>
-            {state.phase === "ready" && state.lines.length === 0 ? (
+          {!ended &&
+            (state.phase === "ready" && state.lines.length === 0 ? (
               <button
                 type="button"
-                className="btn-run"
+                className="btn-run iv-start"
                 onClick={() => control("start")}
                 disabled={socket.state !== "open"}
               >
+                <Icon name="play" size={16} />
                 Start the interview
               </button>
             ) : (
               <div className="iv-controls">
                 {state.phase === "paused" ? (
-                  <button type="button" className="btn-secondary" onClick={() => control("resume")}>
+                  <button type="button" className="iv-ctl" onClick={() => control("resume")}>
+                    <Icon name="play" size={16} />
                     Resume
                   </button>
                 ) : (
-                  <button type="button" className="btn-secondary" onClick={() => control("pause")}>
+                  <button type="button" className="iv-ctl" onClick={() => control("pause")}>
+                    <Icon name="pause" size={16} />
                     Pause
                   </button>
                 )}
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="iv-ctl"
                   onClick={() => control("repeat")}
                   disabled={!asking}
                 >
+                  <Icon name="repeat" size={16} />
                   Repeat question
                 </button>
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="iv-ctl"
                   onClick={() => control("skip")}
                   disabled={!asking}
                 >
+                  <Icon name="skip" size={16} />
                   Skip
                 </button>
-                <button type="button" className="btn-danger-small" onClick={() => control("end")}>
+                <button type="button" className="iv-ctl iv-ctl--end" onClick={() => control("end")}>
+                  <Icon name="stop" size={16} />
                   End
                 </button>
               </div>
+            ))}
+          {micError && (
+            <p className="kit-banner warn" role="alert">
+              {micError} You can type your answers below.
+            </p>
+          )}
+          {!state.sttAvailable && (
+            <p className="kit-banner warn">
+              Speech-to-text isn't available right now — type your answers.
+            </p>
+          )}
+          {state.notice && <p className="kit-banner">{state.notice}</p>}
+          {state.costCapped && (
+            <p className="kit-banner warn">
+              This session reached its cost limit; free AI models only from now on.
+            </p>
+          )}
+        </section>
+
+        <section className="card kit-card iv-convo" aria-label="Conversation">
+          {state.error && (
+            <p className="kit-banner warn" role="alert">
+              {state.error.message}{" "}
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => dispatch({ type: "clearError" })}
+              >
+                Dismiss
+              </button>
+            </p>
+          )}
+
+          <ol className="iv-captions" aria-live="polite" aria-label="Captions">
+            {state.lines.length === 0 && !state.draft && (
+              <li className="iv-captions-empty">
+                <Icon name="message" size={20} />
+                The interviewer&apos;s questions and your answers appear here as captions.
+              </li>
             )}
+            {state.lines.map((l) => (
+              <li key={l.id} className={`iv-line iv-line-${l.speaker}`}>
+                <span className="iv-avatar" aria-hidden="true">
+                  {l.speaker === "interviewer" ? <Icon name="sparkle" size={14} /> : "You"}
+                </span>
+                <span className="iv-bubble">
+                  <span className="iv-who">
+                    {l.speaker === "interviewer"
+                      ? l.followup
+                        ? "Interviewer · follow-up"
+                        : "Interviewer"
+                      : "You"}
+                  </span>
+                  <span>{l.text}</span>
+                  {l.interrupted && <span className="badge"> interrupted</span>}
+                </span>
+              </li>
+            ))}
+            {state.draft && (
+              <li className="iv-line iv-line-interviewer iv-line-live">
+                <span className="iv-avatar" aria-hidden="true">
+                  <Icon name="sparkle" size={14} />
+                </span>
+                <span className="iv-bubble">
+                  <span className="iv-who">Interviewer</span>
+                  <span>{state.draft.sentences.join(" ")}</span>
+                </span>
+              </li>
+            )}
+            {state.answerDraft.length > 0 && (
+              <li className="iv-line iv-line-user iv-line-live">
+                <span className="iv-avatar" aria-hidden="true">
+                  You
+                </span>
+                <span className="iv-bubble">
+                  <span className="iv-who">You</span>
+                  <span>{state.answerDraft.join(" ")}</span>
+                </span>
+              </li>
+            )}
+          </ol>
+
+          {!ended && (
             <form className="iv-typed" onSubmit={sendTyped}>
               <label className="field">
-                <span>Or type your answer</span>
+                <span>
+                  {state.phase === "paused"
+                    ? "Resume to send a typed answer"
+                    : "Or type your answer"}
+                </span>
                 <textarea
                   rows={2}
                   value={typed}
                   onChange={(e) => setTyped(e.target.value)}
                   maxLength={4000}
-                  disabled={!asking}
+                  disabled={!canType}
+                  placeholder={canType ? "Type instead of speaking…" : undefined}
                 />
               </label>
-              <button type="submit" className="btn-secondary" disabled={!asking || !typed.trim()}>
+              <button
+                type="submit"
+                className="btn-run iv-send"
+                disabled={!canType || !typed.trim()}
+              >
+                <Icon name="send" size={15} />
                 Send answer
               </button>
             </form>
-          </>
-        )}
+          )}
 
-        {ended && (
-          <div className="iv-ended" role="status">
-            <p>
-              {state.ended
-                ? `${END_REASONS[state.ended.reason] ?? "Session ended"}.`
-                : (socket.closeReason ?? "Session ended.")}
-              {state.ended?.feedbackPending ? " Your feedback is being prepared." : ""}
-            </p>
-            <Link className="btn-run" to={`/interview/sessions/${id}`}>
-              See your feedback
-            </Link>
-          </div>
-        )}
+          {ended && (
+            <div
+              className={`iv-ended${failed ? " is-failed" : ""}`}
+              role={failed ? "alert" : "status"}
+            >
+              <IconTile
+                icon={failed ? "alert" : "check"}
+                tone={failed ? "attention" : "positive"}
+                size="lg"
+              />
+              <p>
+                {state.ended
+                  ? `${END_REASONS[state.ended.reason] ?? "Session ended"}.`
+                  : (socket.closeReason ?? "Session ended.")}
+                {state.ended?.feedbackPending ? " Your feedback is being prepared." : ""}
+              </p>
+              <Link className="btn-run" to={`/interview/sessions/${id}`}>
+                See your feedback
+              </Link>
+            </div>
+          )}
+        </section>
       </div>
-      {socket.closeReason && !state.ended && (
-        <p className="login-error" role="alert">
-          {socket.closeReason}
-        </p>
-      )}
     </div>
   );
 }

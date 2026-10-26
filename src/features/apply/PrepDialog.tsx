@@ -52,10 +52,11 @@ function PackBody({
   const dropped = pack.dropped ?? [];
   return (
     <>
-      {pack.error && (
-        <p className="field-hint" role="status">
-          Part of this didn't work: {pack.error}
-        </p>
+      {pack.status === "ready" && pack.error && (
+        <div className="login-notice" role="status">
+          {pack.error}
+          <ErrorDetail detail={pack.error_detail} />
+        </div>
       )}
       {mode === "email" && pack.email_to && (
         <section className="prep-block">
@@ -261,11 +262,16 @@ export function PrepDialog({
       )}
 
       {(start.isPending || p?.status === "pending") && (
-        <p className="prep-progress" role="status" aria-live="polite">
-          Tailoring your resume
-          {mode === "manual" ? " and writing a cover letter" : " and the email"}… this takes 10–40
-          seconds.
-        </p>
+        <div className="prep-progress" role="status" aria-live="polite">
+          <p>
+            Tailoring your resume
+            {mode === "manual" ? " and writing a cover letter" : " and the email"}…{" "}
+            {p?.typical_seconds
+              ? `this usually takes about ${p.typical_seconds} seconds.`
+              : "this takes 10–40 seconds."}
+          </p>
+          <PrepSteps steps={p?.steps} mode={mode} />
+        </div>
       )}
       {start.isError && (
         <p className="login-error" role="alert">
@@ -273,9 +279,10 @@ export function PrepDialog({
         </p>
       )}
       {p?.status === "failed" && (
-        <p className="login-error" role="alert">
-          Couldn't prepare this: {p.error ?? "try again"}
-        </p>
+        <div className="login-error" role="alert">
+          {p.error ?? "Couldn't prepare this. Try again."}
+          <ErrorDetail detail={p.error_detail} />
+        </div>
       )}
       {p && p.status !== "pending" && <PackBody pack={p} mode={mode} jobTitle={job.title} />}
       {p && p.status !== "pending" && (
@@ -285,7 +292,7 @@ export function PrepDialog({
           disabled={start.isPending}
           onClick={() => start.mutate(true)}
         >
-          Regenerate
+          {p.error ? "Try again" : "Regenerate"}
         </button>
       )}
       {actionError && (
@@ -294,5 +301,46 @@ export function PrepDialog({
         </p>
       )}
     </Dialog>
+  );
+}
+
+/** The model-by-model reason, folded away: useful for an admin, noise for everyone else (QA1 §7). */
+function ErrorDetail({ detail }: { detail?: string | null }) {
+  if (!detail) return null;
+  return (
+    <details className="prep-error-detail">
+      <summary>Details</summary>
+      <p className="mono">{detail}</p>
+    </details>
+  );
+}
+
+const STEP_MARK: Record<string, string> = {
+  running: "…",
+  done: "✓",
+  failed: "✗",
+};
+
+/** Which part of the pack is ready while the rest is still being written (QA2 §2). */
+function PrepSteps({ steps, mode }: { steps?: Record<string, string>; mode: "manual" | "email" }) {
+  const labels: Record<string, string> = {
+    resume: "Tailored resume",
+    cover_letter: mode === "manual" ? "Cover letter" : "Email text",
+  };
+  const shown = Object.entries(steps ?? {}).filter(
+    ([part, state]) => labels[part] && STEP_MARK[state],
+  );
+  if (!shown.length) return null;
+  return (
+    <ul className="prep-steps">
+      {shown.map(([part, state]) => (
+        <li key={part} className={`is-${state}`}>
+          <span aria-hidden="true">{STEP_MARK[state]}</span> {labels[part]}
+          <span className="sr-only">
+            {state === "running" ? " — in progress" : state === "done" ? " — ready" : " — failed"}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

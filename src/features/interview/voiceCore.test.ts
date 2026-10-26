@@ -3,7 +3,7 @@
  * encoding, the copilot and practice reducers, and the mock voice socket
  * contract (first-message auth, single-use token).
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { FrameChunker, downsample, rms } from "./audio/resample";
 import { SendQueue } from "./audio/sendQueue";
 import { copilotReducer, initialCopilot, threads, type CopilotState } from "./copilotReducer";
@@ -39,6 +39,21 @@ describe("audio framing", () => {
     expect(socketUrl("/api/v1/voice/copilot/x/stream")).toMatch(
       /^ws:\/\/.+\/api\/v1\/voice\/copilot\/x\/stream$/,
     );
+  });
+
+  it("sends voice sockets to VITE_WS_ORIGIN when the API sits behind a proxy (QA1 §1)", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "");
+    vi.stubEnv("VITE_WS_ORIGIN", "https://api.example.test/");
+    vi.resetModules();
+    try {
+      const { socketUrl: proxied } = await import("./protocol");
+      expect(proxied("/api/v1/voice/sessions/s1/stream")).toBe(
+        "wss://api.example.test/api/v1/voice/sessions/s1/stream",
+      );
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 
   it("drops the oldest frames when the socket stalls", () => {

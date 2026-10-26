@@ -1,5 +1,6 @@
 /** Streaming search runs, the user's job lists and the two apply paths (backend P3–P3.2, F3 endpoints). */
 import { api } from "../../lib/api/client";
+import { ApiError } from "../../lib/api/errors";
 import type {
   PipelineRunJobsPage,
   PipelineRunMeta,
@@ -32,6 +33,18 @@ export const getRun = (runId: string) =>
 export const getRunJobs = (runId: string, offset: number) =>
   api.get<PipelineRunJobsPage>(`/pipeline/${encodeURIComponent(runId)}/jobs`, {
     params: { offset },
+  });
+/** The newest search started from Jobs that the server still holds (QA1 §4); null if none. */
+export interface LatestRun extends PipelineRunMeta {
+  run_id: string;
+  created_at: string;
+  keywords: string[];
+  skipped_sources: string[];
+}
+export const getLatestRun = () =>
+  api.get<LatestRun>("/pipeline/runs/latest").catch((err: unknown) => {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
   });
 export const cancelRun = (runId: string) =>
   api.post<PipelineRunMeta>(`/pipeline/${encodeURIComponent(runId)}/cancel`);

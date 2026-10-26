@@ -8,6 +8,7 @@ import { useId, useState } from "react";
 import { errorMessage } from "../../lib/api/errors";
 import type { AtsCompanyGroup, AtsJob } from "../../lib/api/types";
 import { atsKeys, getCompanyJobs } from "./atsApi";
+import { FollowButton } from "./FollowButton";
 import { ago, safeHttpUrl } from "./platforms";
 
 export function AtsJobRow({ job, onDetails }: { job: AtsJob; onDetails: (job: AtsJob) => void }) {
@@ -21,6 +22,12 @@ export function AtsJobRow({ job, onDetails }: { job: AtsJob; onDetails: (job: At
         </button>
         <span className="ats-job-meta">
           {job.location || "Location not given"}
+          {(job.more_locations?.length ?? 0) > 0 && (
+            <span className="ats-more-places" title={job.more_locations!.join(" · ")}>
+              {" "}
+              +{job.more_locations!.length} location{job.more_locations!.length === 1 ? "" : "s"}
+            </span>
+          )}
           {job.remote && <span className="ats-tag">Remote</span>}
           {posted && <> · {posted}</>}
           {job.applied && <span className="ats-tag is-applied">Applied</span>}
@@ -95,17 +102,24 @@ export function CompanyCard({
             <p className="field-hint">{group.locations.slice(0, 5).join(" · ")}</p>
           )}
         </div>
-        {careers && (
-          <a
-            className="btn-secondary"
-            href={careers}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Careers page of ${group.name} (new tab)`}
-          >
-            Careers page
-          </a>
-        )}
+        <div className="ats-company-actions">
+          <FollowButton
+            companyId={group.company_id}
+            name={group.name}
+            followed={Boolean(group.followed)}
+          />
+          {careers && (
+            <a
+              className="btn-secondary"
+              href={careers}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Careers page of ${group.name} (new tab)`}
+            >
+              Careers page
+            </a>
+          )}
+        </div>
       </div>
 
       <p className="sr-only">Top matches for “{query}”</p>

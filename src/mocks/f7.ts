@@ -211,6 +211,18 @@ export const f7RestHandlers = [
     );
   }),
 
+  http.post(`${API}/voice/sessions/:id/feedback/retry`, ({ request, params }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const s = owned(auth.user.id, String(params.id));
+    if (!s) return fail(404, "voice_session_not_found", "No voice session with this id.");
+    if (s.session.feedback_state !== "failed")
+      return fail(409, "feedback_not_failed", "Feedback can only be retried after it failed.");
+    s.session.feedback_state = "pending";
+    s.feedbackPolls = 0;
+    return HttpResponse.json({ state: "pending", answers: [] }, { status: 202 });
+  }),
+
   http.get(`${API}/voice/sessions/:id`, ({ request, params }) => {
     const auth = authenticate(request);
     if ("response" in auth) return auth.response;

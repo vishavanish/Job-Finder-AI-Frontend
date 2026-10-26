@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { GOOGLE_CLIENT_ID, USE_MOCKS } from "../../lib/env";
+import { GOOGLE_DID_NOT_FINISH, createSignInWatch } from "./googleWatch";
 
 interface GoogleId {
   initialize: (opts: {
@@ -65,6 +66,9 @@ export function GoogleButton({
   useEffect(() => {
     if (USE_MOCKS || !GOOGLE_CLIENT_ID) return;
     let active = true;
+    const watch = createSignInWatch(
+      () => active && handlers.current.onError(GOOGLE_DID_NOT_FINISH),
+    );
     loadGsi()
       .then((gsi) => {
         if (!active || !host.current) return;
@@ -72,6 +76,7 @@ export function GoogleButton({
           client_id: GOOGLE_CLIENT_ID,
           ux_mode: "popup",
           callback: (resp) => {
+            watch.done();
             if (resp.credential) handlers.current.onToken(resp.credential);
             else handlers.current.onError("Google sign-in was cancelled.");
           },
@@ -83,12 +88,14 @@ export function GoogleButton({
           text: "continue_with",
           shape: "rectangular",
           width: host.current.clientWidth || 316,
+          click_listener: () => watch.start(),
         });
         setLoaded(true);
       })
       .catch((err: Error) => active && handlers.current.onError(err.message));
     return () => {
       active = false;
+      watch.done();
     };
   }, []);
 

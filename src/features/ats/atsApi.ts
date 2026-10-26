@@ -17,9 +17,9 @@ const enc = encodeURIComponent;
 
 export interface AtsFilters {
   platform: string[];
-  location: string;
+  location: string; // one or more places, comma-separated
   remote: boolean;
-  posted: string; // days, "" = any
+  posted: string; // days, "" = last 90 days (server default), "any" = every age
   hideApplied: boolean;
 }
 
@@ -34,14 +34,28 @@ export const atsKeys = {
     ["ats", "admin", "companies", q, platform, active] as const,
 };
 
+/** "Mumbai, India, Remote" → ["Mumbai", "India", "Remote"]; undefined when empty. */
+export function splitPlaces(text: string): string[] | undefined {
+  const places = [
+    ...new Set(
+      text
+        .split(",")
+        .map((p) => p.trim())
+        .filter(Boolean),
+    ),
+  ];
+  return places.length ? places : undefined;
+}
+
 export const searchAts = (q: string, f: AtsFilters, page: number) =>
   api.get<AtsSearchResult>("/ats/search", {
     params: {
       q,
       platform: f.platform.length ? f.platform : undefined,
-      location: f.location.trim() || undefined,
+      location: splitPlaces(f.location),
       remote: f.remote || undefined,
-      posted_within_days: f.posted || undefined,
+      posted_within_days: f.posted && f.posted !== "any" ? f.posted : undefined,
+      any_age: f.posted === "any" || undefined,
       hide_applied: f.hideApplied,
       page,
     },

@@ -4,7 +4,7 @@
  * nothing saves on blur (audit B9).
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ChipInput } from "../../components/ChipInput";
 import { errorMessage } from "../../lib/api/errors";
 import type {
@@ -237,6 +237,34 @@ export function ApplicantSection({ profile }: { profile: ProfileOut }) {
     profileKeys.profile,
   );
   const set = (patch: Partial<ApplicantInfoIn>) => setA((prev) => ({ ...prev, ...patch }));
+
+  // The server fills empty fields from the resume after a parse (QA2 §3): take those values into
+  // fields that are still empty here, never over what was typed.
+  const server = profile.applicant_info;
+  const seen = useRef<Record<string, unknown>>({ ...(server ?? {}) });
+  useEffect(() => {
+    if (!server) return;
+    const before = seen.current;
+    seen.current = { ...server };
+    setA((prev) => {
+      const next: Record<string, unknown> = { ...prev };
+      let changed = false;
+      for (const [k, v] of Object.entries(server)) {
+        const mine = next[k];
+        const fresh = before[k] !== v; // only values the server just set, not ones the user cleared
+        if (
+          fresh &&
+          (mine === undefined || mine === null || mine === "") &&
+          v !== null &&
+          v !== ""
+        ) {
+          next[k] = v;
+          changed = true;
+        }
+      }
+      return changed ? (next as ApplicantInfoIn) : prev;
+    });
+  }, [server]);
 
   return (
     <section className="card" aria-labelledby={`${id}-h`}>

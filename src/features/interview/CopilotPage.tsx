@@ -22,6 +22,8 @@ import {
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { Dialog } from "../../components/Dialog";
+import { Icon } from "../../components/Icon";
+import { CardHead, IconTile, PageHeader } from "../../components/PageKit";
 import { ApiError, errorMessage } from "../../lib/api/errors";
 import { readPref, writePref } from "../../lib/storage";
 import { jobKeys, listJobs } from "../jobs/jobsApi";
@@ -200,7 +202,7 @@ function QuestionCard({
     </div>
   );
   return (
-    <li className={`card cp-card${active ? " active" : ""}`}>
+    <li className={`card kit-card cp-card${active ? " active" : ""}`}>
       {!active && (
         <button
           type="button"
@@ -415,15 +417,11 @@ export default function CopilotPage() {
 
   return (
     <div className="iv-page">
-      <div className="page-header">
-        <div>
-          <h2>Live Copilot</h2>
-          <p>
-            Suggested answers to the interviewer's questions, from your own resume and stories,
-            while you talk.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Live interview help"
+        title="Live Copilot"
+        sub="Suggested answers to the interviewer's questions, from your own resume and stories, while you talk."
+      />
       <InterviewNav />
       {!s.copilot_acknowledged && (
         <AckDialog
@@ -435,14 +433,18 @@ export default function CopilotPage() {
 
       {sessionId === null ? (
         <form
-          className="card iv-setup"
+          className="card kit-card iv-setup iv-copilot-setup"
           onSubmit={(e) => {
             e.preventDefault();
             void start();
           }}
         >
-          <h3>Set up</h3>
-          <div className="form-grid">
+          <CardHead
+            icon="sliders"
+            title="Set up"
+            sub="How answers look and where the copilot listens"
+          />
+          <div className="iv-fields iv-fields--4">
             <label className="field">
               <span>Job (optional)</span>
               <select
@@ -493,36 +495,46 @@ export default function CopilotPage() {
               </select>
             </label>
           </div>
-          <fieldset className="iv-types">
-            <legend>Audio</legend>
-            <label className={`iv-type${setup.sources === "tab_mic" ? " selected" : ""}`}>
-              <input
-                type="radio"
-                name="sources"
-                checked={setup.sources === "tab_mic"}
-                disabled={!tabAudioSupported()}
-                onChange={() => setSetup({ ...setup, sources: "tab_mic" })}
-              />
-              <span className="iv-type-name">Tab audio + mic</span>
-              <span className="iv-type-hint">
-                {tabAudioSupported()
-                  ? "Share the tab with your call (Meet, Zoom web, Teams web) and tick “Share tab audio”. Most precise."
-                  : "Needs Chrome or Edge."}
-              </span>
-            </label>
-            <label className={`iv-type${setup.sources === "mic" ? " selected" : ""}`}>
-              <input
-                type="radio"
-                name="sources"
-                checked={setup.sources === "mic"}
-                onChange={() => setSetup({ ...setup, sources: "mic" })}
-              />
-              <span className="iv-type-name">Mic only</span>
-              <span className="iv-type-hint">
-                Works anywhere; detecting who asked is less precise. Headphones off so the mic hears
-                the call.
-              </span>
-            </label>
+          <fieldset className="iv-step iv-types">
+            <legend className="iv-step-label">Audio</legend>
+            <div className="iv-type-grid iv-type-grid--2">
+              <label className={`iv-type${setup.sources === "tab_mic" ? " selected" : ""}`}>
+                <input
+                  type="radio"
+                  className="sr-only"
+                  name="sources"
+                  checked={setup.sources === "tab_mic"}
+                  disabled={!tabAudioSupported()}
+                  onChange={() => setSetup({ ...setup, sources: "tab_mic" })}
+                />
+                <IconTile icon="monitor" tone={setup.sources === "tab_mic" ? "accent" : "muted"} />
+                <span className="iv-type-text">
+                  <span className="iv-type-name">Tab audio + mic</span>
+                  <span className="iv-type-hint">
+                    {tabAudioSupported()
+                      ? "Share the tab with your call (Meet, Zoom web, Teams web) and tick “Share tab audio”. Most precise."
+                      : "Needs Chrome or Edge."}
+                  </span>
+                </span>
+              </label>
+              <label className={`iv-type${setup.sources === "mic" ? " selected" : ""}`}>
+                <input
+                  type="radio"
+                  className="sr-only"
+                  name="sources"
+                  checked={setup.sources === "mic"}
+                  onChange={() => setSetup({ ...setup, sources: "mic" })}
+                />
+                <IconTile icon="mic" tone={setup.sources === "mic" ? "accent" : "muted"} />
+                <span className="iv-type-text">
+                  <span className="iv-type-name">Mic only</span>
+                  <span className="iv-type-hint">
+                    Works anywhere; detecting who asked is less precise. Headphones off so the mic
+                    hears the call.
+                  </span>
+                </span>
+              </label>
+            </div>
           </fieldset>
           <ProviderLine providers={providers.data} copilot />
           <p className="field-hint">
@@ -538,7 +550,12 @@ export default function CopilotPage() {
               {startError}
             </p>
           )}
-          <button type="submit" className="btn-run" disabled={starting || !s.copilot_acknowledged}>
+          <button
+            type="submit"
+            className="btn-run iv-start"
+            disabled={starting || !s.copilot_acknowledged}
+          >
+            <Icon name="play" size={16} />
             {starting ? "Starting…" : "Start"}
           </button>
         </form>
@@ -721,7 +738,7 @@ function CopilotPanel({
     }[status] ?? status;
   const panel = (
     <section
-      className={`card cp-panel${floating && !pip ? " floating" : ""}${collapsed ? " collapsed" : ""}`}
+      className={`card kit-card cp-panel${floating && !pip ? " floating" : ""}${collapsed ? " collapsed" : ""}`}
       style={{ opacity: opacity / 100, ...(floating && !pip ? { left: pos.x, top: pos.y } : {}) }}
       aria-label="Live Copilot"
     >

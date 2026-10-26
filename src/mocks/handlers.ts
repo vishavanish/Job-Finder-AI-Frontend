@@ -381,9 +381,32 @@ export const workHandlers = [
       jobs,
       delivered: 0,
       status: "running",
+      userId: auth.user.id,
+      skipped: plan.skipped,
     };
     mockDb.runs.set(run.id, run);
     return HttpResponse.json({ run_id: run.id, skipped_sources: plan.skipped }, { status: 202 });
+  }),
+
+  // Before /pipeline/:runId so "runs" isn't read as a run id.
+  http.get(`${API}/pipeline/runs/latest`, ({ request }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const run = [...mockDb.runs.values()]
+      .filter((r) => r.userId === auth.user.id)
+      .sort((a, b) => b.createdAt - a.createdAt)[0];
+    if (!run) return HttpResponse.json({ detail: "no recent search" }, { status: 404 });
+    return HttpResponse.json({
+      run_id: run.id,
+      user_id: auth.user.id,
+      status: run.status,
+      total_keywords: 3,
+      keywords_completed: run.status === "running" ? 0 : 3,
+      error: null,
+      created_at: new Date(run.createdAt).toISOString(),
+      keywords: [],
+      skipped_sources: run.skipped ?? [],
+    });
   }),
 
   http.get(`${API}/pipeline/:runId`, ({ request, params }) => {

@@ -4,7 +4,7 @@
  * invite-only mode an admin creates them first. Wording never reveals
  * whether an address has an account.
  */
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError, errorMessage } from "../../lib/api/errors";
@@ -65,7 +65,10 @@ export default function SignInPage() {
   const [info, setInfo] = useState("");
   const [resendIn, setResendIn] = useCountdown();
   const [helpOpen, setHelpOpen] = useState(false);
-  const ids = { email: useId(), codeHelp: useId(), help: useId() };
+  const ids = { email: useId(), emailError: useId(), codeHelp: useId(), help: useId() };
+  // A bad address is shown under the field it is about, and the field gets focus (QA2 §5).
+  const [emailError, setEmailError] = useState("");
+  const emailInput = useRef<HTMLInputElement>(null);
 
   const finish = (data: TokenResponse) => {
     acceptSession(data);
@@ -106,9 +109,12 @@ export default function SignInPage() {
   const submitEmail = (e: FormEvent) => {
     e.preventDefault();
     if (!EMAIL_RE.test(email.trim())) {
-      setError("Enter a valid email address, like you@example.com.");
+      setError("");
+      setEmailError("Enter a valid email address, like you@example.com.");
+      emailInput.current?.focus();
       return;
     }
+    setEmailError("");
     void sendCode();
   };
 
@@ -129,6 +135,10 @@ export default function SignInPage() {
       setBusy(false);
     }
   };
+
+  useEffect(() => {
+    document.title = "Sign in · Job Finder";
+  }, []);
 
   // Submit as soon as the sixth digit lands (typed or pasted).
   useEffect(() => {
@@ -200,16 +210,27 @@ export default function SignInPage() {
                 <div className="auth-input">
                   <MailIcon />
                   <input
+                    ref={emailInput}
                     id={ids.email}
                     type="email"
                     autoComplete="email"
                     placeholder="you@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    aria-invalid={emailError ? true : undefined}
+                    aria-describedby={emailError ? ids.emailError : undefined}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError("");
+                    }}
                     // eslint-disable-next-line jsx-a11y/no-autofocus -- the only field on the screen
                     autoFocus
                   />
                 </div>
+                {emailError && (
+                  <p className="field-error" id={ids.emailError} role="alert">
+                    {emailError}
+                  </p>
+                )}
               </div>
               <div className="auth-help-row">
                 <button

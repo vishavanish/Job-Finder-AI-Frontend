@@ -4,7 +4,7 @@
  * pending version is polled until it is parsed or failed.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useId, useRef, useState, type DragEvent } from "react";
+import { useEffect, useId, useRef, useState, type DragEvent } from "react";
 import { ChipInput } from "../../components/ChipInput";
 import { errorMessage } from "../../lib/api/errors";
 import type { ExperienceItem, ParsedResume, ResumeOut } from "../../lib/api/types";
@@ -19,7 +19,7 @@ import {
   uploadResume,
 } from "./profileApi";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024; // matches RESUME_MAX_BYTES (Vercel proxies ~4.5 MB bodies)
 const ACCEPT =
   ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -58,6 +58,8 @@ function ReviewForm({ resume, onDone }: { resume: ResumeOut; onDone: (saved: boo
     mutationFn: (p: ParsedResume) => saveReviewedResume(resume.id, p, resume.label),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: profileKeys.resumes });
+      // The server fills empty Applicant info from a reviewed master resume (QA2 §3).
+      void qc.invalidateQueries({ queryKey: profileKeys.profile });
       onDone(true);
     },
   });
@@ -206,6 +208,19 @@ export function ResumeSection() {
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: profileKeys.resumes });
 
+  // A parse that just finished may have filled empty Applicant info (QA2 §3): reload it.
+  const lastStatus = useRef<Map<string, string> | null>(null);
+  useEffect(() => {
+    if (!resumes.data) return;
+    const list = resumes.data.resumes;
+    const before = lastStatus.current;
+    lastStatus.current = new Map(list.map((r) => [r.id, r.parse_status]));
+    const justRead = list.some(
+      (r) => r.parse_status === "parsed" && before !== null && before.get(r.id) !== "parsed",
+    );
+    if (justRead) void qc.invalidateQueries({ queryKey: profileKeys.profile });
+  }, [resumes.data, qc]);
+
   const upload = useMutation({
     mutationFn: (file: File) => uploadResume(file),
     onSuccess: (r) => {
@@ -240,7 +255,7 @@ export function ResumeSection() {
       return;
     }
     if (file.size > MAX_BYTES) {
-      setLocalError("That file is over 5 MB. Export a smaller PDF and try again.");
+      setLocalError("That file is over 4 MB. Export a smaller PDF and try again.");
       return;
     }
     upload.mutate(file);
@@ -280,7 +295,7 @@ export function ResumeSection() {
           >
             choose a file
           </button>
-          . Up to 5 MB.
+          . Up to 4 MB.
         </p>
         <input
           ref={fileRef}

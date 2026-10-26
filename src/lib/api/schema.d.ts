@@ -358,6 +358,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pipeline/runs/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Latest Pipeline Run
+         * @description The newest search you started on Jobs, while the server still holds
+         *     its results (6 h): run meta plus `created_at`, `keywords` and
+         *     `skipped_sources`. Load its jobs with GET /pipeline/{run_id}/jobs?offset=0.
+         *     404 when there is none. Job-alert runs are not included.
+         */
+        get: operations["get_latest_pipeline_run_api_v1_pipeline_runs_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pipeline/{run_id}": {
         parameters: {
             query?: never;
@@ -948,6 +971,27 @@ export interface paths {
         get?: never;
         /** Set Flag */
         put: operations["set_flag_api_v1_admin_flags__key__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/system/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * System Health
+         * @description Every health check with its detail: database, Redis queues, AI setup,
+         *     alerts scheduler. The public GET /health returns only the overall status.
+         */
+        get: operations["system_health_api_v1_admin_system_health_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1996,6 +2040,148 @@ export interface paths {
         patch: operations["admin_edit_platform_api_v1_admin_ats_platforms__platform__patch"];
         trace?: never;
     };
+    "/api/v1/ats/following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Following */
+        get: operations["following_api_v1_ats_following_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/companies/{company_id}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Follow */
+        put: operations["follow_api_v1_ats_companies__company_id__follow_put"];
+        post?: never;
+        /** Unfollow */
+        delete: operations["unfollow_api_v1_ats_companies__company_id__follow_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/{follow_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Follow */
+        delete: operations["remove_follow_api_v1_ats_following__follow_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/by-name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Follow By Name
+         * @description Follows a company by name. A name we already know is followed at once; otherwise its career page
+         *     is looked up in the background (status "searching", then "following" or "not_found").
+         */
+        post: operations["follow_by_name_api_v1_ats_following_by_name_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** New Roles */
+        get: operations["new_roles_api_v1_ats_following_new_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seen */
+        post: operations["seen_api_v1_ats_following_seen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Suggestions */
+        get: operations["suggestions_api_v1_ats_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ats/following/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Follow Settings */
+        get: operations["get_follow_settings_api_v1_ats_following_settings_get"];
+        /** Put Follow Settings */
+        put: operations["put_follow_settings_api_v1_ats_following_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/voice/providers": {
         parameters: {
             query?: never;
@@ -2111,6 +2297,23 @@ export interface paths {
         get: operations["get_feedback_api_v1_voice_sessions__session_id__feedback_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/voice/sessions/{session_id}/feedback/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry Feedback */
+        post: operations["retry_feedback_api_v1_voice_sessions__session_id__feedback_retry_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2246,7 +2449,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description Public liveness: only the overall status (503 when unhealthy). The
+         *     per-check detail (database, queues, AI setup, scheduler) is for admins at
+         *     GET /api/v1/admin/system/health — it described the setup to anyone (QA1).
+         */
         get: operations["health_health_get"];
         put?: never;
         post?: never;
@@ -2514,6 +2722,11 @@ export interface components {
              */
             email_digest: boolean;
             /**
+             * Email To
+             * @description Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)
+             */
+            email_to?: string | null;
+            /**
              * Enabled
              * @default true
              */
@@ -2525,6 +2738,11 @@ export interface components {
             alerts: components["schemas"]["AlertOut"][];
             /** Max Alerts */
             max_alerts: number;
+            /**
+             * Email Options
+             * @description Addresses a digest can go to: the sign-in email first, then connected Gmail accounts
+             */
+            email_options?: string[];
         };
         /** AlertOut */
         AlertOut: {
@@ -2551,12 +2769,22 @@ export interface components {
              */
             email_digest: boolean;
             /**
+             * Email To
+             * @description Where the digest goes: empty = your sign-in email, otherwise one of your connected Gmail addresses (see AlertList.email_options)
+             */
+            email_to?: string | null;
+            /**
              * Enabled
              * @default true
              */
             enabled: boolean;
             /** Id */
             id: string;
+            /**
+             * Sends To
+             * @description The address the next digest goes to
+             */
+            sends_to: string;
             /** Last Run At */
             last_run_at?: string | null;
             /**
@@ -2855,8 +3083,11 @@ export interface components {
          * @description The four apply buttons for one job (P4 plan §2).
          */
         ApplyOptions: {
-            /** Adapter */
-            adapter?: ("greenhouse" | "lever" | "linkedin") | null;
+            /**
+             * Adapter
+             * @description generic = the AI form reader (beta; turn it on in Apply settings)
+             */
+            adapter?: ("greenhouse" | "lever" | "linkedin" | "generic") | null;
             manual: components["schemas"]["ApplyOption"];
             fast: components["schemas"]["ApplyOption"];
             auto: components["schemas"]["ApplyOption"];
@@ -2922,6 +3153,11 @@ export interface components {
              * @description Your own off switch; pausing cancels active runs
              */
             paused?: boolean | null;
+            /**
+             * Allow Generic
+             * @description Use the AI form reader (beta) on other career sites; turning it off cancels its active runs
+             */
+            allow_generic?: boolean | null;
         };
         /** ApplySettingsOut */
         ApplySettingsOut: {
@@ -2937,6 +3173,22 @@ export interface components {
              * @default Auto apply fills and submits applications on company career sites (Greenhouse, Lever) for you, only after you review and approve each one. Some sites limit automated applications, answers can still be wrong, and a submitted application can't be taken back. You stay responsible for every application sent in your name. LinkedIn applications are never submitted by the app.
              */
             risk_notice: string;
+            /**
+             * Allow Generic
+             * @default false
+             */
+            allow_generic: boolean;
+            /**
+             * Generic Notice
+             * @default The AI form reader (beta) fills application forms on other career sites (Ashby, SmartRecruiters, Workable and more). It is less reliable than the Greenhouse and Lever support: it can misread a question or a page. It never signs in or creates accounts, every application waits for your review, and pages it can't handle are handed back to you. It may use a paid image-reading AI model for hard pages, within a per-application limit.
+             */
+            generic_notice: string;
+            /**
+             * Generic Submit Enabled
+             * @description False = the AI form reader is in test mode: runs are prepared for review but never submitted
+             * @default false
+             */
+            generic_submit_enabled: boolean;
             /** Risk Accepted At */
             risk_accepted_at?: string | null;
             /** Hours Start */
@@ -2980,6 +3232,11 @@ export interface components {
             newest_posted_at?: string | null;
             /** Last Refreshed At */
             last_refreshed_at?: string | null;
+            /**
+             * Followed
+             * @default false
+             */
+            followed: boolean;
         };
         /**
          * AtsCompanyIn
@@ -3000,6 +3257,11 @@ export interface components {
             company: components["schemas"]["AtsCompanyOut"];
             /** Jobs */
             jobs: components["schemas"]["AtsJobOut"][];
+            /**
+             * Followed
+             * @default false
+             */
+            followed: boolean;
         };
         /** AtsCompanyOut */
         AtsCompanyOut: {
@@ -3077,6 +3339,11 @@ export interface components {
              * @default false
              */
             applied: boolean;
+            /**
+             * More Locations
+             * @default []
+             */
+            more_locations: string[];
             /** Company Id */
             company_id: string;
             /** Company */
@@ -3111,6 +3378,11 @@ export interface components {
              * @default false
              */
             applied: boolean;
+            /**
+             * More Locations
+             * @default []
+             */
+            more_locations: string[];
         };
         /** AtsPlatformOut */
         AtsPlatformOut: {
@@ -3483,6 +3755,94 @@ export interface components {
             /** Value */
             value: unknown;
         };
+        /** FollowByNameIn */
+        FollowByNameIn: {
+            /** Name */
+            name: string;
+        };
+        /** FollowByNameOut */
+        FollowByNameOut: {
+            /** Status */
+            status: string;
+            follow?: components["schemas"]["FollowedCompany"] | null;
+            /** Task Id */
+            task_id?: string | null;
+        };
+        /** FollowSettingsIn */
+        FollowSettingsIn: {
+            /** Alert Mode */
+            alert_mode?: string | null;
+            /** Titles */
+            titles?: string[] | null;
+            /** Places */
+            places?: string[] | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
+        /** FollowSettingsOut */
+        FollowSettingsOut: {
+            /** Alert Mode */
+            alert_mode: string;
+            /** Titles */
+            titles: string[];
+            /** Places */
+            places: string[];
+            /** Timezone */
+            timezone: string;
+            /** Default Titles */
+            default_titles: string[];
+            /** Default Places */
+            default_places: string[];
+        };
+        /** FollowedCompany */
+        FollowedCompany: {
+            /** Id */
+            id: string;
+            /** Status */
+            status: string;
+            /** Name */
+            name: string;
+            /** Company Id */
+            company_id?: string | null;
+            /** Platform */
+            platform?: string | null;
+            /** Platform Name */
+            platform_name?: string | null;
+            /** Careers Url */
+            careers_url?: string | null;
+            /**
+             * Open Jobs
+             * @default 0
+             */
+            open_jobs: number;
+            /**
+             * Open Matching
+             * @default 0
+             */
+            open_matching: number;
+            /**
+             * New Count
+             * @default 0
+             */
+            new_count: number;
+            /** Latest Posted At */
+            latest_posted_at?: string | null;
+            /** Last Refreshed At */
+            last_refreshed_at?: string | null;
+            /**
+             * Followed At
+             * Format: date-time
+             */
+            followed_at: string;
+        };
+        /** FollowingOut */
+        FollowingOut: {
+            /** Companies */
+            companies: components["schemas"]["FollowedCompany"][];
+            /** Limit */
+            limit: number;
+            settings: components["schemas"]["FollowSettingsOut"];
+        };
         /** GmailAccountList */
         GmailAccountList: {
             /** Accounts */
@@ -3756,6 +4116,11 @@ export interface components {
              * @default false
              */
             paused: boolean;
+            /**
+             * Pause Reason
+             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)
+             */
+            pause_reason?: string | null;
         };
         /** ModelPreferencesIn */
         ModelPreferencesIn: {
@@ -3792,6 +4157,41 @@ export interface components {
             reply?: string | null;
             /** Error */
             error?: string | null;
+        };
+        /** NewRole */
+        NewRole: {
+            /** Id */
+            id: string;
+            /** Job Id */
+            job_id: string;
+            /** Title */
+            title: string;
+            /** Location */
+            location: string;
+            /** Remote */
+            remote: boolean;
+            /** Url */
+            url: string;
+            /** Company Id */
+            company_id: string;
+            /** Company */
+            company: string;
+            /** Platform */
+            platform: string;
+            /** Posted At */
+            posted_at?: string | null;
+            /**
+             * Found At
+             * Format: date-time
+             */
+            found_at: string;
+            /** Seen */
+            seen: boolean;
+        };
+        /** NewRolesOut */
+        NewRolesOut: {
+            /** Roles */
+            roles: components["schemas"]["NewRole"][];
         };
         /** OtpRequest */
         OtpRequest: {
@@ -4024,8 +4424,28 @@ export interface components {
              * @description Things the AI wrote that are not in your resume, so they were removed
              */
             dropped?: string[];
-            /** Error */
+            /**
+             * Error
+             * @description Short message for people when part of the pack failed
+             */
             error?: string | null;
+            /**
+             * Error Detail
+             * @description Which AI models were tried and why each failed
+             */
+            error_detail?: string | null;
+            /**
+             * Steps
+             * @description Per part (resume, cover_letter): running, done, failed or skipped
+             */
+            steps?: {
+                [key: string]: string;
+            };
+            /**
+             * Typical Seconds
+             * @description How long packs usually take (median of the last 20)
+             */
+            typical_seconds?: number | null;
             /**
              * Updated At
              * Format: date-time
@@ -4087,9 +4507,10 @@ export interface components {
             id: string;
             /**
              * Kind
+             * @description step = one page of a form the AI form reader read (confirmation_text says which)
              * @enum {string}
              */
-            kind: "confirmation" | "stopped";
+            kind: "confirmation" | "stopped" | "step";
             /** Confirmation Text */
             confirmation_text?: string | null;
             /** Page Url */
@@ -4354,6 +4775,20 @@ export interface components {
              * @default 0
              */
             proofs: number;
+            /**
+             * Steps
+             * @description AI form reader: the form pages read ({page, url, keys, files})
+             */
+            steps?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Vision
+             * @description AI form reader: screenshot-fallback use ({steps, cost_usd, map_calls, log})
+             */
+            vision?: {
+                [key: string]: unknown;
+            } | null;
             /** Approved At */
             approved_at?: string | null;
             /** Submitted At */
@@ -4643,6 +5078,11 @@ export interface components {
              */
             resume_id?: string | null;
         };
+        /** SeenIn */
+        SeenIn: {
+            /** Company Id */
+            company_id?: string | null;
+        };
         /** SessionCreateIn */
         SessionCreateIn: {
             /**
@@ -4846,6 +5286,21 @@ export interface components {
             /** Expires In */
             expires_in: number;
         };
+        /** SuggestedCompany */
+        SuggestedCompany: {
+            /** Company Id */
+            company_id: string;
+            /** Name */
+            name: string;
+            /** Platform */
+            platform: string;
+            /** Platform Name */
+            platform_name: string;
+            /** Open Matching */
+            open_matching: number;
+            /** Reason */
+            reason: string;
+        };
         /** Suggestion */
         Suggestion: {
             /** Application Id */
@@ -4856,6 +5311,11 @@ export interface components {
             title: string;
             /** Company */
             company: string;
+        };
+        /** SuggestionsOut */
+        SuggestionsOut: {
+            /** Companies */
+            companies: components["schemas"]["SuggestedCompany"][];
         };
         /** TaskDefaults */
         TaskDefaults: {
@@ -5171,6 +5631,11 @@ export interface components {
             uses_own_key: boolean;
             /** Paused */
             paused: boolean;
+            /**
+             * Pause Reason
+             * @description Why it is paused: rate_limit (back shortly), broken (an admin must fix its key, credits or model) or breaker (repeated failures)
+             */
+            pause_reason?: string | null;
         };
         /** UserOut */
         UserOut: {
@@ -6149,6 +6614,37 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_latest_pipeline_run_api_v1_pipeline_runs_latest_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7318,6 +7814,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    system_health_api_v1_admin_system_health_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -9434,9 +9961,12 @@ export interface operations {
             query: {
                 q: string;
                 platform?: string[] | null;
-                location?: string | null;
+                /** @description One or more places (or comma-separated); a job in any of them matches */
+                location?: string[] | null;
                 remote?: boolean | null;
                 posted_within_days?: number | null;
+                /** @description Include postings older than ATS_MAX_POSTING_AGE_DAYS */
+                any_age?: boolean;
                 hide_applied?: boolean;
                 page?: number;
             };
@@ -9845,6 +10375,333 @@ export interface operations {
             };
         };
     };
+    following_api_v1_ats_following_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follow_api_v1_ats_companies__company_id__follow_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowedCompany"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unfollow_api_v1_ats_companies__company_id__follow_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_follow_api_v1_ats_following__follow_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                follow_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follow_by_name_api_v1_ats_following_by_name_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowByNameIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowByNameOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    new_roles_api_v1_ats_following_new_get: {
+        parameters: {
+            query?: {
+                company_id?: string | null;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewRolesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    seen_api_v1_ats_following_seen_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suggestions_api_v1_ats_suggestions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_follow_settings_api_v1_ats_following_settings_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_follow_settings_api_v1_ats_following_settings_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     providers_api_v1_voice_providers_get: {
         parameters: {
             query?: never;
@@ -10124,6 +10981,39 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceFeedbackOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_feedback_api_v1_voice_sessions__session_id__feedback_retry_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };

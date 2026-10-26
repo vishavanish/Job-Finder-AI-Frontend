@@ -11,6 +11,7 @@ import { ScoreRing } from "../../components/ScoreRing";
 import { errorMessage } from "../../lib/api/errors";
 import type { StreamedJob } from "../../lib/api/types";
 import { ApplyButtons } from "../apply/ApplyButtons";
+import { isCompanySite } from "../ats/platforms";
 
 export type JobUiState = "seen" | "saved" | "hidden" | "applied";
 
@@ -113,14 +114,22 @@ export function JobCard({
   const allSources = sources?.length ? sources : [job.source];
   const applied = state === "applied";
   const top = (job.llm_score ?? 0) >= 90;
+  const scoring = Boolean(job.scoring);
 
   return (
     <li
-      className={`job-card${state === "hidden" ? " is-hidden" : ""}${top ? " is-top" : ""}`}
+      className={`job-card${state === "hidden" ? " is-hidden" : ""}${top ? " is-top" : ""}${scoring ? " is-scoring" : ""}`}
+      aria-busy={scoring || undefined}
       aria-labelledby={`${id}-t`}
     >
       <div className="job-card-top">
-        <ScoreRing score={job.llm_score} size={52} />
+        {scoring ? (
+          <span className="score-ring is-empty is-scoring" role="img" aria-label="Scoring">
+            …
+          </span>
+        ) : (
+          <ScoreRing score={job.llm_score} size={52} />
+        )}
         <div className="job-body">
           <div className="job-head">
             <h3 id={`${id}-t`} className="job-title">
@@ -129,6 +138,22 @@ export function JobCard({
               </a>
             </h3>
             <div className="job-badges">
+              {job.followed && (
+                <span
+                  className="badge tone-active"
+                  title="A company you follow in Target companies"
+                >
+                  ★ Company you follow
+                </span>
+              )}
+              {isCompanySite(job.source) && (
+                <span
+                  className="badge tone-neutral"
+                  title="Straight from the company's career page"
+                >
+                  Company site · {job.source}
+                </span>
+              )}
               {job.early && <span className="badge tone-positive">Early</span>}
               {job.new_since_last_search && <span className="badge tone-active">New</span>}
               {state === "saved" && <span className="badge tone-neutral">Saved</span>}
@@ -216,7 +241,13 @@ export function JobCard({
         </div>
       </div>
 
-      {job.llm_reason && (
+      {scoring && (
+        <p className="job-reason is-scoring" role="status">
+          <Icon name="sparkle" size={16} />
+          <span>Scoring against your resume…</span>
+        </p>
+      )}
+      {!scoring && job.llm_reason && (
         <p className="job-reason">
           <Icon name="sparkle" size={16} />
           <span>
