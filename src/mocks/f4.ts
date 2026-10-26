@@ -19,7 +19,7 @@ import {
   type MockPack,
   type MockRun,
 } from "./f4State";
-import { API, authenticate, newId, readJson } from "./handlers";
+import { API, authenticate, newId, readJson, requireRole } from "./handlers";
 
 const fail = (status: number, code: string, message: string) =>
   HttpResponse.json({ detail: { code, message } }, { status });
@@ -50,6 +50,23 @@ function ownRun(userId: string, id: string): MockRun | undefined {
 }
 
 export const f4Handlers = [
+  // ---- admin: platforms paused for Auto apply (QA5) ----
+  http.get(`${API}/admin/system/health`, ({ request }) => {
+    const auth = requireRole(request, ["admin"]);
+    if ("response" in auth) return auth.response;
+    return HttpResponse.json({ status: "ok", checks: {}, apply_blocked: f4Db.blocks });
+  }),
+
+  http.delete(`${API}/admin/apply/blocks/:platform`, ({ request, params }) => {
+    const auth = requireRole(request, ["admin"]);
+    if ("response" in auth) return auth.response;
+    const before = f4Db.blocks.length;
+    f4Db.blocks = f4Db.blocks.filter((b) => b.platform !== params.platform);
+    if (f4Db.blocks.length === before)
+      return fail(404, "not_paused", "Auto apply isn't paused on that platform.");
+    return HttpResponse.json({ apply_blocked: f4Db.blocks });
+  }),
+
   // ---- settings ----
   http.get(`${API}/apply/settings`, ({ request }) => {
     const auth = authenticate(request);

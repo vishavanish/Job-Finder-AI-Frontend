@@ -35,6 +35,27 @@ export const revokeSessions = (id: string) =>
 
 export const listFeatureDefaults = () => api.get<EntitlementOut[]>("/admin/features");
 
+/** A platform whose Auto apply is paused because it blocks the server's browser (backend QA5). */
+export interface ApplyBlock {
+  platform: string;
+  name: string;
+  /** Unix seconds. */
+  until: number;
+  hours: number;
+  at: number;
+  run_id: string | null;
+}
+
+export const listApplyBlocks = () =>
+  api
+    .get<{ apply_blocked?: ApplyBlock[] }>("/admin/system/health")
+    .then((r) => r.apply_blocked ?? []);
+
+export const clearApplyBlock = (platform: string) =>
+  api
+    .delete<{ apply_blocked: ApplyBlock[] }>(`/admin/apply/blocks/${encodeURIComponent(platform)}`)
+    .then((r) => r.apply_blocked);
+
 export const getUserEntitlements = (id: string) =>
   api.get<EntitlementOut[]>(`/admin/users/${encodeURIComponent(id)}/entitlements`);
 

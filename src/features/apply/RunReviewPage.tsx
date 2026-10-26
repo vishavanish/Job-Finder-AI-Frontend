@@ -414,8 +414,9 @@ export default function RunReviewPage() {
           <div className="run-hero-action handoff">
             <p>
               <strong>Over to you.</strong> The app stopped here instead of guessing. Open the job
-              page, finish the application yourself (your answers are below to copy), then tell us
-              what happened.
+              page, finish the application yourself
+              {fields.length > 0 ? " (your answers are below to copy)" : ""}, then tell us what
+              happened.
             </p>
             <div className="prep-row">
               <a

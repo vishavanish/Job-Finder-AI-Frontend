@@ -14,6 +14,7 @@ import type {
   SavedAnswer,
   StreamedJob,
 } from "../lib/api/types";
+import type { ApplyBlock } from "../features/admin/adminApi";
 
 export const RISK_NOTICE =
   "Auto apply fills and submits applications on company career sites (Greenhouse, Lever) for you, only after " +
@@ -59,6 +60,8 @@ export const f4Db = {
   submittedToday: {} as Record<string, number>,
   /** The server's GENERIC_APPLY_SUBMIT: false = the AI form reader is in test mode. */
   genericSubmit: false,
+  /** Platforms whose Auto apply is paused because they block the server (backend QA5). */
+  blocks: [] as ApplyBlock[],
 };
 
 export function resetF4Mock(): void {
@@ -68,6 +71,7 @@ export function resetF4Mock(): void {
   f4Db.settings = {};
   f4Db.submittedToday = {};
   f4Db.genericSubmit = false;
+  f4Db.blocks = [];
 }
 
 export function settingsFor(userId: string): MockSettings {
