@@ -6,7 +6,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { FrameChunker, downsample, rms } from "./audio/resample";
 import { SendQueue } from "./audio/sendQueue";
-import { copilotReducer, initialCopilot, threads, type CopilotState } from "./copilotReducer";
+import {
+  copilotReducer,
+  initialCopilot,
+  threads,
+  timingLine,
+  type CopilotState,
+} from "./copilotReducer";
 import { initialPractice, practiceReducer } from "./practiceReducer";
 import { FRAME_SAMPLES, decodeAudioOut, encodeFrame, socketUrl, type ServerMsg } from "./protocol";
 import { f7Db, issueToken, emptySession } from "../../mocks/f7State";
@@ -103,6 +109,18 @@ describe("copilot reducer", () => {
       latency: { first_visible_ms: 800 },
     });
     expect(s.cards.b).toMatchObject({ state: "done", notSure: true, firstVisibleMs: 800 });
+    expect(timingLine(s.cards.b!)).toBe("first words 0.80 s");
+    s = run(s, {
+      type: "answer.done",
+      question_id: "a",
+      text: "- Led it.",
+      not_sure: false,
+      model: "GPT-OSS 120B (Groq)",
+      latency: { first_visible_ms: 350, total_ms: 1250, end_wait_ms: 450, stt_ms: 400 },
+    });
+    expect(timingLine(s.cards.a!)).toBe(
+      "1.3 s · wait 0.45 · speech→text 0.40 · AI 0.35 · GPT-OSS 120B (Groq)",
+    );
   });
 
   it("clears the answer on restart / regenerate and rebuilds cards after a reconnect", () => {

@@ -23,6 +23,34 @@ export interface CopilotCard {
   unverified: string[];
   model: string | null;
   firstVisibleMs: number | null;
+  /** From the end of the interviewer's speech (per-utterance STT only). */
+  timing: { totalMs: number; endWaitMs: number; sttMs: number } | null;
+}
+
+function readTiming(latency: Record<string, unknown> | undefined): CopilotCard["timing"] {
+  const n = (k: string) => (typeof latency?.[k] === "number" ? (latency[k] as number) : null);
+  const totalMs = n("total_ms");
+  if (totalMs === null) return null;
+  return { totalMs, endWaitMs: n("end_wait_ms") ?? 0, sttMs: n("stt_ms") ?? 0 };
+}
+
+/** "1.2 s · wait 0.45 · speech→text 0.40 · AI 0.35 · GPT-OSS 120B (Groq)" */
+export function timingLine(c: CopilotCard): string | null {
+  const s = (ms: number) => (ms / 1000).toFixed(ms < 1000 ? 2 : 1);
+  const parts: string[] = [];
+  if (c.timing) {
+    parts.push(
+      `${s(c.timing.totalMs)} s`,
+      `wait ${s(c.timing.endWaitMs)}`,
+      `speech→text ${s(c.timing.sttMs)}`,
+    );
+    if (c.firstVisibleMs !== null) parts.push(`AI ${s(c.firstVisibleMs)}`);
+  } else if (c.firstVisibleMs !== null) {
+    parts.push(`first words ${s(c.firstVisibleMs)} s`);
+  }
+  if (!parts.length) return null;
+  if (c.model) parts.push(c.model);
+  return parts.join(" · ");
 }
 
 export interface CopilotState {
@@ -80,6 +108,7 @@ function card(partial: Partial<CopilotCard> & { id: string; text: string }): Cop
     unverified: [],
     model: null,
     firstVisibleMs: null,
+    timing: null,
     ...partial,
   };
 }
@@ -222,6 +251,7 @@ function onServer(state: CopilotState, msg: ServerMsg): CopilotState {
         model: msg.model ?? null,
         firstVisibleMs:
           typeof msg.latency?.first_visible_ms === "number" ? msg.latency.first_visible_ms : null,
+        timing: readTiming(msg.latency),
       });
     case "answer.cancelled": {
       const c = state.cards[msg.question_id];
