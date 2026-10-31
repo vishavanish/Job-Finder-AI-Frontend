@@ -15,6 +15,7 @@ export const PLATFORMS: { key: string; name: string }[] = [
   { key: "gem", name: "Gem" },
   { key: "keka", name: "Keka" },
   { key: "zoho_recruit", name: "Zoho Recruit" },
+  { key: "oracle_cloud", name: "Oracle Cloud" },
 ];
 
 export function platformName(key: string): string {
