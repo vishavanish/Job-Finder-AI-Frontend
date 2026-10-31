@@ -29,7 +29,13 @@ import { readPref, writePref } from "../../lib/storage";
 import { jobKeys, listJobs } from "../jobs/jobsApi";
 import { CaptureError, startCapture, tabAudioSupported, type Capture } from "./audio/capture";
 import { SendQueue } from "./audio/sendQueue";
-import { copilotReducer, initialCopilot, threads, type CopilotCard } from "./copilotReducer";
+import {
+  copilotReducer,
+  initialCopilot,
+  threads,
+  timingLine,
+  type CopilotCard,
+} from "./copilotReducer";
 import { InterviewNav, LevelMeter, ProviderLine } from "./parts";
 import { encodeFrame, type ServerMsg } from "./protocol";
 import { useRafBuffer } from "./useRafBuffer";
@@ -158,6 +164,14 @@ function QuestionCard({
               <span className="field-hint"> Check before saying: {c.unverified.join(", ")}</span>
             )}
           </p>
+          {c.state === "done" && timingLine(c) && (
+            <p
+              className="field-hint cp-timing"
+              title="End of question → first words: silence wait, speech to text, AI first words"
+            >
+              {timingLine(c)}
+            </p>
+          )}
           {c.state !== "dismissed" && (
             <div className="cp-actions">
               <button type="button" className="btn-small" onClick={() => onAction("shorter", c.id)}>
