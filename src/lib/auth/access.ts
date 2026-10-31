@@ -19,6 +19,7 @@ export const FEATURE_LABELS: Record<string, string> = {
   premium_models: "premium AI models",
   job_alerts: "job alerts",
   shared_search_keys: "shared Google Jobs keys",
+  browser_capture: "saving jobs from your browser",
 };
 
 export function featureLabel(feature: string): string {

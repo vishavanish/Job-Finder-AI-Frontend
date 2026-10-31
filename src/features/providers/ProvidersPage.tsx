@@ -49,6 +49,11 @@ const GROUPS: { title: string; note?: string; keys: string[] }[] = [
     note: "Jobs from the job-alert emails you already get (Naukri, Foundit, LinkedIn, Indeed, Glassdoor, ZipRecruiter and more). Needs Gmail connected in the Tracker.",
     keys: ["email_alerts"],
   },
+  {
+    title: "Your browser",
+    note: "Jobs you save with the Job Finder browser extension from the Naukri, Foundit, Glassdoor, LinkedIn or Indeed pages you open.",
+    keys: ["browser_capture"],
+  },
 ];
 
 const KEY_LABELS: Record<string, string> = {
@@ -121,6 +126,11 @@ function SourceRow({
         {source.key === "company_ats" && (
           <p className="source-desc">
             <Link to="/ats-targets">Search the registry by job title</Link>
+          </p>
+        )}
+        {source.key === "browser_capture" && !source.available && (
+          <p className="source-desc">
+            <Link to="/settings/extension">Connect the browser extension</Link> to turn this on.
           </p>
         )}
         {source.key === "email_alerts" && !source.available && (

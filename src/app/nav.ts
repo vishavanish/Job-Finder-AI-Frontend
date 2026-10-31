@@ -49,6 +49,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/settings/ai", label: "AI models", icon: "sparkle" },
       { to: "/settings/keys", label: "API keys", icon: "key" },
+      { to: "/settings/extension", label: "Browser extension", icon: "network" },
     ],
   },
   {
