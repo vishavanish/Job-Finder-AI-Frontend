@@ -2,7 +2,9 @@
  * Follows one streaming search run (spec §5.3): polls run meta and
  * `jobs?offset=` about every 2 s, upserts entries by `id` (a `replaces`
  * entry is a better copy of a job already shown — never a second card),
- * stops on completed/failed/cancelled and pauses while the tab is hidden.
+ * stops on completed/failed/cancelled. A hidden tab keeps following the run,
+ * only slower, and catches up the moment it is visible again: a search runs
+ * until it finishes or the user presses Stop, whatever tab they are on.
  * Progress goes to the activity tray. A run the server no longer holds (404: runs live
  * 6 h) ends as "expired" instead of retrying forever.
  */
@@ -14,6 +16,7 @@ import { getRun, getRunJobs } from "./jobsApi";
 
 const TERMINAL: ReadonlySet<string> = new Set(["completed", "failed", "cancelled"]);
 export const POLL_MS = 2000;
+export const HIDDEN_POLL_MS = 5000;
 
 export interface PipelineRunState {
   jobs: StreamedJob[];
@@ -54,6 +57,25 @@ export function timingSummary(timings: Record<string, number> | undefined): stri
   return parts.join(" · ");
 }
 
+/** What the Activity tray says about a run, the same from Jobs and from any other page. */
+export function runActivity(meta: PipelineRunMeta): {
+  status: "running" | "completed" | "failed" | "cancelled";
+  detail: string;
+} {
+  if (meta.status === "completed")
+    return {
+      status: "completed",
+      detail: ["Search finished", timingSummary(meta.timings)].filter(Boolean).join(" · "),
+    };
+  if (meta.status === "cancelled")
+    return { status: "cancelled", detail: meta.error || meta.status };
+  if (meta.status === "failed") return { status: "failed", detail: meta.error || meta.status };
+  return {
+    status: "running",
+    detail: `${meta.keywords_completed}/${meta.total_keywords} searches done`,
+  };
+}
+
 export function usePipelineRun(runId: string | null): PipelineRunState {
   const { track } = useActivity();
   const [state, setState] = useState<PipelineRunState>({
@@ -67,6 +89,7 @@ export function usePipelineRun(runId: string | null): PipelineRunState {
   useEffect(() => {
     if (!runId) return;
     let stopped = false;
+    let polling = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     offset.current = 0;
     setState({ jobs: [], status: "running", meta: null, error: "" });
@@ -79,11 +102,8 @@ export function usePipelineRun(runId: string | null): PipelineRunState {
     });
 
     const tick = async () => {
-      if (stopped) return;
-      if (typeof document !== "undefined" && document.hidden) {
-        timer = setTimeout(tick, POLL_MS);
-        return;
-      }
+      if (stopped || polling) return;
+      polling = true;
       try {
         const page = await getRunJobs(runId, offset.current);
         offset.current = page.next_offset ?? offset.current + page.jobs.length;
@@ -96,45 +116,38 @@ export function usePipelineRun(runId: string | null): PipelineRunState {
           status: meta.status,
           error: "",
         }));
-        const count = offset.current;
+        track({ id: runId, ...runActivity(meta) });
         if (TERMINAL.has(meta.status)) {
-          track({
-            id: runId,
-            status:
-              meta.status === "completed"
-                ? "completed"
-                : meta.status === "cancelled"
-                  ? "cancelled"
-                  : "failed",
-            detail:
-              meta.status === "completed"
-                ? ["Search finished", timingSummary(meta.timings)].filter(Boolean).join(" · ")
-                : meta.error || meta.status,
-          });
+          stopped = true;
           return;
         }
-        track({
-          id: runId,
-          status: "running",
-          detail: `${meta.keywords_completed}/${meta.total_keywords} searches done · ${count} updates`,
-        });
       } catch (err) {
         if (stopped) return;
         if (err instanceof ApiError && err.status === 404) {
           setState((prev) => ({ ...prev, status: "expired", error: "" }));
+          stopped = true;
           return;
         }
         setState((prev) => ({
           ...prev,
           error: errorMessage(err, "Lost contact with the search. Retrying…"),
         }));
+      } finally {
+        polling = false;
       }
-      timer = setTimeout(tick, POLL_MS);
+      if (!stopped) timer = setTimeout(tick, document.hidden ? HIDDEN_POLL_MS : POLL_MS);
     };
+    const catchUp = () => {
+      if (document.hidden || stopped || polling) return;
+      if (timer) clearTimeout(timer);
+      void tick();
+    };
+    document.addEventListener("visibilitychange", catchUp);
     void tick();
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", catchUp);
     };
   }, [runId, track]);
 

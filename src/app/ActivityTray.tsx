@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { StatusBadge } from "../components/StatusBadge";
+import { useSearchActivity } from "../features/jobs/useSearchActivity";
 import { isFinished, useActivity, type Activity } from "./activity";
 
 function announcement(a: Activity): string {
@@ -13,6 +14,7 @@ function announcement(a: Activity): string {
 
 export function ActivityTray() {
   const { items, dismiss, clearFinished } = useActivity();
+  useSearchActivity();
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const buttonRef = useRef<HTMLButtonElement>(null);
