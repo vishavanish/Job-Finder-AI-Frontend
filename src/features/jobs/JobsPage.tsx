@@ -164,11 +164,12 @@ export default function JobsPage() {
     if (runParam && runParam !== started?.run_id) {
       setStarted({ run_id: runParam });
       setRestoredAt("");
-    } else if (!started && !runParam && latest.data) {
+    } else if (!started && !runParam && latest.data && !latest.isFetching) {
+      // Only once it is fresh: the cached answer can be an older search than the one still running.
       setStarted(latest.data);
       setRestoredAt(latest.data.created_at);
     }
-  }, [runParam, started, latest.data]);
+  }, [runParam, started, latest.data, latest.isFetching]);
 
   const run = usePipelineRun(started?.run_id ?? null);
   const running = run.status === "running";
