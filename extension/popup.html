@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Job Finder capture</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <span class="logo" aria-hidden="true">J</span>
+      <div>
+        <h1>Job Finder capture</h1>
+        <p class="sub">Save jobs from the pages you open</p>
+      </div>
+    </header>
+
+    <section id="connect" hidden>
+      <p>
+        In Job Finder, open <b>Settings → Browser extension</b> and click <b>Get a code</b>. Type
+        the 6 digits here.
+      </p>
+      <form id="connect-form">
+        <label for="code">Pairing code</label>
+        <input
+          id="code"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          pattern="\d{6}"
+          required
+          placeholder="123456"
+        />
+        <label for="target">Server</label>
+        <select id="target">
+          <option value="production">Job Finder (online)</option>
+          <option value="local">Local development (localhost:8000)</option>
+        </select>
+        <button type="submit" class="primary">Connect</button>
+      </form>
+      <p class="error" id="connect-error" role="alert"></p>
+    </section>
+
+    <section id="connected" hidden>
+      <p class="account">Connected as <b id="email"></b></p>
+      <div class="stats">
+        <div><span id="today">0</span><small>saved today</small></div>
+        <div><span id="total">0</span><small>saved in all</small></div>
+      </div>
+      <p>
+        On Naukri, Foundit, Glassdoor, LinkedIn or Indeed, click <b>Save jobs to Job Finder</b> at
+        the bottom right. Saved jobs show up in your next Job Search as "Saved from your browser".
+      </p>
+      <fieldset>
+        <legend>Save automatically while I browse</legend>
+        <p class="hint">Off by default. When on, the jobs on each page you open are saved once.</p>
+        <div id="auto"></div>
+      </fieldset>
+      <button type="button" id="disconnect" class="secondary">Disconnect</button>
+      <p class="error" id="me-error" role="alert"></p>
+    </section>
+
+    <footer>
+      Only the jobs on the page are sent — never your cookies, passwords or other tabs.
+    </footer>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

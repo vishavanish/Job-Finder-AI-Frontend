@@ -16,6 +16,7 @@ import AdminSourcesPage from "../features/admin/AdminSourcesPage";
 import AdminUsagePage from "../features/admin/AdminUsagePage";
 import AiModelsPage from "../features/models/AiModelsPage";
 import ApiKeysPage from "../features/models/ApiKeysPage";
+import ExtensionPage from "../features/extension/ExtensionPage";
 import AtsTargetsPage from "../features/ats/AtsTargetsPage";
 import AdminAtsPage from "../features/admin/AdminAtsPage";
 import AdminVoicePage from "../features/admin/AdminVoicePage";
@@ -138,6 +139,7 @@ export function AppRoutes() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings/ai" element={<AiModelsPage />} />
         <Route path="settings/keys" element={<ApiKeysPage />} />
+        <Route path="settings/extension" element={<ExtensionPage />} />
         <Route
           path="admin/users"
           element={

@@ -46,6 +46,12 @@ export default tseslint.config(
     },
   },
   {
+    // Browser extension (P8a): plain JS, runs in Chrome/Edge with the `chrome` extension API. Its token lives
+    // in chrome.storage (the extension's own store), never in page localStorage.
+    files: ["extension/**/*.js"],
+    languageOptions: { globals: { ...globals.browser, ...globals.webextensions } },
+  },
+  {
     // Node-side files.
     files: ["vite.config.ts", "eslint.config.js", "scripts/**/*.mjs"],
     languageOptions: { globals: { ...globals.node } },

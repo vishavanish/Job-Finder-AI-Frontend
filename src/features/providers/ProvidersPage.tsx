@@ -21,7 +21,7 @@ const GROUPS: { title: string; note?: string; keys: string[] }[] = [
   {
     title: "Job APIs with a free key",
     note: "Official APIs. Get a free key from each provider and save it here; it's used only for your searches.",
-    keys: ["adzuna", "jooble", "careerjet", "google_jobs_api"],
+    keys: ["adzuna", "jooble", "careerjet", "findwork", "google_jobs_api"],
   },
   {
     title: "Remote job feeds",
@@ -32,6 +32,7 @@ const GROUPS: { title: string; note?: string; keys: string[] }[] = [
       "himalayas",
       "jobicy",
       "wwr",
+      "working_nomads",
       "hn_hiring",
       "arbeitnow",
       "themuse",
@@ -45,8 +46,13 @@ const GROUPS: { title: string; note?: string; keys: string[] }[] = [
   },
   {
     title: "Your inbox",
-    note: "Jobs from the job-alert emails you already get (Naukri, LinkedIn, Indeed and more). Needs Gmail connected in the Tracker.",
+    note: "Jobs from the job-alert emails you already get (Naukri, Foundit, LinkedIn, Indeed, Glassdoor, ZipRecruiter and more). Needs Gmail connected in the Tracker.",
     keys: ["email_alerts"],
+  },
+  {
+    title: "Your browser",
+    note: "Jobs you save with the Job Finder browser extension from the Naukri, Foundit, Glassdoor, LinkedIn or Indeed pages you open.",
+    keys: ["browser_capture"],
   },
 ];
 
@@ -57,6 +63,7 @@ const KEY_LABELS: Record<string, string> = {
   adzuna: "Your Adzuna key (APP_ID:APP_KEY)",
   jooble: "Your Jooble key",
   careerjet: "Your Careerjet key",
+  findwork: "Your Findwork.dev key",
   apify: "Your apify key",
 };
 
@@ -119,6 +126,11 @@ function SourceRow({
         {source.key === "company_ats" && (
           <p className="source-desc">
             <Link to="/ats-targets">Search the registry by job title</Link>
+          </p>
+        )}
+        {source.key === "browser_capture" && !source.available && (
+          <p className="source-desc">
+            <Link to="/settings/extension">Connect the browser extension</Link> to turn this on.
           </p>
         )}
         {source.key === "email_alerts" && !source.available && (
