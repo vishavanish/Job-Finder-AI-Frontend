@@ -40,7 +40,10 @@ jobs:
           npm run gen:api
           git diff --exit-code -- src/lib/api/schema.d.ts
 
+      # Tests run on dev and other branches; pushes to main and pull requests into main skip them (owner
+      # decision 2026-11-01: main only receives dev, which has already been tested). Lint, types and build still run.
       - name: Tests
+        if: github.ref != 'refs/heads/main' && github.base_ref != 'main'
         run: npm test
 
       - name: Build
