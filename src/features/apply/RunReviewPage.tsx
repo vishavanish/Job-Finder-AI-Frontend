@@ -5,7 +5,8 @@
  * (grouped by page), the files, the screenshots and what the AI fallback
  * did. In test mode the AI form reader never submits: the user copies the
  * answers, applies on the job page and says so. Polls while the worker is
- * moving the run.
+ * moving the run. A Fast apply run filled by the browser extension
+ * (`in_browser`) points to its LinkedIn tab and can be finished by hand.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -197,7 +198,8 @@ function journeyNodes(run: ApplyRun, shots: Shot[], open: (s: Shot) => void): Jo
       onOpen: shot?.url ? () => open(shot) : undefined,
     };
   });
-  const reading = isRunMoving(run.state) && run.state !== "submitting";
+  const reading =
+    isRunMoving(run.state) && run.state !== "submitting" && run.state !== "in_browser";
   if (reading) nodes.push({ key: "next", label: `Page ${steps.length + 1}`, state: "current" });
   const sent = run.state === "submitted" || run.state === "done";
   nodes.push({
@@ -407,6 +409,34 @@ export default function RunReviewPage() {
                 Answers copied — paste them in the job page tab.
               </p>
             )}
+          </div>
+        )}
+
+        {run.state === "in_browser" && (
+          <div className="run-hero-action handoff">
+            <p>
+              <strong>Finish it in the LinkedIn tab.</strong> The Job Finder extension fills each
+              Easy Apply page there; you check it and click Next and Submit. This page updates when
+              LinkedIn confirms the application.
+            </p>
+            <div className="prep-row">
+              <a
+                className="btn-apply"
+                href={run.apply_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open the LinkedIn job
+              </a>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={finish.isPending}
+                onClick={() => finish.mutate(true)}
+              >
+                I submitted it
+              </button>
+            </div>
           </div>
         )}
 

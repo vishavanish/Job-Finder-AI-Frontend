@@ -5,6 +5,7 @@
  *   connect {code, apiBase}   -> POST /extension/token     (pairing; the code comes from Settings in the app)
  *   me                        -> GET  /extension/me
  *   capture {site, page_url, jobs} -> POST /extension/captures
+ *   assist* (Fast apply, backend plan P8b) -> /extension/runs/... (for-page, fill, answer, resume, result)
  * It never reads cookies or other tabs, and never fetches the job sites itself.
  */
 
@@ -18,7 +19,7 @@ async function settings() {
   return { apiBase: API_BASES.production, autoSave: {}, ...s };
 }
 
-async function call(path, { method = "GET", body, token, apiBase } = {}) {
+async function call(path, { method = "GET", body, token, apiBase, binary = false } = {}) {
   const headers = { Accept: "application/json" };
   if (body) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -32,6 +33,7 @@ async function call(path, { method = "GET", body, token, apiBase } = {}) {
   } catch {
     return { ok: false, status: 0, error: "Can't reach Job Finder — check your connection." };
   }
+  if (binary && resp.ok) return { ok: true, status: resp.status, data: await fileData(resp) };
   let data = null;
   try {
     data = await resp.json();
@@ -48,6 +50,30 @@ async function call(path, { method = "GET", body, token, apiBase } = {}) {
   }
   return { ok: true, status: resp.status, data };
 }
+
+/** A file response as JSON-safe data for the content script: base64 bytes, name, type. */
+async function fileData(resp) {
+  const bytes = new Uint8Array(await resp.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000)
+    bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  const disposition = resp.headers.get("Content-Disposition") || "";
+  const m =
+    /filename\*=UTF-8''([^;]+)/i.exec(disposition) || /filename="?([^";]+)"?/i.exec(disposition);
+  return {
+    base64: btoa(bin),
+    name: m ? decodeURIComponent(m[1]) : "Resume.pdf",
+    type: resp.headers.get("Content-Type") || "application/octet-stream",
+  };
+}
+
+const NOT_CONNECTED = {
+  ok: false,
+  status: 401,
+  error: "Connect the Job Finder extension first (click its icon).",
+};
+const runPath = (msg, rest) =>
+  `/extension/runs/${encodeURIComponent(String(msg.run_id || ""))}/${rest}`;
 
 async function handle(msg) {
   const s = await settings();
@@ -92,6 +118,39 @@ async function handle(msg) {
         token: s.token,
         apiBase: s.apiBase,
         body: { site: msg.site, page_url: msg.page_url, jobs: (msg.jobs || []).slice(0, 100) },
+      });
+    case "assistForPage":
+      if (!s.token) return { ok: true, data: { run_id: null } }; // not connected: nothing to fill
+      return call(`/extension/runs/for-page?url=${encodeURIComponent(String(msg.url || ""))}`, {
+        token: s.token,
+        apiBase: s.apiBase,
+      });
+    case "assistFill":
+      if (!s.token) return NOT_CONNECTED;
+      return call(runPath(msg, "fill"), {
+        method: "POST",
+        token: s.token,
+        apiBase: s.apiBase,
+        body: { fields: (msg.fields || []).slice(0, 60) },
+      });
+    case "assistAnswer":
+      if (!s.token) return NOT_CONNECTED;
+      return call(runPath(msg, "answer"), {
+        method: "POST",
+        token: s.token,
+        apiBase: s.apiBase,
+        body: { key: String(msg.key || ""), value: String(msg.value || "") },
+      });
+    case "assistResume":
+      if (!s.token) return NOT_CONNECTED;
+      return call(runPath(msg, "resume"), { token: s.token, apiBase: s.apiBase, binary: true });
+    case "assistResult":
+      if (!s.token) return NOT_CONNECTED;
+      return call(runPath(msg, "result"), {
+        method: "POST",
+        token: s.token,
+        apiBase: s.apiBase,
+        body: { outcome: msg.outcome === "submitted" ? "submitted" : "closed" },
       });
     default:
       return { ok: false, error: "Unknown request." };

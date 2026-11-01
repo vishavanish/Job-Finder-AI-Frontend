@@ -216,6 +216,7 @@ describe("A site that blocks the server (QA5)", () => {
       title: "Senior Backend Engineer (Python)",
       company: "Sia",
       mode: "auto",
+      runner: "worker",
       level: 2,
       adapter: "generic",
       apply_url: "https://jobs.smartrecruiters.com/Sia/744000157093395",

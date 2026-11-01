@@ -23,7 +23,12 @@ export const WAITING_STATES: readonly ApplyRunState[] = [
   "awaiting_review",
   "needs_user",
 ];
-export const ACTIVE_STATES: readonly ApplyRunState[] = ["queued", "preparing", "submitting"];
+export const ACTIVE_STATES: readonly ApplyRunState[] = [
+  "queued",
+  "preparing",
+  "in_browser",
+  "submitting",
+];
 export const HISTORY_STATES: readonly ApplyRunState[] = [
   "submitted",
   "done",

@@ -7,6 +7,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import { mockDb } from "../../mocks/data";
+import { extensionDb } from "../../mocks/extensionState";
 import { f4Db, settingsFor } from "../../mocks/f4State";
 import { renderApp, signIn } from "../../test/renderApp";
 
@@ -112,6 +113,61 @@ describe("Job card apply buttons", () => {
       expect(await within(li).findByText("Needs you — finish on the job page")).toBeInTheDocument();
       expect(within(li).getByText(/click Submit yourself/)).toBeInTheDocument();
       expect(within(li).queryByText("Submitted")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("Fast apply with the extension: notice once, then the LinkedIn tab opens and the run waits there", async () => {
+    extensionDb.connections.u_demo = [
+      { id: "ext_1", name: "Chrome", created_at: "2026-11-01T08:00:00Z", last_used_at: null },
+    ];
+    const tab = { opener: {} as unknown, location: { href: "" }, close: vi.fn() };
+    const open = vi.spyOn(window, "open").mockReturnValue(tab as unknown as Window);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      renderApp("/jobs");
+      const user = await runSearch();
+      const li = card("Senior Python Engineer");
+      await user.click(within(li).getByRole("button", { name: "Fast apply" }));
+      const notice = await within(li).findByRole("group", {
+        name: /fills LinkedIn in your browser/,
+      });
+      expect(open).not.toHaveBeenCalled();
+      await user.click(within(notice).getByLabelText("I understand and accept this"));
+      await user.click(within(notice).getByRole("button", { name: "Accept and open LinkedIn" }));
+      expect(open).toHaveBeenCalledWith("", "_blank"); // opened on the click, so pop-up blockers allow it
+      await waitFor(() => expect(tab.location.href).not.toBe(""));
+      expect(tab.opener).toBeNull();
+      expect(settingsFor("u_demo").fast_notice_accepted_at).toBeTruthy();
+      expect(await within(li).findByText("Filling in your browser")).toBeInTheDocument();
+      expect(within(li).getByRole("link", { name: "Open the LinkedIn tab" })).toHaveAttribute(
+        "href",
+        tab.location.href,
+      );
+      const run = [...f4Db.runs.values()].find((r) => r.state === "in_browser");
+      expect(run?.runner).toBe("extension");
+      expect(tab.location.href).toBe(run?.apply_url); // the job's own page
+      await tick(3); // nothing moves on its own: the extension and the user finish it
+      expect(f4Db.runs.get(run!.id)?.state).toBe("in_browser");
+    } finally {
+      open.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it("Apply settings has the Fast apply switch and says how to connect the extension", async () => {
+    Object.assign(settingsFor("u_demo"), { extension_assist: false });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      renderApp("/apply?tab=settings");
+      await signIn();
+      const fast = await screen.findByRole("switch", { name: /Let the Job Finder extension fill/ });
+      expect(fast).not.toBeChecked();
+      expect(screen.getByRole("link", { name: /Connect it in Settings/ })).toHaveAttribute(
+        "href",
+        "/settings/extension",
+      );
     } finally {
       vi.useRealTimers();
     }

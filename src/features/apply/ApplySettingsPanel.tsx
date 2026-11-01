@@ -2,12 +2,14 @@
  * Apply settings (spec §6.4, F4 plan §1.3, F4.1): autopilot level as big
  * tiles with a plain explanation of each, the risk notice (accepted before
  * level 2), the AI form reader opt-in (its own notice first; test mode shown
- * while the server won't submit for it), the pause switch, apply hours and
+ * while the server won't submit for it), Fast apply in the browser (the
+ * extension fills LinkedIn Easy Apply; backend P8b), the pause switch, apply hours and
  * today's usage against the caps. Full auto is shown but off — it comes
  * later.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Dialog } from "../../components/Dialog";
 import { Icon, type IconName } from "../../components/Icon";
 import { ProgressRing, SparkleChip } from "../../components/KitExtras";
@@ -216,6 +218,58 @@ function GenericCard({
   );
 }
 
+function FastCard({
+  s,
+  busy,
+  onToggle,
+}: {
+  s: ApplySettings;
+  busy: boolean;
+  onToggle: (on: boolean) => void;
+}) {
+  const u = s.usage_today as { fast?: number };
+  const c = s.caps as { fast_per_day?: number };
+  return (
+    <section className="card kit-card settings-card" aria-labelledby="fast-title">
+      <CardHead
+        id="fast-title"
+        icon="sparkle"
+        title="Fast apply"
+        sub="LinkedIn Easy Apply, filled in your browser"
+      />
+      <label className="switch-row">
+        <input
+          type="checkbox"
+          role="switch"
+          className="input-switch"
+          checked={s.extension_assist}
+          disabled={busy}
+          onChange={(e) => onToggle(e.target.checked)}
+        />
+        <strong>Let the Job Finder extension fill Easy Apply</strong>
+        <span className="field-hint">
+          Fast apply opens the job in a new tab, signed in as you. The extension fills each page
+          from your profile and saved answers; you check it and click Next and Submit.
+        </span>
+      </label>
+      {!s.extension_connected && (
+        <p className="field-hint">
+          No browser extension is connected yet.{" "}
+          <Link to="/settings/extension">Connect it in Settings › Browser extension</Link>.
+        </p>
+      )}
+      {s.fast_notice_accepted_at && (
+        <p className="field-hint">
+          Fast apply notice accepted {new Date(s.fast_notice_accepted_at).toLocaleDateString()}.
+        </p>
+      )}
+      <p className="field-hint num">
+        {u.fast ?? 0} of {c.fast_per_day ?? 25} today
+      </p>
+    </section>
+  );
+}
+
 export function ApplySettingsPanel() {
   const qc = useQueryClient();
   const settings = useQuery({ queryKey: applyKeys.settings, queryFn: getApplySettings });
@@ -238,7 +292,11 @@ export function ApplySettingsPanel() {
             ? body.allow_generic
               ? "AI form reader is on."
               : "AI form reader is off."
-            : "Saved.",
+            : body.extension_assist !== undefined
+              ? body.extension_assist
+                ? "Fast apply in your browser is on."
+                : "Fast apply in your browser is off."
+              : "Saved.",
       );
       setTimeout(() => setSaved(""), 2500);
     },
@@ -327,6 +385,12 @@ export function ApplySettingsPanel() {
         s={s}
         busy={save.isPending}
         onToggle={(on) => (on ? setShowGeneric(true) : save.mutate({ allow_generic: false }))}
+      />
+
+      <FastCard
+        s={s}
+        busy={save.isPending}
+        onToggle={(on) => save.mutate({ extension_assist: on })}
       />
 
       <div className="settings-pair">

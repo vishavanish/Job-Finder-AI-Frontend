@@ -44,6 +44,7 @@ const NEXT_STEP: Record<string, string> = {
   awaiting_input: "Answer the questions it couldn't",
   awaiting_review: "Review the answers and submit",
   needs_user: "Finish this one on the job page",
+  in_browser: "Finish it in the LinkedIn tab",
 };
 
 const ACTION: Record<string, string> = {
