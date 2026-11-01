@@ -1,7 +1,8 @@
 /**
  * Settings › Browser extension (backend P8a E1): connect "Job Finder capture" with a 6-digit code, see
  * what it saved, disconnect it. The extension saves the jobs on Naukri / Foundit / Glassdoor / LinkedIn /
- * Indeed pages the user opens; they show up in Job Search as "Saved from your browser".
+ * Indeed pages the user opens; they show up in Job Search as "Saved from your browser". Since backend P8b
+ * it also fills LinkedIn Easy Apply when the user starts Fast apply (switch in Apply settings).
  */
 import { useCallback, useEffect, useId, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -87,7 +88,9 @@ export default function ExtensionPage() {
           <p>
             Save the jobs on the {SITES.slice(0, -1).join(", ")} or {SITES[SITES.length - 1]} page
             you're looking at with one click. They show up in your next Job Search as "Saved from
-            your browser" — scored against your resume like every other job.
+            your browser" — scored against your resume like every other job. It also powers{" "}
+            <strong>Fast apply</strong>: it fills LinkedIn Easy Apply in your own tab and you click
+            Submit.
           </p>
         </div>
       </div>
@@ -109,7 +112,7 @@ export default function ExtensionPage() {
         </h3>
         <ol>
           <li>
-            Install <b>Job Finder capture</b> in Chrome or Edge: open{" "}
+            Install <b>Job Finder</b> (the browser extension) in Chrome or Edge: open{" "}
             <code>chrome://extensions</code> (or <code>edge://extensions</code>), turn on{" "}
             <b>Developer mode</b>, click <b>Load unpacked</b> and pick the <code>extension</code>{" "}
             folder from the app's code.

@@ -203,6 +203,8 @@ export interface paths {
          * @description Preflight (switches, level, risk notice, caps, duplicates, company
          *     cooldown, resume) and a queued run; a worker on the apply queue opens
          *     the form next. Nothing is submitted until you approve the run.
+         *     Fast apply with the browser extension connected starts `in_browser`
+         *     (runner `extension`): open the job page and the extension fills it.
          */
         post: operations["start_run_api_v1_apply_runs_post"];
         delete?: never;
@@ -290,6 +292,27 @@ export interface paths {
         put?: never;
         /** Finish Run */
         post: operations["finish_run_api_v1_apply_runs__run_id__done_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/browser": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open Run In Browser
+         * @description A run waiting for you continues in your own browser: open its apply page and the Job Finder extension's
+         *     "Fill this form" fills it with this run's answers. Needs a connected extension.
+         */
+        post: operations["open_run_in_browser_api_v1_apply_runs__run_id__browser_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -989,11 +1012,33 @@ export interface paths {
          * System Health
          * @description Every health check with its detail: database, Redis queues, AI setup,
          *     alerts scheduler. The public GET /health returns only the overall status.
+         *     `apply_blocked` lists platforms whose Auto apply is paused because they
+         *     block the server's browser (QA5); it does not change the status.
          */
         get: operations["system_health_api_v1_admin_system_health_get"];
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/apply/blocks/{platform}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Clear Apply Block
+         * @description Ends an Auto apply pause on a platform now (e.g. after the site lifted the block).
+         */
+        delete: operations["clear_apply_block_api_v1_admin_apply_blocks__platform__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2442,6 +2487,244 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/extension/pair": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pair */
+        post: operations["pair_api_v1_extension_pair_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Token */
+        post: operations["token_api_v1_extension_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Connections */
+        get: operations["connections_api_v1_extension_connections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/connections/{token_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Disconnect */
+        delete: operations["disconnect_api_v1_extension_connections__token_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_v1_extension_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/captures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Captures */
+        post: operations["captures_api_v1_extension_captures_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/runs/for-page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run For Page */
+        get: operations["run_for_page_api_v1_extension_runs_for_page_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/runs/{run_id}/fill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fill */
+        post: operations["fill_api_v1_extension_runs__run_id__fill_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/runs/{run_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer */
+        post: operations["answer_api_v1_extension_runs__run_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/runs/{run_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resume */
+        get: operations["resume_api_v1_extension_runs__run_id__resume_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/runs/{run_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Result */
+        post: operations["result_api_v1_extension_runs__run_id__result_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/page/fill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page Fill */
+        post: operations["page_fill_api_v1_extension_page_fill_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/page/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page Answer */
+        post: operations["page_answer_api_v1_extension_page_answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extension/page/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Page Resume */
+        get: operations["page_resume_api_v1_extension_page_resume_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -3158,6 +3441,13 @@ export interface components {
              * @description Use the AI form reader (beta) on other career sites; turning it off cancels its active runs
              */
             allow_generic?: boolean | null;
+            /**
+             * Extension Assist
+             * @description Let the connected browser extension fill Fast apply forms; turning it off cancels runs open in a tab
+             */
+            extension_assist?: boolean | null;
+            /** Accept Fast Notice */
+            accept_fast_notice?: boolean | null;
         };
         /** ApplySettingsOut */
         ApplySettingsOut: {
@@ -3191,6 +3481,24 @@ export interface components {
             generic_submit_enabled: boolean;
             /** Risk Accepted At */
             risk_accepted_at?: string | null;
+            /**
+             * Extension Assist
+             * @default true
+             */
+            extension_assist: boolean;
+            /**
+             * Extension Connected
+             * @description A browser extension is connected to this account
+             * @default false
+             */
+            extension_connected: boolean;
+            /**
+             * Fast Notice
+             * @default Fast apply fills LinkedIn Easy Apply forms in your own browser, signed in as you, from your profile and answer bank. You check every page and click Next and Submit yourself — Job Finder never submits a LinkedIn application. LinkedIn's terms limit automation, so a daily cap stays on; answers can still be wrong, so read them before you submit.
+             */
+            fast_notice: string;
+            /** Fast Notice Accepted At */
+            fast_notice_accepted_at?: string | null;
             /** Hours Start */
             hours_start: number;
             /** Hours End */
@@ -3207,6 +3515,112 @@ export interface components {
             caps: {
                 [key: string]: unknown;
             };
+        };
+        /** AssistAnswerOut */
+        AssistAnswerOut: {
+            /** Key */
+            key: string;
+            /** Value */
+            value?: string | null;
+            /**
+             * Source
+             * @description profile | eeo | answer_bank | ai | user | none
+             */
+            source: string;
+            /** Needs Input */
+            needs_input: boolean;
+        };
+        /** AssistFieldIn */
+        AssistFieldIn: {
+            /** Key */
+            key: string;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+            /**
+             * Type
+             * @description text | textarea | number | select | radio | checkbox | combobox | file
+             * @default text
+             */
+            type: string;
+            /** Options */
+            options?: string[];
+            /**
+             * Required
+             * @default false
+             */
+            required: boolean;
+        };
+        /** AssistFillIn */
+        AssistFillIn: {
+            /** Fields */
+            fields: components["schemas"]["AssistFieldIn"][];
+        };
+        /** AssistFillOut */
+        AssistFillOut: {
+            /** Answers */
+            answers: components["schemas"]["AssistAnswerOut"][];
+            /**
+             * Files
+             * @description {field key: resume}
+             */
+            files?: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * AssistPageAnswerIn
+         * @description An answer typed in the panel on a page with no run (E3b): saved to the answer bank.
+         */
+        AssistPageAnswerIn: {
+            /** Label */
+            label: string;
+            /** Value */
+            value: string;
+            /** Options */
+            options?: string[];
+        };
+        /** AssistRememberIn */
+        AssistRememberIn: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
+        };
+        /** AssistResultIn */
+        AssistResultIn: {
+            /**
+             * Outcome
+             * @description submitted = LinkedIn confirmed it; closed = the tab closed first
+             */
+            outcome: string;
+        };
+        /** AssistResultOut */
+        AssistResultOut: {
+            /** Run Id */
+            run_id: string;
+            /** State */
+            state: string;
+        };
+        /** AssistRunOut */
+        AssistRunOut: {
+            /**
+             * Run Id
+             * @description Your Fast apply run for this LinkedIn job; null = none
+             */
+            run_id?: string | null;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /**
+             * Company
+             * @default
+             */
+            company: string;
         };
         /** AtsCompanyGroup */
         AtsCompanyGroup: {
@@ -3506,6 +3920,56 @@ export interface components {
              */
             parse: boolean;
         };
+        /** CaptureIn */
+        CaptureIn: {
+            /**
+             * Site
+             * @description naukri | foundit | glassdoor | linkedin | indeed
+             */
+            site: string;
+            /** Page Url */
+            page_url: string;
+            /** Jobs */
+            jobs: components["schemas"]["CapturedJobIn"][];
+        };
+        /** CaptureOut */
+        CaptureOut: {
+            /** Saved */
+            saved: number;
+            /** Updated */
+            updated: number;
+            /** Skipped */
+            skipped: number;
+            /** Total */
+            total: number;
+        };
+        /** CapturedJobIn */
+        CapturedJobIn: {
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /**
+             * Company
+             * @default
+             */
+            company: string;
+            /**
+             * Location
+             * @default
+             */
+            location: string;
+            /**
+             * Posted
+             * @default
+             */
+            posted: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+        };
         /** CompanyAtsRequest */
         CompanyAtsRequest: {
             /** Targets */
@@ -3547,6 +4011,29 @@ export interface components {
             custom_link_selector?: string | null;
             /** Custom Location Selector */
             custom_location_selector?: string | null;
+        };
+        /** ConnectionOut */
+        ConnectionOut: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Used At */
+            last_used_at?: string | null;
+        };
+        /** ConnectionsOut */
+        ConnectionsOut: {
+            /** Connections */
+            connections: components["schemas"]["ConnectionOut"][];
+            /** Saved Total */
+            saved_total: number;
+            /** Saved Today */
+            saved_today: number;
         };
         /** CopilotAckIn */
         CopilotAckIn: {
@@ -3749,6 +4236,15 @@ export interface components {
             current: boolean;
             /** Highlights */
             highlights?: string[];
+        };
+        /** ExtensionMeOut */
+        ExtensionMeOut: {
+            /** Email */
+            email: string;
+            /** Saved Total */
+            saved_total: number;
+            /** Saved Today */
+            saved_today: number;
         };
         /** FlagUpdate */
         FlagUpdate: {
@@ -4210,6 +4706,19 @@ export interface components {
             email: string;
             /** Code */
             code: string;
+        };
+        /** PairCodeOut */
+        PairCodeOut: {
+            /**
+             * Code
+             * @description 6 digits to type into the extension; single use
+             */
+            code: string;
+            /**
+             * Expires In
+             * @description Seconds until the code stops working
+             */
+            expires_in: number;
         };
         /**
          * ParsedResume
@@ -4742,6 +5251,13 @@ export interface components {
              * @enum {string}
              */
             mode: "auto" | "fast";
+            /**
+             * Runner
+             * @description extension = filled in your own browser tab by the Job Finder extension
+             * @default worker
+             * @enum {string}
+             */
+            runner: "worker" | "extension";
             /** Level */
             level: number;
             /** Adapter */
@@ -4752,7 +5268,7 @@ export interface components {
              * State
              * @enum {string}
              */
-            state: "queued" | "preparing" | "awaiting_input" | "awaiting_review" | "submitting" | "submitted" | "failed" | "cancelled" | "needs_user" | "done";
+            state: "queued" | "preparing" | "awaiting_input" | "awaiting_review" | "submitting" | "in_browser" | "submitted" | "failed" | "cancelled" | "needs_user" | "done";
             /** Message */
             message?: string | null;
             /** Fields */
@@ -5415,6 +5931,28 @@ export interface components {
             titles: string[];
             /** Engine */
             engine?: string | null;
+        };
+        /** TokenIn */
+        TokenIn: {
+            /** Code */
+            code: string;
+            /**
+             * Name
+             * @description e.g. 'Chrome on my laptop'
+             */
+            name?: string | null;
+        };
+        /** TokenOut */
+        TokenOut: {
+            /**
+             * Token
+             * @description Capture-only token; the extension stores it. Shown once.
+             */
+            token: string;
+            /** Id */
+            id: string;
+            /** Email */
+            email: string;
         };
         /** TokenResponse */
         TokenResponse: {
@@ -6509,6 +7047,39 @@ export interface operations {
                 "application/json": components["schemas"]["RunDone"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_run_in_browser_api_v1_apply_runs__run_id__browser_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -7834,6 +8405,39 @@ export interface operations {
                 authorization?: string | null;
             };
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_apply_block_api_v1_admin_apply_blocks__platform__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                platform: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -11347,6 +11951,478 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pair_api_v1_extension_pair_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairCodeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    token_api_v1_extension_token_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    connections_api_v1_extension_connections_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disconnect_api_v1_extension_connections__token_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                token_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_api_v1_extension_me_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtensionMeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    captures_api_v1_extension_captures_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaptureIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_for_page_api_v1_extension_runs_for_page_get: {
+        parameters: {
+            query: {
+                url: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fill_api_v1_extension_runs__run_id__fill_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistFillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistFillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_api_v1_extension_runs__run_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistRememberIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_api_v1_extension_runs__run_id__resume_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    result_api_v1_extension_runs__run_id__result_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistResultIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    page_fill_api_v1_extension_page_fill_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistFillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistFillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    page_answer_api_v1_extension_page_answer_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistPageAnswerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    page_resume_api_v1_extension_page_resume_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                    "application/octet-stream": unknown;
                 };
             };
             /** @description Validation Error */

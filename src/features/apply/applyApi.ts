@@ -23,7 +23,12 @@ export const WAITING_STATES: readonly ApplyRunState[] = [
   "awaiting_review",
   "needs_user",
 ];
-export const ACTIVE_STATES: readonly ApplyRunState[] = ["queued", "preparing", "submitting"];
+export const ACTIVE_STATES: readonly ApplyRunState[] = [
+  "queued",
+  "preparing",
+  "in_browser",
+  "submitting",
+];
 export const HISTORY_STATES: readonly ApplyRunState[] = [
   "submitted",
   "done",
@@ -81,6 +86,9 @@ export const approveRun = (id: string) => api.post<ApplyRun>(`/apply/runs/${enc(
 export const cancelApplyRun = (id: string) => api.post<ApplyRun>(`/apply/runs/${enc(id)}/cancel`);
 export const finishRun = (id: string, submitted: boolean) =>
   api.post<ApplyRun>(`/apply/runs/${enc(id)}/done`, { submitted });
+/** Continue a stopped run in the user's own browser with the extension (backend P8b E3b). */
+export const openRunInBrowser = (id: string) =>
+  api.post<ApplyRun>(`/apply/runs/${enc(id)}/browser`);
 export const listProofs = (runId: string) =>
   api.get<ApplyProof[]>(`/apply/runs/${enc(runId)}/proofs`);
 export const proofImage = (runId: string, proofId: string) =>

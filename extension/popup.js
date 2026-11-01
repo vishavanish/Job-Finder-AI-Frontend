@@ -1,4 +1,7 @@
-/** Job Finder capture — popup: connect with a pairing code, see what was saved, auto-save per site. */
+/**
+ * Job Finder — popup: connect with a pairing code, see what was saved, auto-save per site, and
+ * "Fill this form" on the page the user is looking at (backend plan P8b E3b).
+ */
 
 const SITE_NAMES = {
   naukri: "Naukri",
@@ -81,3 +84,10 @@ $("disconnect").addEventListener("click", async () => {
 });
 
 load();
+
+$("fill").addEventListener("click", async () => {
+  $("fill-error").textContent = "";
+  const r = await send({ type: "fillActiveTab" });
+  if (r && r.ok) window.close();
+  else $("fill-error").textContent = (r && r.error) || "Couldn't fill this page.";
+});

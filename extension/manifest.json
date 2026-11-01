@@ -1,12 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Job Finder capture",
-  "version": "0.1.0",
-  "description": "Save the jobs on the Naukri, Foundit, Glassdoor, LinkedIn or Indeed page you're looking at to Job Finder AI.",
-  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" },
-  "action": { "default_popup": "popup.html", "default_title": "Job Finder capture" },
-  "background": { "service_worker": "background.js", "type": "module" },
-  "permissions": ["storage"],
+  "name": "Job Finder",
+  "version": "0.3.0",
+  "description": "Save the jobs on the job-search page you're looking at to Job Finder AI, and fill application forms — LinkedIn Easy Apply when you start Fast apply, any form when you click Fill this form. You submit.",
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Job Finder"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["https://jobfinderai.duckdns.org/*", "http://localhost:8000/*"],
   "content_scripts": [
     {
@@ -25,6 +35,11 @@
         "https://*.indeed.co.uk/*"
       ],
       "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.linkedin.com/jobs/*"],
+      "js": ["assist.js"],
       "run_at": "document_idle"
     }
   ],
@@ -45,6 +60,34 @@
         "https://*.indeed.co.in/*",
         "https://*.indeed.co.uk/*"
       ]
+    },
+    {
+      "resources": [
+        "src/linkedin_apply.js",
+        "src/fill_core.js",
+        "src/formreader.js",
+        "src/filler.js",
+        "src/panel.js"
+      ],
+      "matches": ["https://*.linkedin.com/*"]
+    },
+    {
+      "resources": [
+        "src/page_fill.js",
+        "src/fill_core.js",
+        "src/formreader.js",
+        "src/filler.js",
+        "src/panel.js"
+      ],
+      "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "commands": {
+    "fill-form": {
+      "suggested_key": {
+        "default": "Alt+Shift+F"
+      },
+      "description": "Fill this form with Job Finder"
+    }
+  }
 }

@@ -545,7 +545,7 @@
           "apply"
         ],
         "summary": "Start Run",
-        "description": "Preflight (switches, level, risk notice, caps, duplicates, company\ncooldown, resume) and a queued run; a worker on the apply queue opens\nthe form next. Nothing is submitted until you approve the run.",
+        "description": "Preflight (switches, level, risk notice, caps, duplicates, company\ncooldown, resume) and a queued run; a worker on the apply queue opens\nthe form next. Nothing is submitted until you approve the run.\nFast apply with the browser extension connected starts `in_browser`\n(runner `extension`): open the job page and the extension fills it.",
         "operationId": "start_run_api_v1_apply_runs_post",
         "parameters": [
           {
@@ -985,6 +985,65 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/browser": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Open Run In Browser",
+        "description": "A run waiting for you continues in your own browser: open its apply page and the Job Finder extension's\n\"Fill this form\" fills it with this run's answers. Needs a connected extension.",
+        "operationId": "open_run_in_browser_api_v1_apply_runs__run_id__browser_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3311,9 +3370,66 @@
           "admin"
         ],
         "summary": "System Health",
-        "description": "Every health check with its detail: database, Redis queues, AI setup,\nalerts scheduler. The public GET /health returns only the overall status.",
+        "description": "Every health check with its detail: database, Redis queues, AI setup,\nalerts scheduler. The public GET /health returns only the overall status.\n`apply_blocked` lists platforms whose Auto apply is paused because they\nblock the server's browser (QA5); it does not change the status.",
         "operationId": "system_health_api_v1_admin_system_health_get",
         "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/apply/blocks/{platform}": {
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Clear Apply Block",
+        "description": "Ends an Auto apply pause on a platform now (e.g. after the site lifted the block).",
+        "operationId": "clear_apply_block_api_v1_admin_apply_blocks__platform__delete",
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Platform"
+            }
+          },
           {
             "name": "authorization",
             "in": "header",
@@ -9629,6 +9745,782 @@
         }
       }
     },
+    "/api/v1/extension/pair": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Pair",
+        "operationId": "pair_api_v1_extension_pair_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairCodeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/token": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Token",
+        "operationId": "token_api_v1_extension_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/connections": {
+      "get": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Connections",
+        "operationId": "connections_api_v1_extension_connections_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/connections/{token_id}": {
+      "delete": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Disconnect",
+        "operationId": "disconnect_api_v1_extension_connections__token_id__delete",
+        "parameters": [
+          {
+            "name": "token_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/me": {
+      "get": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Me",
+        "operationId": "me_api_v1_extension_me_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionMeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/captures": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Captures",
+        "operationId": "captures_api_v1_extension_captures_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaptureIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/runs/for-page": {
+      "get": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Run For Page",
+        "operationId": "run_for_page_api_v1_extension_runs_for_page_get",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 2000,
+              "title": "Url"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistRunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/runs/{run_id}/fill": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Fill",
+        "operationId": "fill_api_v1_extension_runs__run_id__fill_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistFillIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistFillOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/runs/{run_id}/answer": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Answer",
+        "operationId": "answer_api_v1_extension_runs__run_id__answer_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistRememberIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/runs/{run_id}/resume": {
+      "get": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Resume",
+        "operationId": "resume_api_v1_extension_runs__run_id__resume_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {},
+              "application/octet-stream": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/runs/{run_id}/result": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Result",
+        "operationId": "result_api_v1_extension_runs__run_id__result_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistResultIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistResultOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/page/fill": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Page Fill",
+        "operationId": "page_fill_api_v1_extension_page_fill_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistFillIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistFillOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/page/answer": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Page Answer",
+        "operationId": "page_answer_api_v1_extension_page_answer_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistPageAnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/page/resume": {
+      "get": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Page Resume",
+        "operationId": "page_resume_api_v1_extension_page_resume_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {},
+              "application/octet-stream": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -11478,6 +12370,29 @@
             ],
             "title": "Allow Generic",
             "description": "Use the AI form reader (beta) on other career sites; turning it off cancels its active runs"
+          },
+          "extension_assist": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extension Assist",
+            "description": "Let the connected browser extension fill Fast apply forms; turning it off cancels runs open in a tab"
+          },
+          "accept_fast_notice": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accept Fast Notice"
           }
         },
         "type": "object",
@@ -11527,6 +12442,34 @@
             ],
             "title": "Risk Accepted At"
           },
+          "extension_assist": {
+            "type": "boolean",
+            "title": "Extension Assist",
+            "default": true
+          },
+          "extension_connected": {
+            "type": "boolean",
+            "title": "Extension Connected",
+            "description": "A browser extension is connected to this account",
+            "default": false
+          },
+          "fast_notice": {
+            "type": "string",
+            "title": "Fast Notice",
+            "default": "Fast apply fills LinkedIn Easy Apply forms in your own browser, signed in as you, from your profile and answer bank. You check every page and click Next and Submit yourself \u2014 Job Finder never submits a LinkedIn application. LinkedIn's terms limit automation, so a daily cap stays on; answers can still be wrong, so read them before you submit."
+          },
+          "fast_notice_accepted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Notice Accepted At"
+          },
           "hours_start": {
             "type": "integer",
             "title": "Hours Start"
@@ -11566,6 +12509,232 @@
           "caps"
         ],
         "title": "ApplySettingsOut"
+      },
+      "AssistAnswerOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "profile | eeo | answer_bank | ai | user | none"
+          },
+          "needs_input": {
+            "type": "boolean",
+            "title": "Needs Input"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "source",
+          "needs_input"
+        ],
+        "title": "AssistAnswerOut"
+      },
+      "AssistFieldIn": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Label",
+            "default": ""
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 16,
+            "title": "Type",
+            "description": "text | textarea | number | select | radio | checkbox | combobox | file",
+            "default": "text"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Options"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "key"
+        ],
+        "title": "AssistFieldIn"
+      },
+      "AssistFillIn": {
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/AssistFieldIn"
+            },
+            "type": "array",
+            "maxItems": 60,
+            "title": "Fields"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fields"
+        ],
+        "title": "AssistFillIn"
+      },
+      "AssistFillOut": {
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/AssistAnswerOut"
+            },
+            "type": "array",
+            "title": "Answers"
+          },
+          "files": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Files",
+            "description": "{field key: resume}"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "AssistFillOut"
+      },
+      "AssistPageAnswerIn": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Label"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Value"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "AssistPageAnswerIn",
+        "description": "An answer typed in the panel on a page with no run (E3b): saved to the answer bank."
+      },
+      "AssistRememberIn": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Key"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "value"
+        ],
+        "title": "AssistRememberIn"
+      },
+      "AssistResultIn": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "pattern": "^(submitted|closed)$",
+            "title": "Outcome",
+            "description": "submitted = LinkedIn confirmed it; closed = the tab closed first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "title": "AssistResultIn"
+      },
+      "AssistResultOut": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "state"
+        ],
+        "title": "AssistResultOut"
+      },
+      "AssistRunOut": {
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "Your Fast apply run for this LinkedIn job; null = none"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": ""
+          },
+          "company": {
+            "type": "string",
+            "title": "Company",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AssistRunOut"
       },
       "AtsCompanyGroup": {
         "properties": {
@@ -12445,6 +13614,108 @@
         ],
         "title": "Body_upload_resume_api_v1_resumes_post"
       },
+      "CaptureIn": {
+        "properties": {
+          "site": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Site",
+            "description": "naukri | foundit | glassdoor | linkedin | indeed"
+          },
+          "page_url": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Page Url"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/CapturedJobIn"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Jobs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "site",
+          "page_url",
+          "jobs"
+        ],
+        "title": "CaptureIn"
+      },
+      "CaptureOut": {
+        "properties": {
+          "saved": {
+            "type": "integer",
+            "title": "Saved"
+          },
+          "updated": {
+            "type": "integer",
+            "title": "Updated"
+          },
+          "skipped": {
+            "type": "integer",
+            "title": "Skipped"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "saved",
+          "updated",
+          "skipped",
+          "total"
+        ],
+        "title": "CaptureOut"
+      },
+      "CapturedJobIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Url"
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Company",
+            "default": ""
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Location",
+            "default": ""
+          },
+          "posted": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Posted",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "url"
+        ],
+        "title": "CapturedJobIn"
+      },
       "CompanyAtsRequest": {
         "properties": {
           "targets": {
@@ -12580,6 +13851,68 @@
           "slug"
         ],
         "title": "CompanyAtsTarget"
+      },
+      "ConnectionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "title": "ConnectionOut"
+      },
+      "ConnectionsOut": {
+        "properties": {
+          "connections": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectionOut"
+            },
+            "type": "array",
+            "title": "Connections"
+          },
+          "saved_total": {
+            "type": "integer",
+            "title": "Saved Total"
+          },
+          "saved_today": {
+            "type": "integer",
+            "title": "Saved Today"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connections",
+          "saved_total",
+          "saved_today"
+        ],
+        "title": "ConnectionsOut"
       },
       "CopilotAckIn": {
         "properties": {
@@ -13062,6 +14395,29 @@
         },
         "type": "object",
         "title": "ExperienceItem"
+      },
+      "ExtensionMeOut": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "saved_total": {
+            "type": "integer",
+            "title": "Saved Total"
+          },
+          "saved_today": {
+            "type": "integer",
+            "title": "Saved Today"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "saved_total",
+          "saved_today"
+        ],
+        "title": "ExtensionMeOut"
       },
       "FlagUpdate": {
         "properties": {
@@ -14211,6 +15567,26 @@
           "code"
         ],
         "title": "OtpVerify"
+      },
+      "PairCodeOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "6 digits to type into the extension; single use"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Seconds until the code stops working"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "expires_in"
+        ],
+        "title": "PairCodeOut"
       },
       "ParsedResume": {
         "properties": {
@@ -15716,6 +17092,16 @@
             ],
             "title": "Mode"
           },
+          "runner": {
+            "type": "string",
+            "enum": [
+              "worker",
+              "extension"
+            ],
+            "title": "Runner",
+            "description": "extension = filled in your own browser tab by the Job Finder extension",
+            "default": "worker"
+          },
           "level": {
             "type": "integer",
             "title": "Level"
@@ -15736,6 +17122,7 @@
               "awaiting_input",
               "awaiting_review",
               "submitting",
+              "in_browser",
               "submitted",
               "failed",
               "cancelled",
@@ -17255,6 +18642,58 @@
           "titles"
         ],
         "title": "TitleSuggestions"
+      },
+      "TokenIn": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 6,
+            "title": "Code"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "e.g. 'Chrome on my laptop'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "TokenIn"
+      },
+      "TokenOut": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "Capture-only token; the extension stores it. Shown once."
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "id",
+          "email"
+        ],
+        "title": "TokenOut"
       },
       "TokenResponse": {
         "properties": {

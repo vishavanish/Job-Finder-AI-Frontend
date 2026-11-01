@@ -7,6 +7,7 @@
 import { http, HttpResponse } from "msw";
 import type { ApplyRun, ApplySettingsIn, SavedAnswer } from "../lib/api/types";
 import { entitlementsFor } from "./data";
+import { extensionDb } from "./extensionState";
 import { f3Db, setUserJob } from "./f3State";
 import {
   RISK_NOTICE,
@@ -24,8 +25,15 @@ import { API, authenticate, newId, readJson, requireRole } from "./handlers";
 const fail = (status: number, code: string, message: string) =>
   HttpResponse.json({ detail: { code, message } }, { status });
 const nowIso = () => new Date().toISOString();
-const WAITING = ["awaiting_input", "awaiting_review", "needs_user"];
-const ACTIVE = ["queued", "preparing", "awaiting_input", "awaiting_review", "submitting"];
+const WAITING = ["awaiting_input", "awaiting_review", "needs_user", "in_browser"];
+const ACTIVE = [
+  "queued",
+  "preparing",
+  "awaiting_input",
+  "awaiting_review",
+  "submitting",
+  "in_browser",
+];
 
 /** A 1×1 PNG, standing in for a confirmation screenshot. */
 const PNG = Uint8Array.from(
@@ -101,6 +109,23 @@ export const f4Handlers = [
     if (body.hours_start != null) s.hours_start = body.hours_start;
     if (body.hours_end != null) s.hours_end = body.hours_end;
     if (body.timezone) s.timezone = body.timezone;
+    if (body.accept_fast_notice === true && !s.fast_notice_accepted_at)
+      s.fast_notice_accepted_at = nowIso();
+    if (body.accept_fast_notice === false) s.fast_notice_accepted_at = null;
+    if (body.extension_assist != null) {
+      s.extension_assist = body.extension_assist;
+      if (!body.extension_assist) {
+        for (const r of f4Db.runs.values()) {
+          if (r.user_id === auth.user.id && r.state === "in_browser") {
+            Object.assign(r, {
+              state: "cancelled",
+              message: "You turned off Fast apply in your browser.",
+              updated_at: nowIso(),
+            });
+          }
+        }
+      }
+    }
     if (body.allow_generic != null) {
       s.allow_generic = body.allow_generic;
       if (!body.allow_generic) {
@@ -188,6 +213,12 @@ export const f4Handlers = [
         opts?.fast.reason ?? "Fast apply doesn't support this job.",
       );
     }
+    const inBrowser =
+      mode === "fast" &&
+      s.extension_assist &&
+      (extensionDb.connections[auth.user.id]?.length ?? 0) > 0;
+    if (inBrowser && !s.fast_notice_accepted_at)
+      return fail(409, "fast_notice_required", "Read and accept the Fast apply notice first.");
     const active = [...f4Db.runs.values()].find(
       (r) => r.user_id === auth.user.id && r.job_id === job.id && ACTIVE.includes(r.state),
     );
@@ -201,11 +232,14 @@ export const f4Handlers = [
       title: job.title,
       company: job.company,
       mode,
+      runner: inBrowser ? "extension" : "worker",
       level: mode === "auto" ? 2 : 1,
       adapter: opts?.adapter ?? "linkedin",
       apply_url: job.apply_url ?? job.url,
-      state: "queued",
-      message: "Waiting for a browser on the apply worker.",
+      state: inBrowser ? "in_browser" : "queued",
+      message: inBrowser
+        ? "Finish it in the LinkedIn tab: Job Finder fills each page, you check it and click Next and Submit."
+        : "Waiting for a browser on the apply worker.",
       fields: [],
       files: {},
       resume_id: null,
@@ -325,6 +359,30 @@ export const f4Handlers = [
     if (!ACTIVE.includes(run.state))
       return fail(409, "run_finished", "This run has already finished.");
     Object.assign(run, { state: "cancelled", message: "Cancelled by you.", updated_at: nowIso() });
+    return HttpResponse.json(runOut(run));
+  }),
+
+  http.post(`${API}/apply/runs/:id/browser`, ({ request, params }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const run = ownRun(auth.user.id, String(params.id));
+    if (!run) return fail(404, "run_not_found", "No apply run with this id.");
+    if (!["needs_user", "awaiting_input", "awaiting_review"].includes(run.state))
+      return fail(409, "run_not_waiting", "This run is not waiting for you.");
+    const s = settingsFor(auth.user.id);
+    if (!s.extension_assist || !(extensionDb.connections[auth.user.id]?.length ?? 0))
+      return fail(
+        409,
+        "extension_required",
+        "Connect the Job Finder extension in Settings › Browser extension first.",
+      );
+    Object.assign(run, {
+      state: "in_browser",
+      runner: "extension",
+      message:
+        "Finish it in your browser: on the application page, click the Job Finder extension and Fill this form (Alt+Shift+F) on each page, check the answers and submit.",
+      updated_at: nowIso(),
+    });
     return HttpResponse.json(runOut(run));
   }),
 

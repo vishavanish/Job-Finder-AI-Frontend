@@ -4,18 +4,10 @@
  * a browser after a few seconds, so the page shows the new connection the way it would for real.
  */
 import { http, HttpResponse } from "msw";
-import type { ExtensionConnection } from "../features/extension/extensionApi";
+import { extensionDb } from "./extensionState";
 import { API, authenticate, newId } from "./handlers";
 
-export const extensionDb = {
-  connections: {} as Record<string, ExtensionConnection[]>,
-  saved: {} as Record<string, { total: number; today: number }>,
-};
-
-export function resetExtensionMock(): void {
-  extensionDb.connections = {};
-  extensionDb.saved = {};
-}
+export { extensionDb, resetExtensionMock } from "./extensionState";
 
 export const extensionHandlers = [
   http.post(`${API}/extension/pair`, ({ request }) => {

@@ -3,7 +3,8 @@
  * scripted run that moves on each poll — a three-page AI form reader run for
  * `generic` jobs), prep packs, the answer bank and apply settings. Also what
  * the backend adds to every job: `apply_url` and `apply_options`. Reset
- * between tests.
+ * between tests. Fast apply with a connected browser extension (backend
+ * P8b) starts `in_browser` and stays there until the user says it's done.
  */
 import type {
   ApplyOptions,
@@ -14,6 +15,7 @@ import type {
   SavedAnswer,
   StreamedJob,
 } from "../lib/api/types";
+import { extensionDb } from "./extensionState";
 import type { ApplyBlock } from "../features/admin/adminApi";
 
 export const RISK_NOTICE =
@@ -27,6 +29,12 @@ export const GENERIC_NOTICE =
   "and more). It is less reliable than the Greenhouse and Lever support: it can misread a question or a page. " +
   "It never signs in or creates accounts, every application waits for your review, and pages it can't handle " +
   "are handed back to you. It may use a paid image-reading AI model for hard pages, within a per-application limit.";
+
+export const FAST_NOTICE =
+  "Fast apply fills LinkedIn Easy Apply forms in your own browser, signed in as you, from your profile and " +
+  "answer bank. You check every page and click Next and Submit yourself — Job Finder never submits a LinkedIn " +
+  "application. LinkedIn's terms limit automation, so a daily cap stays on; answers can still be wrong, so read " +
+  "them before you submit.";
 
 export interface MockRun extends ApplyRun {
   user_id: string;
@@ -49,6 +57,8 @@ export interface MockSettings {
   timezone: string;
   paused: boolean;
   allow_generic: boolean;
+  extension_assist: boolean;
+  fast_notice_accepted_at: string | null;
 }
 
 export const f4Db = {
@@ -83,6 +93,8 @@ export function settingsFor(userId: string): MockSettings {
     timezone: "Asia/Kolkata",
     paused: false,
     allow_generic: false,
+    extension_assist: true,
+    fast_notice_accepted_at: null,
   };
   return f4Db.settings[userId];
 }
@@ -109,6 +121,8 @@ export function settingsOut(userId: string, maxLevel: number): ApplySettings {
     risk_notice: RISK_NOTICE,
     generic_notice: GENERIC_NOTICE,
     generic_submit_enabled: f4Db.genericSubmit,
+    extension_connected: (extensionDb.connections[userId]?.length ?? 0) > 0,
+    fast_notice: FAST_NOTICE,
     usage_today: {
       auto_submitted: Object.values(byPlatform).reduce((a, b) => a + b, 0),
       by_platform: byPlatform,
