@@ -6,7 +6,9 @@
  * did. In test mode the AI form reader never submits: the user copies the
  * answers, applies on the job page and says so. Polls while the worker is
  * moving the run. A Fast apply run filled by the browser extension
- * (`in_browser`) points to its LinkedIn tab and can be finished by hand.
+ * (`in_browser`) points to its LinkedIn tab and can be finished by hand; a
+ * run that stopped for the user can continue in their browser, where the
+ * extension's "Fill this form" fills it with the run's answers (P8b E3b).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -31,6 +33,7 @@ import {
   cancelApplyRun,
   finishRun,
   getApplySettings,
+  openRunInBrowser,
   isGeneric,
   isRunMoving,
   resumeFile,
@@ -241,6 +244,25 @@ export default function RunReviewPage() {
     mutationFn: (submitted: boolean) => finishRun(runId, submitted),
     onSuccess: refresh,
   });
+  const tab = useRef<Window | null>(null);
+  const inBrowser = useMutation({
+    mutationFn: () => openRunInBrowser(runId),
+    onSuccess: (r) => {
+      refresh(r);
+      if (tab.current) tab.current.location.href = r.apply_url;
+      tab.current = null;
+    },
+    onError: () => {
+      tab.current?.close();
+      tab.current = null;
+    },
+  });
+  const openInBrowser = () => {
+    // Opened on the click itself so pop-up blockers allow it; pointed at the form once the run is ready.
+    tab.current = window.open("", "_blank");
+    if (tab.current) tab.current.opener = null;
+    inBrowser.mutate();
+  };
 
   // A short confetti burst when the run is confirmed sent while you watch.
   useEffect(() => {
@@ -262,7 +284,11 @@ export default function RunReviewPage() {
   const aiDrafts = fields.filter((f) => f.source === "ai" && f.value && !(f.key in edits)).length;
   const editable = run?.state === "awaiting_input" || run?.state === "awaiting_review";
   const dirty = Object.keys(edits).length > 0;
-  const actionError = answer.error ?? approve.error ?? cancel.error ?? finish.error;
+  const actionError =
+    answer.error ?? approve.error ?? cancel.error ?? finish.error ?? inBrowser.error;
+  const canFillInBrowser = Boolean(
+    settings.data?.extension_connected && settings.data?.extension_assist,
+  );
   const generic = isGeneric(run?.adapter);
   const testMode =
     generic && run?.state === "awaiting_review" && settings.data?.generic_submit_enabled === false;
@@ -387,6 +413,16 @@ export default function RunReviewPage() {
               >
                 Copy answers & open the job page
               </button>
+              {canFillInBrowser && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  disabled={dirty || inBrowser.isPending}
+                  onClick={openInBrowser}
+                >
+                  Open and fill in my browser
+                </button>
+              )}
               <button
                 type="button"
                 className={copied ? "btn-run" : "btn-secondary"}
@@ -414,11 +450,19 @@ export default function RunReviewPage() {
 
         {run.state === "in_browser" && (
           <div className="run-hero-action handoff">
-            <p>
-              <strong>Finish it in the LinkedIn tab.</strong> The Job Finder extension fills each
-              Easy Apply page there; you check it and click Next and Submit. This page updates when
-              LinkedIn confirms the application.
-            </p>
+            {run.adapter === "linkedin" ? (
+              <p>
+                <strong>Finish it in the LinkedIn tab.</strong> The Job Finder extension fills each
+                Easy Apply page there; you check it and click Next and Submit. This page updates
+                when LinkedIn confirms the application.
+              </p>
+            ) : (
+              <p>
+                <strong>Finish it in your browser.</strong> On the application page, click the Job
+                Finder extension and <b>Fill this form</b> (Alt+Shift+F) on each page — it uses this
+                run&apos;s answers. Check them and submit, then tell us here.
+              </p>
+            )}
             <div className="prep-row">
               <a
                 className="btn-apply"
@@ -426,7 +470,7 @@ export default function RunReviewPage() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Open the LinkedIn job
+                {run.adapter === "linkedin" ? "Open the LinkedIn job" : "Open the application"}
               </a>
               <button
                 type="button"
@@ -457,6 +501,16 @@ export default function RunReviewPage() {
               >
                 Open job page
               </a>
+              {canFillInBrowser && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  disabled={inBrowser.isPending}
+                  onClick={openInBrowser}
+                >
+                  Open and fill in my browser
+                </button>
+              )}
               {fields.length > 0 && (
                 <button type="button" className="btn-secondary" onClick={copyAll}>
                   Copy all answers

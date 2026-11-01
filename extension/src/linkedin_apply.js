@@ -13,8 +13,8 @@
  * Pure of the extension APIs: `api` (the background calls) and `ui` (the panel) are passed in, so tests run
  * it on a saved page with fakes.
  */
-import { attachFile, fillField } from "./filler.js";
-import { forApi, hasValue, isVisible, readFields } from "./formreader.js";
+import { createFiller } from "./fill_core.js";
+import { isVisible } from "./formreader.js";
 
 // Only LinkedIn's own confirmation; "Applied 3 days ago" on the job page is an older application.
 export const CONFIRMED =
@@ -48,15 +48,8 @@ export function confirmed(doc) {
   return CONFIRMED.test(text);
 }
 
-function fromBase64(b64) {
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-
 /**
- * api: {forPage(url), fill(runId, fields), answer(runId, key, value), resume(runId), result(runId, outcome)}
+ * api: {forPage(url), fill(runId, fields), answer(runId, field, value), resume(runId), result(runId, outcome)}
  *      each resolving to {ok, data, error}
  * ui:  {status(text, tone?), ask(fields, onAnswer), offerResume(onClick), done(text)}
  */
@@ -67,26 +60,7 @@ export function createAssist({ doc, api, ui, visible = isVisible, debounceMs = 6
   let again = false;
   let timer = 0;
   let observer = null;
-  const pages = new Set();
-  let resumeFile = null;
-
-  async function resume() {
-    if (resumeFile) return resumeFile;
-    const r = await api.resume(run.run_id);
-    if (!r.ok) throw new Error(r.error || "Couldn't get your resume.");
-    resumeFile = { bytes: fromBase64(r.data.base64), name: r.data.name, type: r.data.type };
-    return resumeFile;
-  }
-
-  async function attach(field) {
-    try {
-      const f = await resume();
-      return attachFile(doc, field, f.bytes, f.name, f.type);
-    } catch (e) {
-      ui.status(e.message, "error");
-      return false;
-    }
-  }
+  const filler = createFiller({ doc, api, ui, visible });
 
   async function finish() {
     finished = true;
@@ -117,52 +91,10 @@ export function createAssist({ doc, api, ui, visible = isVisible, debounceMs = 6
         ui.status("LinkedIn wants you to check something — do it, then carry on.", "warn");
         return;
       }
-      const fields = readFields(dialog, { visible });
-      if (!fields.length) {
-        ui.status("Check this page, then click Next or Submit in LinkedIn.");
-        return;
-      }
-      const page = fields.map((f) => `${f.key}:${f.label}`).join("|");
-      if (pages.has(page)) return;
-      pages.add(page);
-      ui.status("Filling this page…");
-      const r = await api.fill(run.run_id, forApi(fields));
-      if (!r.ok) {
-        pages.delete(page);
-        ui.status(r.error || "Couldn't get answers from Job Finder.", "error");
-        return;
-      }
-      const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
-      const ask = [];
-      let filled = 0;
-      for (const a of r.data.answers) {
-        const f = byKey[a.key];
-        if (!f || hasValue(f, dialog)) continue;
-        if (a.value && fillField(doc, f, a.value)) filled++;
-        else if (a.needs_input || (f.required && !a.value)) ask.push(f);
-      }
-      for (const key of Object.keys(r.data.files || {})) {
-        const f = byKey[key];
-        if (!f) continue;
-        if (f.required) {
-          if (await attach(f)) filled++;
-        } else {
-          ui.offerResume(() => attach(f));
-        }
-      }
-      if (ask.length) {
-        ui.ask(ask, async (f, value) => {
-          const saved = await api.answer(run.run_id, f.key, value);
-          if (!saved.ok) return saved.error || "Couldn't save that answer.";
-          fillField(doc, f, value);
-          return null;
-        });
-      }
-      ui.status(
-        ask.length
-          ? `Filled ${filled} — answer ${ask.length} question${ask.length === 1 ? "" : "s"} below, then click Next.`
-          : `Filled ${filled} field${filled === 1 ? "" : "s"} — check them, then click Next or Submit in LinkedIn.`,
-      );
+      const done = await filler.fillPage(dialog, run.run_id, {
+        next: "click Next or Submit in LinkedIn",
+      });
+      if (done === "empty") ui.status("Check this page, then click Next or Submit in LinkedIn.");
     } finally {
       busy = false;
       if (again) {
@@ -185,6 +117,11 @@ export function createAssist({ doc, api, ui, visible = isVisible, debounceMs = 6
       return finished;
     },
     step,
+    /** The user pressed "Fill this form": fill what's empty on the open page again. */
+    fillNow() {
+      filler.reset();
+      return step();
+    },
     /** Finds this page's Fast apply run; false when the user didn't start one for this job. */
     async start(url) {
       const r = await api.forPage(url);

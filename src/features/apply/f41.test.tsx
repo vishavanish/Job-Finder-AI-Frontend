@@ -8,6 +8,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { PageJourney, ProgressRing, StatePill } from "../../components/KitExtras";
+import { extensionDb } from "../../mocks/extensionState";
 import { f4Db, settingsFor } from "../../mocks/f4State";
 import { renderApp, signIn } from "../../test/renderApp";
 
@@ -205,38 +206,42 @@ describe("Apply settings: AI form reader card", () => {
   });
 });
 
+function blockedRun() {
+  const now = new Date().toISOString();
+  f4Db.runs.set("run_blocked", {
+    id: "run_blocked",
+    user_id: "u_demo",
+    polls: 0,
+    job_id: "job_sia",
+    title: "Senior Backend Engineer (Python)",
+    company: "Sia",
+    mode: "auto",
+    runner: "worker",
+    level: 2,
+    adapter: "generic",
+    apply_url: "https://jobs.smartrecruiters.com/Sia/744000157093395",
+    state: "needs_user",
+    message:
+      "SmartRecruiters blocked the app's browser — it treats our server as a bot. Apply on the job page in " +
+      "your own browser. Auto apply on SmartRecruiters is paused for 24 h.",
+    fields: [],
+    files: {},
+    resume_id: null,
+    pack_id: null,
+    application_id: null,
+    proofs: 0,
+    steps: [],
+    vision: null,
+    approved_at: null,
+    submitted_at: null,
+    created_at: now,
+    updated_at: now,
+  });
+}
+
 describe("A site that blocks the server (QA5)", () => {
   it("says why and offers no answers to copy when the form never loaded", async () => {
-    const now = new Date().toISOString();
-    f4Db.runs.set("run_blocked", {
-      id: "run_blocked",
-      user_id: "u_demo",
-      polls: 0,
-      job_id: "job_sia",
-      title: "Senior Backend Engineer (Python)",
-      company: "Sia",
-      mode: "auto",
-      runner: "worker",
-      level: 2,
-      adapter: "generic",
-      apply_url: "https://jobs.smartrecruiters.com/Sia/744000157093395",
-      state: "needs_user",
-      message:
-        "SmartRecruiters blocked the app's browser — it treats our server as a bot. Apply on the job page in " +
-        "your own browser. Auto apply on SmartRecruiters is paused for 24 h.",
-      fields: [],
-      files: {},
-      resume_id: null,
-      pack_id: null,
-      application_id: null,
-      proofs: 0,
-      steps: [],
-      vision: null,
-      approved_at: null,
-      submitted_at: null,
-      created_at: now,
-      updated_at: now,
-    });
+    blockedRun();
     renderApp("/apply/runs/run_blocked");
     await signIn();
     expect(
@@ -252,5 +257,51 @@ describe("A site that blocks the server (QA5)", () => {
       "href",
       "https://jobs.smartrecruiters.com/Sia/744000157093395",
     );
+  });
+});
+
+describe("Open and fill in my browser (P8b E3b)", () => {
+  it("is offered only with the extension connected, opens the form and hands the run to the browser", async () => {
+    blockedRun();
+    const tab = { opener: {} as unknown, location: { href: "" }, close: vi.fn() };
+    const open = vi.spyOn(window, "open").mockReturnValue(tab as unknown as Window);
+    try {
+      renderApp("/apply/runs/run_blocked");
+      await signIn();
+      await screen.findByText("Over to you.");
+      expect(
+        screen.queryByRole("button", { name: "Open and fill in my browser" }),
+      ).not.toBeInTheDocument();
+    } finally {
+      open.mockRestore();
+    }
+  });
+
+  it("continues the stopped run in a new tab when the extension is connected", async () => {
+    blockedRun();
+    extensionDb.connections.u_demo = [
+      { id: "ext_1", name: "Chrome", created_at: "2026-11-01T08:00:00Z", last_used_at: null },
+    ];
+    const tab = { opener: {} as unknown, location: { href: "" }, close: vi.fn() };
+    const open = vi.spyOn(window, "open").mockReturnValue(tab as unknown as Window);
+    try {
+      renderApp("/apply/runs/run_blocked");
+      const user = await signIn();
+      await user.click(await screen.findByRole("button", { name: "Open and fill in my browser" }));
+      expect(open).toHaveBeenCalledWith("", "_blank");
+      await waitFor(() =>
+        expect(tab.location.href).toBe("https://jobs.smartrecruiters.com/Sia/744000157093395"),
+      );
+      expect(tab.opener).toBeNull();
+      expect(
+        await screen.findByText("Finish it in your browser.", { selector: "strong" }),
+      ).toBeInTheDocument();
+      expect(f4Db.runs.get("run_blocked")?.state).toBe("in_browser");
+      expect(screen.getByRole("link", { name: "Open the application" })).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "I submitted it" }));
+      await waitFor(() => expect(f4Db.runs.get("run_blocked")?.state).toBe("done"));
+    } finally {
+      open.mockRestore();
+    }
   });
 });

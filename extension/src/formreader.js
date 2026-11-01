@@ -13,6 +13,9 @@
  */
 
 const clean = (t) => (t || "").replace(/\s+/g, " ").trim();
+// What a person reads: innerText leaves out hidden helper text ("Couldn't auto-read resume."); jsdom has no
+// innerText, so tests fall back to textContent. The server reader uses innerText too.
+const textOf = (el) => (el.innerText !== undefined ? el.innerText : el.textContent);
 const GROUPS = [
   "fieldset",
   ".application-question",
@@ -56,7 +59,7 @@ function questionText(el, containers) {
       "label",
     ]) {
       const l = c.querySelector(ls);
-      if (l && !l.contains(el) && clean(l.textContent)) return clean(l.textContent);
+      if (l && !l.contains(el) && clean(textOf(l))) return clean(textOf(l));
     }
   }
   return "";
@@ -66,11 +69,11 @@ function labelOf(el, doc) {
   const group = el.type === "file" ? el.closest('[role="group"][aria-labelledby]') : null;
   if (group) {
     const g = doc.getElementById(group.getAttribute("aria-labelledby"));
-    if (g && clean(g.textContent)) return clean(g.textContent);
+    if (g && clean(textOf(g))) return clean(textOf(g));
   }
   if (el.id) {
     const l = doc.querySelector(`label[for="${CSS.escape(el.id)}"]`);
-    if (l && clean(l.textContent)) return clean(l.textContent);
+    if (l && clean(textOf(l))) return clean(textOf(l));
   }
   const by = el.getAttribute("aria-labelledby");
   if (by) {
@@ -78,13 +81,13 @@ function labelOf(el, doc) {
       .split(/\s+/)
       .map((i) => doc.getElementById(i))
       .filter(Boolean)
-      .map((n) => n.textContent)
+      .map((n) => textOf(n))
       .join(" ");
     if (clean(t)) return clean(t);
   }
   if (el.getAttribute("aria-label")) return clean(el.getAttribute("aria-label"));
   const wrap = el.closest("label");
-  if (wrap && clean(wrap.textContent)) return clean(wrap.textContent);
+  if (wrap && clean(textOf(wrap))) return clean(textOf(wrap));
   return (
     questionText(el, [...GROUPS, "li"]) || clean(el.getAttribute("placeholder") || el.name || "")
   );
@@ -101,8 +104,9 @@ function requiredOf(el, label) {
 
 function optionLabel(el, doc) {
   const l = el.id && doc.querySelector(`label[for="${CSS.escape(el.id)}"]`);
-  if (l) return clean(l.textContent);
-  return clean((el.closest("label") || {}).textContent || el.value);
+  if (l) return clean(textOf(l));
+  const wrap = el.closest("label");
+  return clean((wrap && textOf(wrap)) || el.value);
 }
 
 /** The controls in `root` (an element or document). */

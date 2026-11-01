@@ -1,7 +1,9 @@
 /**
  * Job Finder — fills one form control the way a person would, so sites built with React (LinkedIn) accept
  * the value: the native value setter, then input / change / blur events. Radios and checkboxes are
- * clicked; options are picked by their text. Never clicks a Next, Review or Submit button.
+ * clicked; options are picked by their text. Never clicks a Next, Review or Submit button. Search-style
+ * dropdowns (role="combobox": Greenhouse, location pickers) are never typed into: typed text there is not a
+ * choice and the site drops it, so fill_core lists them for the user to pick instead.
  */
 
 const clean = (t) => (t || "").replace(/\s+/g, " ").trim();
@@ -83,6 +85,8 @@ export function fillField(doc, field, value) {
     }
     case "file":
       return false; // attachFile
+    case "combobox":
+      return false; // the user picks it (fill_core → ui.suggest)
     default:
       setValue(el, String(value));
       return true;

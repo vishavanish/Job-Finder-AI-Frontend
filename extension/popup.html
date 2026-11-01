@@ -11,7 +11,7 @@
       <span class="logo" aria-hidden="true">J</span>
       <div>
         <h1>Job Finder</h1>
-        <p class="sub">Save jobs from the pages you open</p>
+        <p class="sub">Save jobs and fill applications</p>
       </div>
     </header>
 
@@ -43,6 +43,12 @@
 
     <section id="connected" hidden>
       <p class="account">Connected as <b id="email"></b></p>
+      <button type="button" id="fill" class="primary">Fill this form</button>
+      <p class="hint">
+        On an application form, fills what Job Finder knows from your profile and saved answers
+        (shortcut Alt+Shift+F). You check it and submit.
+      </p>
+      <p class="error" id="fill-error" role="alert"></p>
       <div class="stats">
         <div><span id="today">0</span><small>saved today</small></div>
         <div><span id="total">0</span><small>saved in all</small></div>

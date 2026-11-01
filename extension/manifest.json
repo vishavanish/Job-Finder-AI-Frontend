@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Job Finder",
-  "version": "0.2.0",
-  "description": "Save the jobs on the job-search page you're looking at to Job Finder AI, and let Job Finder fill LinkedIn Easy Apply forms when you start Fast apply (you submit).",
+  "version": "0.3.0",
+  "description": "Save the jobs on the job-search page you're looking at to Job Finder AI, and fill application forms — LinkedIn Easy Apply when you start Fast apply, any form when you click Fill this form. You submit.",
   "icons": {
     "16": "icons/16.png",
     "48": "icons/48.png",
@@ -16,7 +16,7 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["https://jobfinderai.duckdns.org/*", "http://localhost:8000/*"],
   "content_scripts": [
     {
@@ -62,8 +62,32 @@
       ]
     },
     {
-      "resources": ["src/linkedin_apply.js", "src/formreader.js", "src/filler.js"],
+      "resources": [
+        "src/linkedin_apply.js",
+        "src/fill_core.js",
+        "src/formreader.js",
+        "src/filler.js",
+        "src/panel.js"
+      ],
       "matches": ["https://*.linkedin.com/*"]
+    },
+    {
+      "resources": [
+        "src/page_fill.js",
+        "src/fill_core.js",
+        "src/formreader.js",
+        "src/filler.js",
+        "src/panel.js"
+      ],
+      "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "commands": {
+    "fill-form": {
+      "suggested_key": {
+        "default": "Alt+Shift+F"
+      },
+      "description": "Fill this form with Job Finder"
+    }
+  }
 }

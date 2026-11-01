@@ -98,9 +98,9 @@ function fakes() {
       }
       return { ok: true, data: { answers, files } };
     }),
-    answer: vi.fn(async (runId, key, value) => {
-      calls.answer.push([key, value]);
-      return { ok: true, data: { key, value, source: "user", needs_input: false } };
+    answer: vi.fn(async (runId, field, value) => {
+      calls.answer.push([field.key, value]);
+      return { ok: true, data: { key: field.key, value, source: "user", needs_input: false } };
     }),
     resume: vi.fn(async () => {
       calls.resume++;
@@ -118,7 +118,13 @@ function fakes() {
       return { ok: true, data: { state: "done" } };
     }),
   };
-  const ui = { status: vi.fn(), ask: vi.fn(), offerResume: vi.fn(), done: vi.fn() };
+  const ui = {
+    status: vi.fn(),
+    ask: vi.fn(),
+    offerResume: vi.fn(),
+    done: vi.fn(),
+    suggest: vi.fn(),
+  };
   return { api, ui, calls };
 }
 

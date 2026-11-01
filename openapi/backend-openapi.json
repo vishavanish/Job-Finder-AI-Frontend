@@ -1009,6 +1009,65 @@
         }
       }
     },
+    "/api/v1/apply/runs/{run_id}/browser": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Open Run In Browser",
+        "description": "A run waiting for you continues in your own browser: open its apply page and the Job Finder extension's\n\"Fill this form\" fills it with this run's answers. Needs a connected extension.",
+        "operationId": "open_run_in_browser_api_v1_apply_runs__run_id__browser_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/apply/runs/{run_id}/proofs": {
       "get": {
         "tags": [
@@ -10300,6 +10359,168 @@
         }
       }
     },
+    "/api/v1/extension/page/fill": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Page Fill",
+        "operationId": "page_fill_api_v1_extension_page_fill_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistFillIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistFillOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/page/answer": {
+      "post": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Page Answer",
+        "operationId": "page_answer_api_v1_extension_page_answer_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistPageAnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/extension/page/resume": {
+      "get": {
+        "tags": [
+          "extension"
+        ],
+        "summary": "Page Resume",
+        "operationId": "page_resume_api_v1_extension_page_resume_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {},
+              "application/octet-stream": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -12404,6 +12625,35 @@
           "answers"
         ],
         "title": "AssistFillOut"
+      },
+      "AssistPageAnswerIn": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Label"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Value"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "AssistPageAnswerIn",
+        "description": "An answer typed in the panel on a page with no run (E3b): saved to the answer bank."
       },
       "AssistRememberIn": {
         "properties": {

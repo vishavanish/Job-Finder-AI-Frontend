@@ -5,7 +5,10 @@
  *   connect {code, apiBase}   -> POST /extension/token     (pairing; the code comes from Settings in the app)
  *   me                        -> GET  /extension/me
  *   capture {site, page_url, jobs} -> POST /extension/captures
- *   assist* (Fast apply, backend plan P8b) -> /extension/runs/... (for-page, fill, answer, resume, result)
+ *   assist* (Fast apply, backend plan P8b) -> /extension/runs/... (for-page, fill, answer, resume, result);
+ *           with no run_id ("Fill this form" on a page Job Finder has no run for) -> /extension/page/...
+ *   fillActiveTab / the Alt+Shift+F command -> injects fill_page.js into the active tab (activeTab: only on
+ *           the user's click or key press, only that tab)
  * It never reads cookies or other tabs, and never fetches the job sites itself.
  */
 
@@ -127,7 +130,7 @@ async function handle(msg) {
       });
     case "assistFill":
       if (!s.token) return NOT_CONNECTED;
-      return call(runPath(msg, "fill"), {
+      return call(msg.run_id ? runPath(msg, "fill") : "/extension/page/fill", {
         method: "POST",
         token: s.token,
         apiBase: s.apiBase,
@@ -135,15 +138,27 @@ async function handle(msg) {
       });
     case "assistAnswer":
       if (!s.token) return NOT_CONNECTED;
-      return call(runPath(msg, "answer"), {
+      return call(msg.run_id ? runPath(msg, "answer") : "/extension/page/answer", {
         method: "POST",
         token: s.token,
         apiBase: s.apiBase,
-        body: { key: String(msg.key || ""), value: String(msg.value || "") },
+        body: msg.run_id
+          ? { key: String(msg.key || ""), value: String(msg.value || "") }
+          : {
+              label: String(msg.label || ""),
+              value: String(msg.value || ""),
+              options: (msg.options || []).slice(0, 200).map(String),
+            },
       });
     case "assistResume":
       if (!s.token) return NOT_CONNECTED;
-      return call(runPath(msg, "resume"), { token: s.token, apiBase: s.apiBase, binary: true });
+      return call(msg.run_id ? runPath(msg, "resume") : "/extension/page/resume", {
+        token: s.token,
+        apiBase: s.apiBase,
+        binary: true,
+      });
+    case "fillActiveTab":
+      return fillActiveTab();
     case "assistResult":
       if (!s.token) return NOT_CONNECTED;
       return call(runPath(msg, "result"), {
@@ -156,6 +171,28 @@ async function handle(msg) {
       return { ok: false, error: "Unknown request." };
   }
 }
+
+/** "Fill this form": runs fill_page.js in the tab the user is looking at (activeTab grants it on the click). */
+async function fillActiveTab() {
+  const s = await settings();
+  if (!s.token) return NOT_CONNECTED;
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !/^https?:/.test(tab.url || "https:"))
+    return { ok: false, error: "Open the application form's page first." };
+  try {
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["fill_page.js"] });
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      error: "This page can't be filled (browser pages and the web store are off limits).",
+    };
+  }
+}
+
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "fill-form") fillActiveTab();
+});
 
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   // Only this extension's own pages and content scripts talk to it.

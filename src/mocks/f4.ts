@@ -362,6 +362,30 @@ export const f4Handlers = [
     return HttpResponse.json(runOut(run));
   }),
 
+  http.post(`${API}/apply/runs/:id/browser`, ({ request, params }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const run = ownRun(auth.user.id, String(params.id));
+    if (!run) return fail(404, "run_not_found", "No apply run with this id.");
+    if (!["needs_user", "awaiting_input", "awaiting_review"].includes(run.state))
+      return fail(409, "run_not_waiting", "This run is not waiting for you.");
+    const s = settingsFor(auth.user.id);
+    if (!s.extension_assist || !(extensionDb.connections[auth.user.id]?.length ?? 0))
+      return fail(
+        409,
+        "extension_required",
+        "Connect the Job Finder extension in Settings › Browser extension first.",
+      );
+    Object.assign(run, {
+      state: "in_browser",
+      runner: "extension",
+      message:
+        "Finish it in your browser: on the application page, click the Job Finder extension and Fill this form (Alt+Shift+F) on each page, check the answers and submit.",
+      updated_at: nowIso(),
+    });
+    return HttpResponse.json(runOut(run));
+  }),
+
   http.post(`${API}/apply/runs/:id/done`, async ({ request, params }) => {
     const auth = authenticate(request);
     if ("response" in auth) return auth.response;

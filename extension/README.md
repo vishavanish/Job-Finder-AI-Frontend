@@ -24,6 +24,17 @@ Job Finder AI, and fills **LinkedIn Easy Apply** when you start Fast apply in th
 It does nothing on a LinkedIn job you didn't start Fast apply for. Turn it off in Job Finder → Apply
 settings → Fast apply.
 
+## Fill this form (any site)
+
+On any application form — Workday after you sign in, Naukri, a company's own form — click the extension
+icon → **Fill this form**, or press **Alt+Shift+F**. It fills what Job Finder knows (profile, saved answers,
+your resume for a required upload) and asks the rest in the panel; you check and submit. Press it again on
+each new page. It only runs on the tab where you press it (the browser's "active tab" permission). Search-style dropdowns (Greenhouse, location pickers) are listed in the panel for you to pick — typed text there would not count.
+
+When an Auto apply run stops for you (a sign-in page, a captcha, test mode), **Open and fill in my
+browser** on the run's page opens the form; Fill this form then uses that run's answers, and the run is
+marked applied when the page says the application was received.
+
 ## Install (no store needed)
 
 1. Download this folder (or the zip from the app) and unzip it.
@@ -43,6 +54,8 @@ extension → Disconnect** removes it from your account.
 | `content.js`                         | The on-page button; loads `src/reader.js`                                           |
 | `assist.js`                          | Fast apply panel on LinkedIn job pages; loads `src/linkedin_apply.js`               |
 | `src/linkedin_apply.js`              | Opens Easy Apply once, fills each page, reports LinkedIn's confirmation (tested)    |
+| `fill_page.js`, `src/page_fill.js`   | Fill this form: injected on the button / shortcut; finds the main form (tested)     |
+| `src/fill_core.js`, `src/panel.js`   | One page's filling (shared), the on-page panel                                      |
 | `src/formreader.js`, `src/filler.js` | Read form fields (port of the backend's reader) and fill them like a person would   |
 | `src/reader.js`                      | Reads jobs from a page (pure functions, tested in `src/reader.test.js` with Vitest) |
 | `background.js`                      | The only part that calls the API: pairing, saves; keeps the capture-only token      |
