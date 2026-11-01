@@ -147,6 +147,19 @@ export interface PipelineRunMeta {
   created_at: string;
   /** QA2: seconds per stage ("LinkedIn + Indeed", "Scoring"…), summed over the run's titles. */
   timings?: Record<string, number>;
+  /** What happened to the jobs the search found, so an empty result can say why. */
+  counts?: RunCounts;
+}
+
+export interface RunCounts {
+  raw: number;
+  seen: number;
+  low_score: number;
+  handled: number;
+  filtered: number;
+  blocked: number;
+  unscored: number;
+  kept: number;
 }
 
 export interface PipelineRunJobsPage {
