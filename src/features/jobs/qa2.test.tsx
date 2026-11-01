@@ -1,6 +1,6 @@
 /** QA2 §1: jobs shown while they are scored, removed when they score too low, run timings. */
 import { describe, expect, it, vi } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import type { StreamedJob } from "../../lib/api/types";
 import { API } from "../../mocks/handlers";
@@ -120,5 +120,94 @@ describe("Prep dialog steps (§2)", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("A search that shows nothing says why", () => {
+  const finishedWith = (counts: object) =>
+    server.use(
+      http.get(`${API}/pipeline/:runId`, () =>
+        HttpResponse.json({
+          user_id: "u_demo",
+          status: "completed",
+          total_keywords: 1,
+          keywords_completed: 1,
+          error: "",
+          created_at: "2026-11-01T08:15:00Z",
+          counts,
+        }),
+      ),
+      http.get(`${API}/pipeline/:runId/jobs`, () =>
+        HttpResponse.json({ run_status: "completed", jobs: [], next_offset: 0 }),
+      ),
+    );
+  const search = async () => {
+    renderApp("/jobs");
+    const user = await signIn();
+    await user.click(await screen.findByRole("button", { name: "Run search" }));
+    return user;
+  };
+
+  it("offers the seen jobs back instead of advice about the score", async () => {
+    finishedWith({
+      raw: 354,
+      seen: 3,
+      low_score: 149,
+      handled: 0,
+      filtered: 0,
+      blocked: 0,
+      unscored: 0,
+      kept: 0,
+    });
+    const user = await search();
+    expect(await screen.findByText("3 jobs you've already seen")).toBeInTheDocument();
+    expect(
+      screen.getByText("149 jobs that scored too low in an earlier search"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Lower "Keep jobs scoring at least"/)).toBeInTheDocument();
+    expect(screen.queryByText(/scored below/)).not.toBeInTheDocument();
+    let body: { include_seen?: boolean } = {};
+    server.use(
+      http.post(`${API}/pipeline/run/stream`, async ({ request }) => {
+        body = (await request.json()) as typeof body;
+        return HttpResponse.json({ run_id: "run_again", status: "pending" }, { status: 202 });
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Search again and show seen jobs" }));
+    await waitFor(() => expect(body.include_seen).toBe(true));
+    expect(screen.getByRole("checkbox", { name: /already seen again/ })).toBeChecked();
+  });
+
+  it("names the score when that is the reason, and sources when nothing was found", async () => {
+    finishedWith({
+      raw: 9,
+      seen: 0,
+      low_score: 0,
+      handled: 0,
+      filtered: 9,
+      blocked: 0,
+      unscored: 0,
+      kept: 0,
+    });
+    await search();
+    expect(await screen.findByText(/9 jobs scored below your minimum of/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Search again and show seen jobs" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says when the search found nothing at all", async () => {
+    finishedWith({
+      raw: 0,
+      seen: 0,
+      low_score: 0,
+      handled: 0,
+      filtered: 0,
+      blocked: 0,
+      unscored: 0,
+      kept: 0,
+    });
+    await search();
+    expect(await screen.findByText(/This search found no jobs\./)).toBeInTheDocument();
   });
 });

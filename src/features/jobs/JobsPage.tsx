@@ -12,7 +12,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Icon, type IconName } from "../../components/Icon";
 import { errorMessage } from "../../lib/api/errors";
 import { useEntitlement } from "../../lib/auth/access";
-import type { StreamedJob } from "../../lib/api/types";
+import type { RunCounts, StreamedJob } from "../../lib/api/types";
 import { isCompanySite } from "../ats/platforms";
 import { AiBusyBanner } from "../models/AiBusyBanner";
 import { getProviders } from "../models/modelsApi";
@@ -59,6 +59,68 @@ function StatTile({ icon, value, label }: { icon: IconName; value: string; label
         <strong className="num">{value}</strong>
         <span className="stat-label">{label}</span>
       </span>
+    </div>
+  );
+}
+
+/** Why a finished search shows nothing, from the run's own counts: "lower the score" is no help when every job was already seen. */
+function NoJobsReason({
+  counts,
+  minScore,
+  busy,
+  onShowSeen,
+}: {
+  counts?: RunCounts;
+  minScore: number;
+  busy: boolean;
+  onShowSeen: () => void;
+}) {
+  const skipped = counts
+    ? counts.seen +
+      counts.low_score +
+      counts.handled +
+      counts.filtered +
+      counts.blocked +
+      counts.unscored
+    : 0;
+  if (!counts || !skipped) {
+    return (
+      <p className="empty-state">
+        {counts && !counts.raw ? "This search found no jobs. " : "No new jobs matched. "}
+        Add titles to your profile, or turn on more job sources.
+      </p>
+    );
+  }
+  const jobs = (n: number) => `${n} job${n === 1 ? "" : "s"}`;
+  return (
+    <div className="empty-state">
+      <p>The search found jobs, but none are new:</p>
+      <ul>
+        {counts.seen > 0 && <li>{jobs(counts.seen)} you've already seen</li>}
+        {counts.low_score > 0 && (
+          <li>{jobs(counts.low_score)} that scored too low in an earlier search</li>
+        )}
+        {counts.handled > 0 && <li>{jobs(counts.handled)} you hid or applied to</li>}
+        {counts.filtered > 0 && (
+          <li>
+            {jobs(counts.filtered)} scored below your minimum of {minScore}
+          </li>
+        )}
+        {counts.blocked > 0 && (
+          <li>{jobs(counts.blocked)} removed by your must-have or exclude rules</li>
+        )}
+        {counts.unscored > 0 && (
+          <li>{jobs(counts.unscored)} the AI couldn't score (tried again on your next search)</li>
+        )}
+      </ul>
+      {counts.low_score + counts.filtered > 0 && (
+        <p>Lower "Keep jobs scoring at least" and search again to see the ones that scored low.</p>
+      )}
+      {counts.seen > 0 && (
+        <button type="button" className="btn-secondary" disabled={busy} onClick={onShowSeen}>
+          Search again and show seen jobs
+        </button>
+      )}
     </div>
   );
 }
@@ -117,10 +179,10 @@ export default function JobsPage() {
     "";
 
   const start = useMutation({
-    mutationFn: () =>
+    mutationFn: (opts?: { includeSeen: boolean }) =>
       startRun({
         search_profile_id: chosenProfile,
-        include_seen: includeSeen,
+        include_seen: opts?.includeSeen ?? includeSeen,
         thresholds: { llm_min_score_to_keep: minScore },
       }),
     onSuccess: (r) => {
@@ -486,10 +548,15 @@ export default function JobsPage() {
             run.status !== "expired" &&
             run.jobs.length === 0 &&
             !running && (
-              <p className="empty-state">
-                No new jobs matched. Lower the minimum score, add titles to your profile, or turn on
-                more job sources.
-              </p>
+              <NoJobsReason
+                counts={run.meta?.counts}
+                minScore={minScore}
+                busy={start.isPending}
+                onShowSeen={() => {
+                  setIncludeSeen(true);
+                  start.mutate({ includeSeen: true });
+                }}
+              />
             )}
           {running && run.jobs.length === 0 && (
             <p className="empty-state" role="status">
