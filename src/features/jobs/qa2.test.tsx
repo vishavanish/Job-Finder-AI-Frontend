@@ -164,7 +164,7 @@ describe("A search that shows nothing says why", () => {
     expect(
       screen.getByText("149 jobs that scored too low in an earlier search"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Lower "Keep jobs scoring at least"/)).toBeInTheDocument();
+    expect(screen.getByText(/Lower "Strong match from"/)).toBeInTheDocument();
     expect(screen.queryByText(/scored below/)).not.toBeInTheDocument();
     let body: { include_seen?: boolean } = {};
     server.use(
@@ -190,7 +190,7 @@ describe("A search that shows nothing says why", () => {
       kept: 0,
     });
     await search();
-    expect(await screen.findByText(/9 jobs scored below your minimum of/)).toBeInTheDocument();
+    expect(await screen.findByText(/9 jobs scored below 50/)).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Search again and show seen jobs" }),
     ).not.toBeInTheDocument();

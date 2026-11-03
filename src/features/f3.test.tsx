@@ -29,9 +29,9 @@ describe("Jobs", () => {
     try {
       renderApp("/jobs");
       await runSearch();
-      expect(screen.getByText(/Search finished: 6 new matching jobs/)).toBeInTheDocument();
-      // 6 jobs plus one "replaces" entry for the first job -> still 6 cards.
-      expect(screen.getAllByRole("img", { name: /Fit score/ })).toHaveLength(6);
+      expect(screen.getByText(/Search finished: 7 new matching jobs/)).toBeInTheDocument();
+      // 7 jobs plus one "replaces" entry for the first job -> still 7 cards.
+      expect(screen.getAllByRole("img", { name: /Fit score/ })).toHaveLength(7);
       const first = card("Senior Python Engineer");
       expect(
         within(first).getByRole("img", { name: "Fit score 91 out of 100" }),
