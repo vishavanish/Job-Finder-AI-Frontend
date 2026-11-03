@@ -46,6 +46,8 @@ const POSTED_FILTERS = [
   [72, "Last 3 days"],
   [168, "Last week"],
 ] as const;
+/** QA9: jobs from this score up to the slider show as "Possible matches" (backend POSSIBLE_MATCH_MIN_SCORE). */
+const POSSIBLE_MATCH_MIN = 50;
 
 function isRemote(job: StreamedJob): boolean {
   return /remote/i.test(job.location);
@@ -79,6 +81,7 @@ function NoJobsReason({
     ? counts.seen +
       counts.low_score +
       counts.handled +
+      (counts.prefiltered ?? 0) +
       counts.filtered +
       counts.blocked +
       counts.unscored
@@ -101,9 +104,12 @@ function NoJobsReason({
           <li>{jobs(counts.low_score)} that scored too low in an earlier search</li>
         )}
         {counts.handled > 0 && <li>{jobs(counts.handled)} you hid or applied to</li>}
+        {(counts.prefiltered ?? 0) > 0 && (
+          <li>{jobs(counts.prefiltered ?? 0)} that matched neither your titles nor your skills</li>
+        )}
         {counts.filtered > 0 && (
           <li>
-            {jobs(counts.filtered)} scored below your minimum of {minScore}
+            {jobs(counts.filtered)} scored below {Math.min(minScore, POSSIBLE_MATCH_MIN)}
           </li>
         )}
         {counts.blocked > 0 && (
@@ -114,7 +120,7 @@ function NoJobsReason({
         )}
       </ul>
       {counts.low_score + counts.filtered > 0 && (
-        <p>Lower "Keep jobs scoring at least" and search again to see the ones that scored low.</p>
+        <p>Lower "Strong match from" and search again to see the ones that scored low.</p>
       )}
       {counts.seen > 0 && (
         <button type="button" className="btn-secondary" disabled={busy} onClick={onShowSeen}>
@@ -253,6 +259,21 @@ export default function JobsPage() {
     );
   }, [run.jobs, states, filters]);
 
+  const possible = visible.filter((j) => j.match_group === "possible");
+  const strong = visible.filter((j) => j.match_group !== "possible");
+  const possibleTotal = run.jobs.filter((j) => j.match_group === "possible").length;
+  const sourceCounts = Object.entries(run.meta?.sources ?? {}).sort(
+    ([, a], [, b]) => b.kept - a.kept || b.raw - a.raw,
+  );
+  const jobCard = (job: StreamedJob) => (
+    <JobCard
+      key={job.id}
+      job={job}
+      state={states[job.id] ?? "seen"}
+      applyGate={applyGate}
+      {...handlers(job)}
+    />
+  );
   const activeSources = providers.data?.sources.filter((s) => s.available) ?? [];
   const runnable = providers.data ? activeSources.length : undefined;
   const scored = run.jobs.filter((j) => j.llm_score !== null && j.llm_score !== undefined);
@@ -326,7 +347,7 @@ export default function JobsPage() {
             <label className="field">
               <span className="run-label">
                 <Icon name="sliders" size={14} />
-                Keep jobs scoring at least <span className="num run-score">{minScore}</span>
+                Strong match from <span className="num run-score">{minScore}</span>
               </span>
               <input
                 type="range"
@@ -420,7 +441,11 @@ export default function JobsPage() {
             {run.status === "running" &&
               `Searching… ${run.meta.keywords_completed} of ${run.meta.total_keywords} titles done.`}
             {run.status === "completed" &&
-              `Search finished: ${run.jobs.length} new matching job${run.jobs.length === 1 ? "" : "s"}.`}
+              `Search finished: ${run.jobs.length} new matching job${run.jobs.length === 1 ? "" : "s"}${
+                possibleTotal
+                  ? ` (${run.jobs.length - possibleTotal} strong, ${possibleTotal} possible)`
+                  : ""
+              }.`}
             {run.status === "cancelled" &&
               `Search stopped. ${run.jobs.length} job${run.jobs.length === 1 ? "" : "s"} found before it stopped.`}
             {run.status === "failed" && `Search failed: ${run.meta.error || "try again"}.`}
@@ -568,17 +593,26 @@ export default function JobsPage() {
             <p className="empty-state">No jobs match these filters.</p>
           )}
           <div className={"jobs-layout" + (run.jobs.length > 0 ? " has-side" : "")}>
-            <ul className="job-list">
-              {visible.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  state={states[job.id] ?? "seen"}
-                  applyGate={applyGate}
-                  {...handlers(job)}
-                />
-              ))}
-            </ul>
+            <div className="job-groups">
+              {possible.length > 0 && strong.length > 0 && (
+                <h3 className="match-group-title">
+                  Strong matches <span className="num">{strong.length}</span>
+                </h3>
+              )}
+              <ul className="job-list">{strong.map(jobCard)}</ul>
+              {possible.length > 0 && (
+                <>
+                  <h3 className="match-group-title">
+                    Possible matches <span className="num">{possible.length}</span>
+                  </h3>
+                  <p className="field-hint">
+                    These scored {Math.min(minScore, POSSIBLE_MATCH_MIN)} or more, below a strong
+                    match. Worth a quick look.
+                  </p>
+                  <ul className="job-list">{possible.map(jobCard)}</ul>
+                </>
+              )}
+            </div>
             {run.jobs.length > 0 && (
               <aside className="card copilot" aria-labelledby={`${id}-copilot`}>
                 <div className="copilot-head">
@@ -629,6 +663,30 @@ export default function JobsPage() {
                   </>
                 ) : (
                   <p className="field-hint">No missing skills in these jobs.</p>
+                )}
+
+                {sourceCounts.length > 0 && (
+                  <>
+                    <h4 className="copilot-label">Jobs per source</h4>
+                    <table className="source-counts">
+                      <thead>
+                        <tr>
+                          <th scope="col">Source</th>
+                          <th scope="col">Found</th>
+                          <th scope="col">Shown</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sourceCounts.map(([name, c]) => (
+                          <tr key={name}>
+                            <td>{name}</td>
+                            <td className="num">{c.raw}</td>
+                            <td className="num">{c.kept}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
                 )}
 
                 <div className="copilot-label-row">

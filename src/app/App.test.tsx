@@ -89,7 +89,7 @@ describe("app shell", () => {
       );
       for (let i = 0; i < 6; i += 1) await vi.advanceTimersByTimeAsync(2100);
 
-      expect(await screen.findByText(/Search finished: 6 new matching jobs/)).toBeInTheDocument();
+      expect(await screen.findByText(/Search finished: 7 new matching jobs/)).toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /Activity/ }));
       const tray = screen.getByRole("region", { name: "Activity" });
       expect(within(tray).getByText("Job search")).toBeInTheDocument();

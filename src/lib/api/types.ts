@@ -105,6 +105,8 @@ export interface StreamedJob {
   posted_hours_ago?: number | null;
   early?: boolean;
   new_since_last_search?: boolean | null;
+  /** QA9: "possible" jobs scored below the strong-match minimum; empty while scoring. */
+  match_group?: "strong" | "possible" | null;
   /** LinkedIn applicant count as shown ("143", "Over 200"). */
   applicants?: string | null;
   /** A better copy (or an update) of a job already in the feed: replace the entry with this id. */
@@ -149,6 +151,8 @@ export interface PipelineRunMeta {
   timings?: Record<string, number>;
   /** What happened to the jobs the search found, so an empty result can say why. */
   counts?: RunCounts;
+  /** QA9: jobs per source: found (every copy) and shown. */
+  sources?: Record<string, { raw: number; kept: number }>;
 }
 
 export interface RunCounts {
@@ -156,6 +160,8 @@ export interface RunCounts {
   seen: number;
   low_score: number;
   handled: number;
+  /** QA9: matched neither the titles nor the skills, so the AI never saw them. */
+  prefiltered?: number;
   filtered: number;
   blocked: number;
   unscored: number;

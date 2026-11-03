@@ -99,6 +99,15 @@ const SAMPLE_JOBS: Omit<StreamedJob, "id" | "created_at">[] = [
     "React + FastAPI is an exact stack match; seniority is lower than your target.",
     true,
   ],
+  [
+    "Indeed",
+    "Backend Developer (Python)",
+    "Northwind Labs",
+    "Pune",
+    60,
+    "Python backend fits, but the role asks for payments experience you don't list.",
+    false,
+  ],
 ].map(([source, title, company, location, score, reason, capable]) => ({
   source: source as string,
   title: title as string,
@@ -111,6 +120,7 @@ const SAMPLE_JOBS: Omit<StreamedJob, "id" | "created_at">[] = [
   llm_score: score as number,
   llm_reason: reason as string,
   auto_apply_capable: capable as boolean,
+  match_group: (score as number) >= 70 ? ("strong" as const) : ("possible" as const),
 }));
 
 export interface MockRun {

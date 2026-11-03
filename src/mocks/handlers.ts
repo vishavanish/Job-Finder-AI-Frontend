@@ -423,6 +423,12 @@ export const workHandlers = [
         : 3,
       error: "",
       created_at: new Date(run.createdAt).toISOString(),
+      sources: Object.fromEntries(
+        [...new Set(run.jobs.map((j) => j.source))].map((source) => {
+          const kept = run.jobs.filter((j) => j.source === source).length;
+          return [source, { raw: kept * 4, kept }];
+        }),
+      ),
     });
   }),
 
