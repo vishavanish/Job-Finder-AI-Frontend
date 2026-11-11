@@ -941,6 +941,181 @@
         }
       }
     },
+    "/api/v1/apply/runs/{run_id}/live": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Start Live",
+        "description": "Opens a live view of a browser on the server at the page that stopped this run (`awaiting_login`).\nSign in, create the account or do the check there yourself (your typing goes straight to the page and is\nnever stored), then call continue.",
+        "operationId": "start_live_api_v1_apply_runs__run_id__live_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveStart"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/live/continue": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Continue Live",
+        "operationId": "continue_live_api_v1_apply_runs__run_id__live_continue_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/apply/runs/{run_id}/live/give-up": {
+      "post": {
+        "tags": [
+          "apply"
+        ],
+        "summary": "Give Up Live",
+        "operationId": "give_up_live_api_v1_apply_runs__run_id__live_give_up_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/apply/runs/{run_id}/done": {
       "post": {
         "tags": [
@@ -3370,7 +3545,7 @@
           "admin"
         ],
         "summary": "System Health",
-        "description": "Every health check with its detail: database, Redis queues, AI setup,\nalerts scheduler. The public GET /health returns only the overall status.\n`apply_blocked` lists platforms whose Auto apply is paused because they\nblock the server's browser (QA5); it does not change the status.",
+        "description": "Every health check with its detail: database, Redis queues, AI setup,\nalerts scheduler. The public GET /health returns only the overall status.\n`apply_blocked` lists platforms whose Auto apply is paused because they\nblock the server's browser (QA5); `live_browser` = live sign-in sessions in use (QA11, null when not set\nup). Neither changes the status.",
         "operationId": "system_health_api_v1_admin_system_health_get",
         "parameters": [
           {
@@ -5495,6 +5670,124 @@
         }
       }
     },
+    "/api/v1/resumes/{resume_id}/check": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Recheck Resume",
+        "description": "Runs the resume check again (no AI). `ats_check` is null until it\nfinishes; poll GET /resumes/{id}.",
+        "operationId": "recheck_resume_api_v1_resumes__resume_id__check_post",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resume_id}/plain-copy": {
+      "post": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Make Plain Copy",
+        "description": "A plain one-column DOCX (standard headings, real text) made from the\nreviewed parse, saved as a new version. Download it and check it before\nyou use it; your master stays as it is.",
+        "operationId": "make_plain_copy_api_v1_resumes__resume_id__plain_copy_post",
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/search-profiles": {
       "get": {
         "tags": [
@@ -5964,6 +6257,83 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserJobList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}/keyword-fit": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Keyword Fit",
+        "description": "How many of the job's hard skills, its title and degree your resume\nshows (no AI). Missing skills: add them only if you really have them.",
+        "operationId": "keyword_fit_api_v1_jobs__job_id__keyword_fit_get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "resume_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Default: your master resume",
+              "title": "Resume Id"
+            },
+            "description": "Default: your master resume"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordFit"
                 }
               }
             }
@@ -13929,6 +14299,36 @@
         ],
         "title": "CopilotAckIn"
       },
+      "EducationFit": {
+        "properties": {
+          "required": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required",
+            "description": "The degree the job names: Bachelor's, Master's or PhD"
+          },
+          "met": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Met",
+            "description": "Whether the resume shows that level; null when the job names none"
+          }
+        },
+        "type": "object",
+        "title": "EducationFit"
+      },
       "EducationItem": {
         "properties": {
           "school": {
@@ -15073,6 +15473,75 @@
         ],
         "title": "KeyOut"
       },
+      "KeywordFit": {
+        "properties": {
+          "resume_id": {
+            "type": "string",
+            "title": "Resume Id"
+          },
+          "fit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fit",
+            "description": "0-100; null when the job names no skills, title or degree"
+          },
+          "target": {
+            "type": "integer",
+            "title": "Target",
+            "description": "The usual 'good fit' line",
+            "default": 75
+          },
+          "hard_found": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hard Found"
+          },
+          "hard_missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hard Missing",
+            "description": "Add these only if you really have them"
+          },
+          "soft_found": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Soft Found"
+          },
+          "soft_missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Soft Missing"
+          },
+          "title_found": {
+            "type": "boolean",
+            "title": "Title Found",
+            "default": false
+          },
+          "education": {
+            "$ref": "#/components/schemas/EducationFit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resume_id"
+        ],
+        "title": "KeywordFit",
+        "description": "QA10: how much of a job's hard skills, title and degree the resume shows."
+      },
       "LinkItem": {
         "properties": {
           "label": {
@@ -15090,6 +15559,40 @@
         },
         "type": "object",
         "title": "LinkItem"
+      },
+      "LiveStart": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "Single-use; the first message on WS /apply/runs/{id}/live is {\"type\": \"auth\", \"token\": ...}"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "session_minutes": {
+            "type": "integer",
+            "title": "Session Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "expires_in",
+          "width",
+          "height",
+          "session_minutes"
+        ],
+        "title": "LiveStart"
       },
       "LoginRequest": {
         "properties": {
@@ -16644,6 +17147,128 @@
         ],
         "title": "ResolveIn"
       },
+      "ResumeCheck": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score",
+            "description": "0-100; null when the file could not be checked"
+          },
+          "band": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "good",
+                  "needs_fixes",
+                  "hard_to_read"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/ResumeCheckFinding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "pages": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pages"
+          },
+          "words": {
+            "type": "integer",
+            "title": "Words",
+            "default": 0
+          },
+          "seen_text": {
+            "type": "string",
+            "title": "Seen Text",
+            "description": "The text in the order a simple reader gets it (\u2264 6,000 characters)",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "ResumeCheck",
+        "description": "QA10: how easily a resume reader (ATS) can read the file. No ATS scores\nresumes \u2014 the score summarises these findings."
+      },
+      "ResumeCheckFinding": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "text_layer, columns, tables, text_boxes, contact, odd_characters, headings, dates, length, file"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "info",
+              "warn",
+              "fail"
+            ],
+            "title": "Level"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "default": ""
+          },
+          "fix": {
+            "type": "string",
+            "title": "Fix",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "level",
+          "title"
+        ],
+        "title": "ResumeCheckFinding"
+      },
       "ResumeDetail": {
         "properties": {
           "id": {
@@ -16725,6 +17350,29 @@
               }
             ],
             "title": "Parsed By"
+          },
+          "ats_check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResumeCheck"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null while the check runs (poll again)"
+          },
+          "ats_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ats Checked At"
           },
           "created_at": {
             "type": "string",
@@ -16874,6 +17522,29 @@
               }
             ],
             "title": "Parsed By"
+          },
+          "ats_check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResumeCheck"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null while the check runs (poll again)"
+          },
+          "ats_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ats Checked At"
           },
           "created_at": {
             "type": "string",
@@ -17123,6 +17794,7 @@
               "awaiting_review",
               "submitting",
               "in_browser",
+              "awaiting_login",
               "submitted",
               "failed",
               "cancelled",
@@ -17215,6 +17887,17 @@
             "title": "Vision",
             "description": "AI form reader: screenshot-fallback use ({steps, cost_usd, map_calls, log})"
           },
+          "takeover": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunTakeover"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "awaiting_login: what the site asks for"
+          },
           "approved_at": {
             "anyOf": [
               {
@@ -17265,6 +17948,60 @@
           "updated_at"
         ],
         "title": "RunOut"
+      },
+      "RunTakeover": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "login",
+              "account",
+              "captcha"
+            ],
+            "title": "Kind"
+          },
+          "site": {
+            "type": "string",
+            "title": "Site",
+            "description": "The site's host, e.g. acme.wd3.myworkdayjobs.com"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At",
+            "description": "After this the run goes to needs_user"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available",
+            "description": "false when live sign-in is switched off or not set up on the server"
+          },
+          "sessions_left_today": {
+            "type": "integer",
+            "title": "Sessions Left Today"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "site",
+          "reason",
+          "started_at",
+          "expires_at",
+          "available",
+          "sessions_left_today"
+        ],
+        "title": "RunTakeover",
+        "description": "QA11: the run stopped at a page only you can get past (sign in, create an account, a captcha).\nOpen a live view with POST /apply/runs/{id}/live, do it there, then continue."
       },
       "ScoreRequest": {
         "properties": {

@@ -281,6 +281,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/apply/runs/{run_id}/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Live
+         * @description Opens a live view of a browser on the server at the page that stopped this run (`awaiting_login`).
+         *     Sign in, create the account or do the check there yourself (your typing goes straight to the page and is
+         *     never stored), then call continue.
+         */
+        post: operations["start_live_api_v1_apply_runs__run_id__live_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/live/continue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Continue Live */
+        post: operations["continue_live_api_v1_apply_runs__run_id__live_continue_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/apply/runs/{run_id}/live/give-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Give Up Live */
+        post: operations["give_up_live_api_v1_apply_runs__run_id__live_give_up_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/apply/runs/{run_id}/done": {
         parameters: {
             query?: never;
@@ -1013,7 +1069,8 @@ export interface paths {
          * @description Every health check with its detail: database, Redis queues, AI setup,
          *     alerts scheduler. The public GET /health returns only the overall status.
          *     `apply_blocked` lists platforms whose Auto apply is paused because they
-         *     block the server's browser (QA5); it does not change the status.
+         *     block the server's browser (QA5); `live_browser` = live sign-in sessions in use (QA11, null when not set
+         *     up). Neither changes the status.
          */
         get: operations["system_health_api_v1_admin_system_health_get"];
         put?: never;
@@ -1518,6 +1575,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/resumes/{resume_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recheck Resume
+         * @description Runs the resume check again (no AI). `ats_check` is null until it
+         *     finishes; poll GET /resumes/{id}.
+         */
+        post: operations["recheck_resume_api_v1_resumes__resume_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resumes/{resume_id}/plain-copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make Plain Copy
+         * @description A plain one-column DOCX (standard headings, real text) made from the
+         *     reviewed parse, saved as a new version. Download it and check it before
+         *     you use it; your master stays as it is.
+         */
+        post: operations["make_plain_copy_api_v1_resumes__resume_id__plain_copy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search-profiles": {
         parameters: {
             query?: never;
@@ -1606,6 +1706,27 @@ export interface paths {
         };
         /** List My Jobs */
         get: operations["list_my_jobs_api_v1_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{job_id}/keyword-fit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Keyword Fit
+         * @description How many of the job's hard skills, its title and degree your resume
+         *     shows (no AI). Missing skills: add them only if you really have them.
+         */
+        get: operations["keyword_fit_api_v1_jobs__job_id__keyword_fit_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4043,6 +4164,19 @@ export interface components {
              */
             version: string;
         };
+        /** EducationFit */
+        EducationFit: {
+            /**
+             * Required
+             * @description The degree the job names: Bachelor's, Master's or PhD
+             */
+            required?: string | null;
+            /**
+             * Met
+             * @description Whether the resume shows that level; null when the job names none
+             */
+            met?: boolean | null;
+        };
         /** EducationItem */
         EducationItem: {
             /**
@@ -4496,6 +4630,42 @@ export interface components {
             /** Last Used At */
             last_used_at?: string | null;
         };
+        /**
+         * KeywordFit
+         * @description QA10: how much of a job's hard skills, title and degree the resume shows.
+         */
+        KeywordFit: {
+            /** Resume Id */
+            resume_id: string;
+            /**
+             * Fit
+             * @description 0-100; null when the job names no skills, title or degree
+             */
+            fit?: number | null;
+            /**
+             * Target
+             * @description The usual 'good fit' line
+             * @default 75
+             */
+            target: number;
+            /** Hard Found */
+            hard_found?: string[];
+            /**
+             * Hard Missing
+             * @description Add these only if you really have them
+             */
+            hard_missing?: string[];
+            /** Soft Found */
+            soft_found?: string[];
+            /** Soft Missing */
+            soft_missing?: string[];
+            /**
+             * Title Found
+             * @default false
+             */
+            title_found: boolean;
+            education?: components["schemas"]["EducationFit"];
+        };
         /** LinkItem */
         LinkItem: {
             /**
@@ -4508,6 +4678,22 @@ export interface components {
              * @default
              */
             url: string;
+        };
+        /** LiveStart */
+        LiveStart: {
+            /**
+             * Token
+             * @description Single-use; the first message on WS /apply/runs/{id}/live is {"type": "auth", "token": ...}
+             */
+            token: string;
+            /** Expires In */
+            expires_in: number;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /** Session Minutes */
+            session_minutes: number;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -5080,6 +5266,64 @@ export interface components {
             /** Category */
             category?: ("acknowledgement" | "assessment" | "interview_invite" | "offer" | "rejection") | null;
         };
+        /**
+         * ResumeCheck
+         * @description QA10: how easily a resume reader (ATS) can read the file. No ATS scores
+         *     resumes — the score summarises these findings.
+         */
+        ResumeCheck: {
+            /** Version */
+            version: number;
+            /**
+             * Score
+             * @description 0-100; null when the file could not be checked
+             */
+            score?: number | null;
+            /** Band */
+            band?: ("good" | "needs_fixes" | "hard_to_read") | null;
+            /** Error */
+            error?: string | null;
+            /** Findings */
+            findings?: components["schemas"]["ResumeCheckFinding"][];
+            /** Pages */
+            pages?: number | null;
+            /**
+             * Words
+             * @default 0
+             */
+            words: number;
+            /**
+             * Seen Text
+             * @description The text in the order a simple reader gets it (≤ 6,000 characters)
+             * @default
+             */
+            seen_text: string;
+        };
+        /** ResumeCheckFinding */
+        ResumeCheckFinding: {
+            /**
+             * Id
+             * @description text_layer, columns, tables, text_boxes, contact, odd_characters, headings, dates, length, file
+             */
+            id: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "pass" | "info" | "warn" | "fail";
+            /** Title */
+            title: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /**
+             * Fix
+             * @default
+             */
+            fix: string;
+        };
         /** ResumeDetail */
         ResumeDetail: {
             /** Id */
@@ -5107,6 +5351,10 @@ export interface components {
             parse_error?: string | null;
             /** Parsed By */
             parsed_by?: string | null;
+            /** @description Null while the check runs (poll again) */
+            ats_check?: components["schemas"]["ResumeCheck"] | null;
+            /** Ats Checked At */
+            ats_checked_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -5155,6 +5403,10 @@ export interface components {
             parse_error?: string | null;
             /** Parsed By */
             parsed_by?: string | null;
+            /** @description Null while the check runs (poll again) */
+            ats_check?: components["schemas"]["ResumeCheck"] | null;
+            /** Ats Checked At */
+            ats_checked_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -5268,7 +5520,7 @@ export interface components {
              * State
              * @enum {string}
              */
-            state: "queued" | "preparing" | "awaiting_input" | "awaiting_review" | "submitting" | "in_browser" | "submitted" | "failed" | "cancelled" | "needs_user" | "done";
+            state: "queued" | "preparing" | "awaiting_input" | "awaiting_review" | "submitting" | "in_browser" | "awaiting_login" | "submitted" | "failed" | "cancelled" | "needs_user" | "done";
             /** Message */
             message?: string | null;
             /** Fields */
@@ -5305,6 +5557,8 @@ export interface components {
             vision?: {
                 [key: string]: unknown;
             } | null;
+            /** @description awaiting_login: what the site asks for */
+            takeover?: components["schemas"]["RunTakeover"] | null;
             /** Approved At */
             approved_at?: string | null;
             /** Submitted At */
@@ -5319,6 +5573,43 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * RunTakeover
+         * @description QA11: the run stopped at a page only you can get past (sign in, create an account, a captcha).
+         *     Open a live view with POST /apply/runs/{id}/live, do it there, then continue.
+         */
+        RunTakeover: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "login" | "account" | "captcha";
+            /**
+             * Site
+             * @description The site's host, e.g. acme.wd3.myworkdayjobs.com
+             */
+            site: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             * @description After this the run goes to needs_user
+             */
+            expires_at: string;
+            /**
+             * Available
+             * @description false when live sign-in is switched off or not set up on the server
+             */
+            available: boolean;
+            /** Sessions Left Today */
+            sessions_left_today: number;
         };
         /** ScoreRequest */
         ScoreRequest: {
@@ -6999,6 +7290,105 @@ export interface operations {
         };
     };
     cancel_run_api_v1_apply_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_live_api_v1_apply_runs__run_id__live_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveStart"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    continue_live_api_v1_apply_runs__run_id__live_continue_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    give_up_live_api_v1_apply_runs__run_id__live_give_up_post: {
         parameters: {
             query?: never;
             header?: {
@@ -9625,6 +10015,72 @@ export interface operations {
             };
         };
     };
+    recheck_resume_api_v1_resumes__resume_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                resume_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    make_plain_copy_api_v1_resumes__resume_id__plain_copy_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                resume_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_search_profiles_api_v1_search_profiles_get: {
         parameters: {
             query?: never;
@@ -9882,6 +10338,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserJobList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    keyword_fit_api_v1_jobs__job_id__keyword_fit_get: {
+        parameters: {
+            query?: {
+                /** @description Default: your master resume */
+                resume_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeywordFit"];
                 };
             };
             /** @description Validation Error */

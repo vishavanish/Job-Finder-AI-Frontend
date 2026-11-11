@@ -41,6 +41,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const NEXT_STEP: Record<string, string> = {
+  awaiting_login: "Sign in on the live view so it can carry on",
   awaiting_input: "Answer the questions it couldn't",
   awaiting_review: "Review the answers and submit",
   needs_user: "Finish this one on the job page",
@@ -48,6 +49,7 @@ const NEXT_STEP: Record<string, string> = {
 };
 
 const ACTION: Record<string, string> = {
+  awaiting_login: "Sign in",
   awaiting_input: "Answer",
   awaiting_review: "Review",
   needs_user: "Finish",

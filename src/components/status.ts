@@ -20,6 +20,7 @@ const GROUP_BY_STATUS: Record<string, StatusGroup> = {
   running: "active",
   opened: "active",
   // Needs you
+  awaiting_login: "attention",
   awaiting_input: "attention",
   awaiting_review: "attention",
   needs_review: "attention",
@@ -51,6 +52,7 @@ const GROUP_BY_STATUS: Record<string, StatusGroup> = {
 
 const LABELS: Record<string, string> = {
   easy_apply_form_filled_awaiting_review: "Prefilled, awaiting review",
+  awaiting_login: "Sign in to continue",
   awaiting_input: "Needs your input",
   awaiting_review: "Awaiting your review",
   needs_review: "Needs review",

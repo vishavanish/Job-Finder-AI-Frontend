@@ -21,9 +21,11 @@ import type {
 import { mockDb } from "./data";
 import {
   EMPTY_EEO,
+  MOCK_KEYWORD_FIT,
   SAMPLE_PARSED,
   enrich,
   f3Db,
+  mockCheck,
   setUserJob,
   userJobs,
   type MockResume,
@@ -257,6 +259,10 @@ export const f3Handlers = [
         r.parse_status = "parsed";
         r.parsed = { ...SAMPLE_PARSED };
         if (r.is_master) fillApplicantFromResume(auth.user.id, auth.user.email);
+      } else if (r.parse_status !== "pending" && !r.ats_check) {
+        // QA10: the worker's check finishes by the next poll.
+        r.ats_check = mockCheck(r.file_name.endsWith(".docx") ? "good" : "hard_to_read");
+        r.ats_checked_at = nowIso();
       }
     }
     return HttpResponse.json({
@@ -356,6 +362,38 @@ export const f3Handlers = [
     else if (params.action === "parse") {
       r.parse_status = "pending";
       r.pendingPolls = 1;
+    } else if (params.action === "check") {
+      r.ats_check = null;
+      r.ats_checked_at = null;
+      return HttpResponse.json(resumeOut(r), { status: 202 });
+    } else if (params.action === "plain-copy") {
+      if (r.parse_status !== "reviewed" || !r.parsed)
+        return HttpResponse.json(
+          {
+            detail: {
+              code: "resume_not_reviewed",
+              message: "Check and save what we read from this resume first.",
+            },
+          },
+          { status: 409 },
+        );
+      const base = (r.label || r.file_name.replace(/\.[^.]+$/, "")).slice(0, 70);
+      const copy: MockResume = {
+        ...r,
+        id: newId("r"),
+        version: Math.max(...list.map((x) => x.version)) + 1,
+        is_master: false,
+        parent_id: r.parent_id ?? r.id,
+        label: `Plain copy of ${base}`,
+        file_name: `${base} - plain.docx`,
+        content_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ats_check: mockCheck("good"),
+        ats_checked_at: nowIso(),
+        created_at: nowIso(),
+        updated_at: nowIso(),
+      };
+      list.push(copy);
+      return HttpResponse.json(resumeOut(copy), { status: 201 });
     } else return notFound("not_found", "Unknown action.");
     return HttpResponse.json(resumeOut(r));
   }),
@@ -458,6 +496,32 @@ export const f3Handlers = [
       .filter((j): j is StreamedJob => Boolean(j))
       .map((j) => userJobOut(auth.user.id, j));
     return HttpResponse.json({ jobs, total: jobs.length });
+  }),
+
+  http.get(`${API}/jobs/:id/keyword-fit`, ({ request }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const list = resumes(auth.user.id);
+    const wanted = new URL(request.url).searchParams.get("resume_id");
+    const master = list.find((x) => x.is_master);
+    // The F4 prep mock hands out a tailored resume id that isn't in this list: treat it as one.
+    const r = wanted
+      ? (list.find((x) => x.id === wanted) ??
+        (master && { ...master, id: wanted, parent_id: master.id, label: "Tailored" }))
+      : master;
+    if (!r) return unprocessable("resume_required", "Upload a resume in Profile first.");
+    const tailored = Boolean(r.parent_id) && !r.label?.startsWith("Plain copy");
+    return HttpResponse.json({
+      resume_id: r.id,
+      ...MOCK_KEYWORD_FIT,
+      ...(tailored
+        ? {
+            fit: 78,
+            hard_found: [...MOCK_KEYWORD_FIT.hard_found!, "kafka"],
+            hard_missing: ["kubernetes"],
+          }
+        : {}),
+    });
   }),
 
   http.post(`${API}/jobs/:id/:action`, ({ request, params }) => {

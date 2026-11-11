@@ -44,6 +44,7 @@ import {
 import { useApplyRun } from "./useApplyRun";
 import { proofTitle, useProofUrls } from "./useProofUrls";
 import "./apply.css";
+import { LiveSignIn } from "./LiveSignIn";
 
 const SOURCE: Record<string, { label: string; tone: string }> = {
   profile: { label: "From your profile", tone: "tone-neutral" },
@@ -447,6 +448,8 @@ export default function RunReviewPage() {
             )}
           </div>
         )}
+
+        {run.state === "awaiting_login" && <LiveSignIn run={run} onRun={refresh} />}
 
         {run.state === "in_browser" && (
           <div className="run-hero-action handoff">
