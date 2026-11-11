@@ -1518,6 +1518,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/resumes/{resume_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recheck Resume
+         * @description Runs the resume check again (no AI). `ats_check` is null until it
+         *     finishes; poll GET /resumes/{id}.
+         */
+        post: operations["recheck_resume_api_v1_resumes__resume_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resumes/{resume_id}/plain-copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make Plain Copy
+         * @description A plain one-column DOCX (standard headings, real text) made from the
+         *     reviewed parse, saved as a new version. Download it and check it before
+         *     you use it; your master stays as it is.
+         */
+        post: operations["make_plain_copy_api_v1_resumes__resume_id__plain_copy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search-profiles": {
         parameters: {
             query?: never;
@@ -1606,6 +1649,27 @@ export interface paths {
         };
         /** List My Jobs */
         get: operations["list_my_jobs_api_v1_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{job_id}/keyword-fit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Keyword Fit
+         * @description How many of the job's hard skills, its title and degree your resume
+         *     shows (no AI). Missing skills: add them only if you really have them.
+         */
+        get: operations["keyword_fit_api_v1_jobs__job_id__keyword_fit_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4043,6 +4107,19 @@ export interface components {
              */
             version: string;
         };
+        /** EducationFit */
+        EducationFit: {
+            /**
+             * Required
+             * @description The degree the job names: Bachelor's, Master's or PhD
+             */
+            required?: string | null;
+            /**
+             * Met
+             * @description Whether the resume shows that level; null when the job names none
+             */
+            met?: boolean | null;
+        };
         /** EducationItem */
         EducationItem: {
             /**
@@ -4495,6 +4572,42 @@ export interface components {
             created_at: string;
             /** Last Used At */
             last_used_at?: string | null;
+        };
+        /**
+         * KeywordFit
+         * @description QA10: how much of a job's hard skills, title and degree the resume shows.
+         */
+        KeywordFit: {
+            /** Resume Id */
+            resume_id: string;
+            /**
+             * Fit
+             * @description 0-100; null when the job names no skills, title or degree
+             */
+            fit?: number | null;
+            /**
+             * Target
+             * @description The usual 'good fit' line
+             * @default 75
+             */
+            target: number;
+            /** Hard Found */
+            hard_found?: string[];
+            /**
+             * Hard Missing
+             * @description Add these only if you really have them
+             */
+            hard_missing?: string[];
+            /** Soft Found */
+            soft_found?: string[];
+            /** Soft Missing */
+            soft_missing?: string[];
+            /**
+             * Title Found
+             * @default false
+             */
+            title_found: boolean;
+            education?: components["schemas"]["EducationFit"];
         };
         /** LinkItem */
         LinkItem: {
@@ -5080,6 +5193,64 @@ export interface components {
             /** Category */
             category?: ("acknowledgement" | "assessment" | "interview_invite" | "offer" | "rejection") | null;
         };
+        /**
+         * ResumeCheck
+         * @description QA10: how easily a resume reader (ATS) can read the file. No ATS scores
+         *     resumes — the score summarises these findings.
+         */
+        ResumeCheck: {
+            /** Version */
+            version: number;
+            /**
+             * Score
+             * @description 0-100; null when the file could not be checked
+             */
+            score?: number | null;
+            /** Band */
+            band?: ("good" | "needs_fixes" | "hard_to_read") | null;
+            /** Error */
+            error?: string | null;
+            /** Findings */
+            findings?: components["schemas"]["ResumeCheckFinding"][];
+            /** Pages */
+            pages?: number | null;
+            /**
+             * Words
+             * @default 0
+             */
+            words: number;
+            /**
+             * Seen Text
+             * @description The text in the order a simple reader gets it (≤ 6,000 characters)
+             * @default
+             */
+            seen_text: string;
+        };
+        /** ResumeCheckFinding */
+        ResumeCheckFinding: {
+            /**
+             * Id
+             * @description text_layer, columns, tables, text_boxes, contact, odd_characters, headings, dates, length, file
+             */
+            id: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "pass" | "info" | "warn" | "fail";
+            /** Title */
+            title: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /**
+             * Fix
+             * @default
+             */
+            fix: string;
+        };
         /** ResumeDetail */
         ResumeDetail: {
             /** Id */
@@ -5107,6 +5278,10 @@ export interface components {
             parse_error?: string | null;
             /** Parsed By */
             parsed_by?: string | null;
+            /** @description Null while the check runs (poll again) */
+            ats_check?: components["schemas"]["ResumeCheck"] | null;
+            /** Ats Checked At */
+            ats_checked_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -5155,6 +5330,10 @@ export interface components {
             parse_error?: string | null;
             /** Parsed By */
             parsed_by?: string | null;
+            /** @description Null while the check runs (poll again) */
+            ats_check?: components["schemas"]["ResumeCheck"] | null;
+            /** Ats Checked At */
+            ats_checked_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -9625,6 +9804,72 @@ export interface operations {
             };
         };
     };
+    recheck_resume_api_v1_resumes__resume_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                resume_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    make_plain_copy_api_v1_resumes__resume_id__plain_copy_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                resume_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_search_profiles_api_v1_search_profiles_get: {
         parameters: {
             query?: never;
@@ -9882,6 +10127,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserJobList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    keyword_fit_api_v1_jobs__job_id__keyword_fit_get: {
+        parameters: {
+            query?: {
+                /** @description Default: your master resume */
+                resume_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeywordFit"];
                 };
             };
             /** @description Validation Error */

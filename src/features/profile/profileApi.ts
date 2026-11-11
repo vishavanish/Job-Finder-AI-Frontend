@@ -1,7 +1,8 @@
-/** Profile, preferences and resumes (backend P3, P3.2). */
+/** Profile, preferences and resumes (backend P3, P3.2), resume check + keyword fit (QA10). */
 import { api } from "../../lib/api/client";
 import type {
   ApplicantInfoIn,
+  KeywordFit,
   ParsedResume,
   PreferencesIn,
   PreferencesOut,
@@ -17,6 +18,8 @@ export const profileKeys = {
   preferences: ["preferences"] as const,
   resumes: ["resumes"] as const,
   resume: (id: string) => ["resumes", id] as const,
+  keywordFit: (jobId: string, resumeId: string | null) =>
+    ["keyword-fit", jobId, resumeId ?? "master"] as const,
 };
 
 export const getProfile = () => api.get<ProfileOut>("/profile");
@@ -45,6 +48,15 @@ export const makeMaster = (id: string) =>
 export const reparseResume = (id: string) =>
   api.post<ResumeOut>(`/resumes/${encodeURIComponent(id)}/parse`);
 export const deleteResume = (id: string) => api.delete<void>(`/resumes/${encodeURIComponent(id)}`);
+export const recheckResume = (id: string) =>
+  api.post<ResumeOut>(`/resumes/${encodeURIComponent(id)}/check`);
+export const makePlainCopy = (id: string) =>
+  api.post<ResumeOut>(`/resumes/${encodeURIComponent(id)}/plain-copy`);
+export const getKeywordFit = (jobId: string, resumeId?: string | null) =>
+  api.get<KeywordFit>(
+    `/jobs/${encodeURIComponent(jobId)}/keyword-fit` +
+      (resumeId ? `?resume_id=${encodeURIComponent(resumeId)}` : ""),
+  );
 
 const EMPTY_APPLICANT = {
   first_name: "",

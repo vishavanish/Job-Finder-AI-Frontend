@@ -8,7 +8,9 @@ import type {
   AlertOut,
   AlertRunOut,
   EeoAnswers,
+  KeywordFit,
   ParsedResume,
+  ResumeCheck,
   PreferencesOut,
   ProfileOut,
   ResumeOut,
@@ -66,6 +68,89 @@ export const SAMPLE_PARSED: ParsedResume = {
   links: [],
 };
 
+/** QA10 resume check results the mocks hand out. */
+export function mockCheck(band: "good" | "needs_fixes" | "hard_to_read"): ResumeCheck {
+  const pass = (id: string, title: string) => ({
+    id,
+    level: "pass" as const,
+    title,
+    detail: "",
+    fix: "",
+  });
+  const base = [
+    pass("text_layer", "Real text on every page"),
+    pass("odd_characters", "No broken characters"),
+    pass("headings", "Standard section headings (Experience, Education, Skills)"),
+    pass("length", "Length is fine"),
+  ];
+  const columns = {
+    id: "columns",
+    level: "warn" as const,
+    title: "Two columns or a sidebar",
+    detail:
+      "Page 1 has text side by side. Many readers go across the page, mixing the two columns.",
+    fix: "Use one column. Put skills and contact details in the main column.",
+  };
+  const contact = {
+    id: "contact",
+    level: "fail" as const,
+    title: "Your email and phone number is only in the page header or footer",
+    detail: "Many readers skip that part of the page, so recruiters may not get your details.",
+    fix: "Put your email and phone in the first lines of the page itself.",
+  };
+  const findings =
+    band === "good"
+      ? [
+          ...base,
+          pass("columns", "One column — reads in the right order"),
+          pass("contact", "Email and phone are in the main text"),
+        ]
+      : band === "needs_fixes"
+        ? [...base, columns, pass("contact", "Email and phone are in the main text")]
+        : [
+            ...base,
+            columns,
+            contact,
+            {
+              ...columns,
+              id: "text_boxes",
+              level: "fail" as const,
+              title: "Text inside text boxes",
+              detail: "About 120 words sit in text boxes or shapes. Many readers skip them.",
+              fix: "Move that text into the normal page.",
+            },
+          ];
+  const score = band === "good" ? 100 : band === "needs_fixes" ? 80 : 35;
+  return {
+    version: 1,
+    score,
+    band,
+    error: null,
+    findings,
+    pages: 1,
+    words: 520,
+    seen_text: [
+      "Dev Demo",
+      "Skills",
+      "Python  Backend Engineer, Orbit Labs",
+      "FastAPI  Jan 2022 - Present",
+      "Experience",
+      "- Built APIs",
+    ].join("\n"),
+  };
+}
+
+export const MOCK_KEYWORD_FIT: Omit<KeywordFit, "resume_id"> = {
+  fit: 64,
+  target: 75,
+  hard_found: ["python", "fastapi", "postgresql", "docker"],
+  hard_missing: ["kubernetes", "kafka"],
+  soft_found: [],
+  soft_missing: ["communication"],
+  title_found: true,
+  education: { required: "Bachelor's", met: true },
+};
+
 function seedResumes(): Record<string, MockResume[]> {
   return {
     u_demo: [
@@ -83,6 +168,8 @@ function seedResumes(): Record<string, MockResume[]> {
         parsed_by: "mock",
         created_at: NOW,
         updated_at: NOW,
+        ats_check: mockCheck("needs_fixes"),
+        ats_checked_at: NOW,
         parsed: SAMPLE_PARSED,
         text: "Dev Demo — Python engineer",
         pendingPolls: 0,

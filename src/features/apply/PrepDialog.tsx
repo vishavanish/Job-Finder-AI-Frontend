@@ -10,6 +10,7 @@ import { Dialog } from "../../components/Dialog";
 import { errorMessage } from "../../lib/api/errors";
 import type { PrepPack, StreamedJob } from "../../lib/api/types";
 import { applyKeys, getPrep, markApplied, requestPrep, resumeFile, saveBlob } from "./applyApi";
+import { KeywordFitBlock } from "./KeywordFitBlock";
 
 const PACK_POLL_MS = 2000;
 
@@ -261,6 +262,10 @@ export function PrepDialog({
         </div>
       )}
 
+      <KeywordFitBlock
+        jobId={job.id}
+        tailoredResumeId={p?.status === "ready" ? p.tailored_resume_id : null}
+      />
       {(start.isPending || p?.status === "pending") && (
         <div className="prep-progress" role="status" aria-live="polite">
           <p>

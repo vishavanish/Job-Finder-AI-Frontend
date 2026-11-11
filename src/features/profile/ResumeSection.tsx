@@ -1,7 +1,8 @@
 /**
  * Resume upload, versions (master marker) and the review-before-saving step
  * for the AI-parsed profile (spec §6.7). Parsing runs in a worker, so a
- * pending version is polled until it is parsed or failed.
+ * pending version is polled until it is parsed or failed. Each version
+ * also gets a resume check (QA10), polled until it is ready.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useRef, useState, type DragEvent } from "react";
@@ -18,6 +19,8 @@ import {
   saveReviewedResume,
   uploadResume,
 } from "./profileApi";
+import { ResumeCheckBadge, ResumeCheckPanel } from "./ResumeCheckPanel";
+import { resumeFile, saveBlob } from "../apply/applyApi";
 
 const MAX_BYTES = 4 * 1024 * 1024; // matches RESUME_MAX_BYTES (Vercel proxies ~4.5 MB bodies)
 const ACCEPT =
@@ -197,14 +200,27 @@ export function ResumeSection() {
   const [dragging, setDragging] = useState(false);
   const [localError, setLocalError] = useState("");
   const [reviewing, setReviewing] = useState<string | null>(null);
+  const [checking, setChecking] = useState<string | null>(null);
   const [flash, setFlash] = useState("");
+  const [downloadError, setDownloadError] = useState("");
+  const download = async (r: ResumeOut) => {
+    setDownloadError("");
+    try {
+      saveBlob(await resumeFile(r.id), r.file_name);
+    } catch (err) {
+      setDownloadError(errorMessage(err, "Couldn't download the file."));
+    }
+  };
 
   const resumes = useQuery({
     queryKey: profileKeys.resumes,
     queryFn: listResumes,
-    // A version is being read by the worker: check again shortly.
-    refetchInterval: (q) =>
-      q.state.data?.resumes.some((r) => r.parse_status === "pending") ? 3000 : false,
+    // A version is being read or checked by the worker: look again shortly.
+    refetchInterval: (q) => {
+      const rows = q.state.data?.resumes ?? [];
+      if (rows.some((r) => r.parse_status === "pending")) return 3000;
+      return rows.some((r) => !r.ats_check) ? 4000 : false;
+    },
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: profileKeys.resumes });
 
@@ -271,7 +287,8 @@ export function ResumeSection() {
   const error =
     localError ||
     (upload.isError ? errorMessage(upload.error, "Upload failed. Try again.") : "") ||
-    (action.isError ? errorMessage(action.error, "That didn't work. Try again.") : "");
+    (action.isError ? errorMessage(action.error, "That didn't work. Try again.") : "") ||
+    downloadError;
 
   return (
     <section className="card" aria-labelledby={`${id}-h`}>
@@ -354,9 +371,22 @@ export function ResumeSection() {
                 <span className="resume-meta">
                   {sizeText(r.size_bytes)} · {new Date(r.created_at).toLocaleDateString()}
                 </span>
+                <ResumeCheckBadge
+                  resume={r}
+                  open={checking === r.id}
+                  onToggle={() => setChecking(checking === r.id ? null : r.id)}
+                />
                 {r.parse_error && <span className="resume-meta">{r.parse_error}</span>}
               </div>
               <div className="row-actions">
+                <button
+                  type="button"
+                  className="btn-small"
+                  aria-label={`Download version ${r.version}`}
+                  onClick={() => void download(r)}
+                >
+                  Download
+                </button>
                 {(r.parse_status === "parsed" || r.parse_status === "reviewed") && (
                   <button type="button" className="btn-small" onClick={() => setReviewing(r.id)}>
                     {r.parse_status === "parsed" ? "Review" : "Edit review"}
@@ -392,6 +422,16 @@ export function ResumeSection() {
                   Delete
                 </button>
               </div>
+              {checking === r.id && (
+                <ResumeCheckPanel
+                  resume={r}
+                  onReview={() => setReviewing(r.id)}
+                  onCopied={(c) => {
+                    setChecking(c.id);
+                    setFlash(`Made ${c.file_name}. Download it from the list and check it.`);
+                  }}
+                />
+              )}
               {reviewing === r.id && (
                 <ReviewForm
                   resume={r}
