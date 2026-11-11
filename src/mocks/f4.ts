@@ -4,7 +4,7 @@
  * /apply/settings, /answer-bank and the authenticated file/screenshot
  * downloads. State lives in mocks/f4State.ts.
  */
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, ws } from "msw";
 import type { ApplyRun, ApplySettingsIn, SavedAnswer } from "../lib/api/types";
 import { entitlementsFor } from "./data";
 import { extensionDb } from "./extensionState";
@@ -14,6 +14,7 @@ import {
   advance,
   answersFor,
   f4Db,
+  formFields,
   packFor,
   settingsFor,
   settingsOut,
@@ -25,7 +26,7 @@ import { API, authenticate, newId, readJson, requireRole } from "./handlers";
 const fail = (status: number, code: string, message: string) =>
   HttpResponse.json({ detail: { code, message } }, { status });
 const nowIso = () => new Date().toISOString();
-const WAITING = ["awaiting_input", "awaiting_review", "needs_user", "in_browser"];
+const WAITING = ["awaiting_login", "awaiting_input", "awaiting_review", "needs_user", "in_browser"];
 const ACTIVE = [
   "queued",
   "preparing",
@@ -56,6 +57,52 @@ function ownRun(userId: string, id: string): MockRun | undefined {
   const run = f4Db.runs.get(id);
   return run && run.user_id === userId ? run : undefined;
 }
+
+/** A 1x1 JPEG: the live view's frames in the mocks. */
+const JPEG = Uint8Array.from(
+  atob(
+    "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==",
+  ),
+  (c) => c.charCodeAt(0),
+);
+
+const liveLink = ws.link("*/api/v1/apply/runs/:runId/live");
+
+/** QA11 live view: hello, a frame, "asks for a password"; Enter = signed in. */
+const liveSocket = liveLink.addEventListener("connection", ({ client, params }) => {
+  let authed = false;
+  client.addEventListener("message", (event) => {
+    let msg: Record<string, unknown> = {};
+    try {
+      msg = JSON.parse(String(event.data)) as Record<string, unknown>;
+    } catch {
+      return;
+    }
+    if (!authed) {
+      if (msg.type !== "auth" || msg.token !== `live-${String(params.runId)}`) {
+        client.send(JSON.stringify({ type: "error", code: "auth_failed", message: "Bad token." }));
+        client.close(4401);
+        return;
+      }
+      authed = true;
+      client.send(
+        JSON.stringify({
+          type: "hello",
+          width: 1280,
+          height: 860,
+          url: "https://acme.example/login",
+        }),
+      );
+      client.send(JPEG);
+      client.send(JSON.stringify({ type: "state", ready: false, asks: ["password"] }));
+      return;
+    }
+    if (msg.type === "key" && msg.key === "Enter") {
+      client.send(JPEG);
+      client.send(JSON.stringify({ type: "state", ready: true, asks: [] }));
+    }
+  });
+});
 
 export const f4Handlers = [
   // ---- admin: platforms paused for Auto apply (QA5) ----
@@ -590,6 +637,55 @@ export const f4Handlers = [
     list.splice(i, 1);
     return new HttpResponse(null, { status: 204 });
   }),
+  // ---- QA11: sign in on a live view ----
+  http.post(`${API}/apply/runs/:id/live`, ({ request, params }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const run = ownRun(auth.user.id, String(params.id));
+    if (!run) return fail(404, "run_not_found", "No apply run with this id.");
+    if (run.state !== "awaiting_login")
+      return fail(409, "run_not_waiting_login", "This run is not waiting for you to sign in.");
+    return HttpResponse.json({
+      token: `live-${run.id}`,
+      expires_in: 60,
+      width: 1280,
+      height: 860,
+      session_minutes: 15,
+    });
+  }),
+
+  http.post(`${API}/apply/runs/:id/live/continue`, ({ request, params }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const run = ownRun(auth.user.id, String(params.id));
+    if (!run) return fail(404, "run_not_found", "No apply run with this id.");
+    if (run.state !== "awaiting_login")
+      return fail(409, "run_not_waiting_login", "This run is not waiting for you to sign in.");
+    Object.assign(run, {
+      state: "awaiting_review",
+      message: "Signed in — every question answered. Review and submit.",
+      takeover: null,
+      fields: run.fields?.length ? run.fields : formFields(),
+      updated_at: nowIso(),
+    });
+    return HttpResponse.json(runOut(run));
+  }),
+
+  http.post(`${API}/apply/runs/:id/live/give-up`, ({ request, params }) => {
+    const auth = authenticate(request);
+    if ("response" in auth) return auth.response;
+    const run = ownRun(auth.user.id, String(params.id));
+    if (!run) return fail(404, "run_not_found", "No apply run with this id.");
+    Object.assign(run, {
+      state: "needs_user",
+      message: "You chose to finish this application on the job page yourself.",
+      takeover: null,
+      updated_at: nowIso(),
+    });
+    return HttpResponse.json(runOut(run));
+  }),
+
+  liveSocket,
 ];
 
 export { RISK_NOTICE };

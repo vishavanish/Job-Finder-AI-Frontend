@@ -1,6 +1,7 @@
 /** Apply Center calls (backend P4a / P4b / P4c): apply runs, prep packs, answer bank, apply settings. */
 import { api } from "../../lib/api/client";
 import type {
+  LiveStart,
   ApplicationLogEntry,
   ApplyOptions,
   ApplyProof,
@@ -19,6 +20,7 @@ const enc = encodeURIComponent;
 
 /** Runs that need the user, those still moving, and finished ones (the Apply Center tabs). */
 export const WAITING_STATES: readonly ApplyRunState[] = [
+  "awaiting_login",
   "awaiting_input",
   "awaiting_review",
   "needs_user",
@@ -89,6 +91,12 @@ export const finishRun = (id: string, submitted: boolean) =>
 /** Continue a stopped run in the user's own browser with the extension (backend P8b E3b). */
 export const openRunInBrowser = (id: string) =>
   api.post<ApplyRun>(`/apply/runs/${enc(id)}/browser`);
+/** QA11: sign in on a live view of the run's browser, then the run carries on. */
+export const startLive = (id: string) => api.post<LiveStart>(`/apply/runs/${enc(id)}/live`);
+export const continueLive = (id: string) =>
+  api.post<ApplyRun>(`/apply/runs/${enc(id)}/live/continue`);
+export const giveUpLive = (id: string) => api.post<ApplyRun>(`/apply/runs/${enc(id)}/live/give-up`);
+export const liveStreamPath = (id: string) => `/api/v1/apply/runs/${enc(id)}/live`;
 export const listProofs = (runId: string) =>
   api.get<ApplyProof[]>(`/apply/runs/${enc(runId)}/proofs`);
 export const proofImage = (runId: string, proofId: string) =>
